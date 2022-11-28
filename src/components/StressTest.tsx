@@ -65,6 +65,7 @@ export default function StressTest() {
   });
  
   const [chartType, setChartType] = React.useState("line");
+  const [highlightedText, setHighlightedText] = React.useState("");
   const [primaryCursorValue, setPrimaryCursorValue] = React.useState();
   const [secondaryCursorValue, setSecondaryCursorValue] = React.useState();
 
@@ -108,7 +109,18 @@ export default function StressTest() {
   function setChartTypeHandler(e: React.ChangeEvent<HTMLSelectElement>) {
     setChartType(e.target.value);
   }
+  
+  // a handler that stores and updates the text selection start and end in the textarea
+  function handleTextChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const { selectionStart, selectionEnd } = e.target;
+    setHighlightedText(e.target.value.substring(selectionStart, selectionEnd));
+ 
+  }
+ // console.log(highlightedText);
 
+  function copyHighlightedTextHandler() {
+    navigator.clipboard.writeText(highlightedText.replace(/[^0-9.,(): -]/g, ""));
+  }
 
   React.useEffect(() => {
     let interval: ReturnType<typeof setTimeout>;
@@ -130,22 +142,21 @@ export default function StressTest() {
     const yArray = data[0].data.map((datum, i) => {
       // return `${datum.primary % frameRate === 0 ? "\r\n" : "" }${datum.primary <= 10 ? " " : ""}${datum.primary % 10 <= 100 ? " " : ""}${i}: ${datum.secondary?.toFixed(2)}`
     
-        return  `${datum.primary % frameRate === 0 ? "\r\n" : "" }${datum.primary <= 9 ? "  " : ""}${datum.primary >= 10 ? " " : ""}${datum.primary <= 99 ? " " : ""}${i}:${datum.primary <= 9 ? "" : ""}${Math.sign(Number(datum.secondary)) === 1 ? " " : ""}${Math.sign(Number(datum.secondary)) === 0 ? " " : ""}(${datum.secondary?.toFixed(2).replace("-0.00", " 0.00")})`   
-      
-
-      
+         return  `${datum.primary % frameRate === 0 ? "\r\n" : "" }${datum.primary <= 9 ? "  " : ""}${datum.primary >= 10 ? " " : ""}${datum.primary <= 99 ? " " : ""}${i}:${datum.primary <= 9 ? "" : ""}${Math.sign(Number(datum.secondary)) === 1 ? " " : ""}${Math.sign(Number(datum.secondary)) === 0 ? " " : ""}(${datum.secondary?.toFixed(2).replace("-0.00", " 0.00")})`   
+       // return  `${datum.primary % frameRate === 0 || i === 0 ? "\r\n" : "" }${i}: (${datum.secondary?.toFixed(2).replace("-0.00", " 0.00")})`   
       // `${datum.primary % frameRate === 0 ? "\r\n" : "" }${datum.primary <= 9 ? " " : ""}${datum.primary >= 10 ? " " : ""}${datum.primary >= 100 ? "" : " "}${datumCount.toString.length <= 2 ? " " : ""}${i}: ${datum.secondary?.toFixed(2)}` 
-      
-
        // return `${datumCount > 100}${datum.primary % frameRate === 0 ? "\r\n" : "" }${datum.primary <= 9 ? " " : ""}${datum.primary <= 9 ? " " : ""}${datumCount.toString.length <= 2 ? " " : ""}${i}: ${datum.secondary?.toFixed(2)}`
-      
     });
 
+    // console.log(yArray);
+    // console.log("test" + yArrayNoRegex);
     // const yArray2 = data[0].data.join(", ")
     //  console.log(yArray);
     // reduce yArray to a single value
     // const yArraySum = yArray.reduce((a, b) => a + b, 0);
     // console.log(yArraySum);
+
+
 
 
   return (
@@ -352,18 +363,6 @@ export default function StressTest() {
       </label>
     
       <br />
-      {/* Memoize */}
-      {/* <label>
-        Memoize Series{" "}
-        <input
-          type="checkbox"
-          checked={memoizeSeries}
-          onChange={(e) => {
-            e.persist();
-            setState((old) => ({ ...old, memoizeSeries: !!e.target.checked }));
-          }}
-        />
-      </label> */}
       </div>
       <br />
       {[...new Array(chartCount)].map((d, i) => (
@@ -411,9 +410,14 @@ export default function StressTest() {
       ))
       }
      
+      
+      <p id="log"></p>
+
       <textarea
+        id="keyframeOutput"
         style={{ width: "90%", height: "300px", position: "relative", overflow: "scroll" }}
-        cols={datumCount / frameRate}
+        onSelect={handleTextChange}
+        onCopy={copyHighlightedTextHandler}
         wrap="off"
         value={yArray}
         onChange={(e) => {
@@ -428,4 +432,16 @@ export default function StressTest() {
     </>
   );  
 }
+
+
+         // e.clipboardData.setData("text/plain", copyText.replace(/[^0-9.,():-]/g, ""));
+
+
+
+// 0: 2.00,1: 1.93,2: 1.73,3: 1.41,4: 1.00,5: 0.52,6: 0.00,7: -0.52,8: -1.00,9: -1.41,10: -1.73,11: -1.93,12: -2.00,13: -1.93,14: -1.73,15: -1.41,16: -1.00,17: -0.52,18:  0.00,19: 0.52,20: 1.00,21: 1.41,22: 1.73,23: 1.93,
+// 24: 2.00,25: 1.93,26: 1.73,27: 1.41,28: 1.00,29: 0.52,30: 0.00,31: -0.52,32: -1.00,33: -1.41,34: -1.73,35: -1.93,36: -2.00,37: -1.93,38: -1.73,39: -1.41,40: -1.00,41: -0.52,42:  0.00,43: 0.52,44: 1.00,45: 1.41,46: 1.73,47: 1.93,
+// 48: 2.00,49: 1.93,50: 1.73,51: 1.41,52: 1.00,53: 0.52,54: 0.00,55: -0.52,56: -1.00,57: -1.41,58: -1.73,59: -1.93,60: -2.00,61: -1.93,62: -1.73,63: -1.41,64: -1.00,65: -0.52,66: 0.00,67: 0.52,68: 1.00,69: 1.41,70: 1.73,71: 1.93,
+// 72: 2.00,73: 1.93,74: 1.73,75: 1.41,76: 1.00,77: 0.52,78: 0.00,79: -0.52,80: -1.00,81: -1.41,82: -1.73,83: -1.93,84: -2.00,85: -1.93,86: -1.73,87: -1.41,88: -1.00,89: -0.52,90: 0.00,91: 0.52,92: 1.00,93: 1.41,94: 1.73,95: 1.93,
+// 96: 2.00,97: 1.93,98: 1.73,99: 1.41,100: 1.00,101: 0.52,102: 0.00,103: -0.52,104: -1.00,105: -1.41,106: -1.73,107: -1.93,108: -2.00,109: -1.93,110: -1.73,111: -1.41,112: -1.00,113: -0.52,114:  0.00,115: 0.52,116: 1.00,117: 1.41,118: 1.73,119: 1.93
+
 
