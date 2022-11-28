@@ -3,14 +3,18 @@ import { ResizableBox as ReactResizableBox } from "react-resizable";
 
 import "react-resizable/css/styles.css";
 
-export default function ResizableBox({
+
+
+function ResizableBox({
   children,
   width = "auto",
-  height = "auto",
+  height = 400,
   resizable = true,
   style = {},
   className = "",
 }) {
+
+
   return (
     <div style={{ marginLeft: 0 }}>
       <div
@@ -28,7 +32,7 @@ export default function ResizableBox({
         }}
       >
         {resizable ? (
-          <ReactResizableBox width={width} height={height}>
+          <ReactResizableBox width={Number(width)} height={height}>
             <div
               style={{
                 width: "auto",
@@ -42,7 +46,7 @@ export default function ResizableBox({
         ) : (
           <div
             style={{
-              width: `${width}px`,
+              width: "auto",
               height: `${height}px`,
             }}
             className={className}
@@ -54,3 +58,5 @@ export default function ResizableBox({
     </div>
   );
 }
+
+export default ResizableBox

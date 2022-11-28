@@ -1,7 +1,7 @@
 import ResizableBox from "../ResizableBox";
 import useDemoConfig from "../useDemoConfig";
 import React from "react";
-import { AxisOptions, BuildAxisOptions, Chart } from "react-charts";
+import { AxisOptions, Chart } from "react-charts";
 
 export default function StressTest() {
   const [
