@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@types/react-resizable": "^3.0.3",
+    "@vercel/analytics": "^0.1.5",
     "react": "^18.2.0",
     "react-charts": "^3.0.0-beta.50",
     "react-dom": "^18.2.0",
