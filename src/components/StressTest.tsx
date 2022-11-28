@@ -211,7 +211,7 @@ export default function StressTest() {
           type="number"
           min="1"
           max="1200"
-          value={datumCount === null ? datumCount : 1}
+          value={datumCount >= 1 ? datumCount : 1}
           onChange={(e) => {
             e.persist();
             setState((old) => ({
