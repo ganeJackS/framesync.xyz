@@ -32,7 +32,7 @@ function ResizableBox({
         }}
       >
         {resizable ? (
-          <ReactResizableBox width={Number(width)} height={height}>
+          <ReactResizableBox width={width} height={height}>
             <div
               style={{
                 width: "auto",
