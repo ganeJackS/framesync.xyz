@@ -145,8 +145,16 @@ export default function StressTest() {
     // const yArraySum = yArray.reduce((a, b) => a + b, 0);
     // console.log(yArraySum);
 
+    const waveFormulas ={
+      sinusoid: `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin"}((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend} + ${upDownOffset})`,
+      saw: `(-(2*${amplitude} / 3.141) * arctan((1 * ${bend}+1) / tan(( t * 3.141 * ${tempo} / ${rhythmRate} / ${frameRate}))) + ${upDownOffset})`,
+      // square: `2 * ${amplitude} * Math.sign(Math.cos(tempo / rhythmRate * Math.PI * i / frameRate))**bend + upDownOffset`,
+      triangle: `((2 * ${amplitude} / 3.141) * arcsin(${toggleSinCos === "cos" ? "cos" : "sin"}( ${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate})**${bend}) + ${upDownOffset})`,
+      bumpdip: `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin"}((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend}0 + ${upDownOffset})`,
+    }
 
-
+    const currentFormula = waveFormulas[waveType];
+    
 
   return (
     <>
@@ -398,10 +406,17 @@ export default function StressTest() {
         </ResizableBox>
       ))
       }
-     
-      
-      <p id="log"></p>
 
+      <br />
+      
+      <div className="outputContainer">
+      <h3>Formula Output</h3>
+      <div className="formulaOutput">
+      {currentFormula}
+      </div>
+      <br />
+      <h3>Raw Keyframe Output</h3>
+      <label>
       <textarea
         id="keyframeOutput"
         style={{ width: "90%", height: "300px", position: "relative", overflow: "scroll" }}
@@ -417,7 +432,8 @@ export default function StressTest() {
           }));
         }}
       />
-      
+      </label>
+      </div>
     </>
   );  
 }

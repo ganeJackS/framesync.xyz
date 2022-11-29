@@ -291,7 +291,7 @@ function makeSeries(
 ) {
   const length = datums;
 
-
+  
 
   return {
     label: `${waveType} ${1}`,
