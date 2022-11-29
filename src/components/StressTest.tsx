@@ -145,15 +145,25 @@ export default function StressTest() {
     // const yArraySum = yArray.reduce((a, b) => a + b, 0);
     // console.log(yArraySum);
 
-    const waveFormulas ={
-      sinusoid: `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin"}((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend} + ${upDownOffset})`,
-      saw: `(-(2*${amplitude} / 3.141) * arctan((1 * ${bend}+1) / tan(( t * 3.141 * ${tempo} / ${rhythmRate} / ${frameRate}))) + ${upDownOffset})`,
-      // square: `2 * ${amplitude} * Math.sign(Math.cos(tempo / rhythmRate * Math.PI * i / frameRate))**bend + upDownOffset`,
-      triangle: `((2 * ${amplitude} / 3.141) * arcsin(${toggleSinCos === "cos" ? "cos" : "sin"}( ${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate})**${bend}) + ${upDownOffset})`,
-      bumpdip: `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin"}((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend}0 + ${upDownOffset})`,
-    }
+  
+      // sinusoid: `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin"}((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend} + ${upDownOffset})`,
+      // saw: `(-(2*${amplitude} / 3.141) * arctan((1 * ${bend}+1) / tan(( t * 3.141 * ${tempo} / ${rhythmRate} / ${frameRate}))) + ${upDownOffset})`,
+      // // square: `2 * ${amplitude} * Math.sign(Math.cos(tempo / rhythmRate * Math.PI * i / frameRate))**bend + upDownOffset`,
+      // triangle: `((2 * ${amplitude} / 3.141) * arcsin(${toggleSinCos === "cos" ? "cos" : "sin"}( ${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate})**${bend}) + ${upDownOffset})`,
+      // bumpdip: `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin"}((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend}0 + ${upDownOffset})`,
+    let currentFormula = `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin"}((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend} + ${upDownOffset})`;
 
-    const currentFormula = waveFormulas[waveType];
+    if (waveType === "sinusoid") {
+     currentFormula = `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin"}((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend} + ${upDownOffset})`;
+    } else if (waveType === "saw") {
+      currentFormula = `(-(2*${amplitude} / 3.141) * arctan((1 * ${bend}+1) / tan(( t * 3.141 * ${tempo} / ${rhythmRate} / ${frameRate}))) + ${upDownOffset})`;
+    } else if (waveType === "triangle") {
+      currentFormula = `((2 * ${amplitude} / 3.141) * arcsin(${toggleSinCos === "cos" ? "cos" : "sin"}( ${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate})**${bend}) + ${upDownOffset})`;
+    } else if (waveType === "bumpdip") {
+      currentFormula = `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin"}((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend}0 + ${upDownOffset})`;
+    } else if (waveType === "square") {
+      currentFormula = ``;
+    }
     
 
   return (
@@ -219,6 +229,7 @@ export default function StressTest() {
           type="number"
           min="1"
           max="1200"
+          step={1}
           value={datumCount >= 1 ? datumCount : 1}
           onChange={(e) => {
             e.persist();
