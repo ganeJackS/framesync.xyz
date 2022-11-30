@@ -219,8 +219,9 @@ export default function StressTest() {
           Frame Count <br />
           <input
             type="number"
-            min="1"
-            max="1200"
+            minLength={1}
+            min={1}
+            max={1000}
             placeholder="1"
             step={1}
             value={datumCount}

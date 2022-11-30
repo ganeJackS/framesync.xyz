@@ -286,10 +286,11 @@ function makeSeries(
   useR?: boolean
 ) {
   const length = datums;
+  const minlength = 1;
 
   return {
     label: `${waveType} ${1}`,
-    data: [...new Array(length | 1)].map((_, i) => {
+    data: [...new Array(length)].map((_, i) => {
       let x: number = i;
       let y;
 
