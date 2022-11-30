@@ -24,7 +24,6 @@ export default function StressTest() {
       waveType,
       bend,
       toggleSinCos,
-
     },
     setState,
   ] = React.useState({
@@ -40,13 +39,12 @@ export default function StressTest() {
     showAxes: true,
     tempo: 120,
     frameRate: 24,
-    amplitude: 2.00,
+    amplitude: 2.0,
     upDownOffset: 0,
     rhythmRate: 60,
-    waveType: 'sinusoid',
+    waveType: "sinusoid",
     bend: 1,
     toggleSinCos: "cos",
-
   });
 
   const { data, randomizeData } = useDemoConfig({
@@ -61,15 +59,13 @@ export default function StressTest() {
     waveType: waveType,
     bend: bend,
     toggleSinCos: toggleSinCos,
- 
   });
- 
+
   const [chartType, setChartType] = React.useState("line");
   const [highlightedText, setHighlightedText] = React.useState("");
   const [primaryCursorValue, setPrimaryCursorValue] = React.useState();
   const [secondaryCursorValue, setSecondaryCursorValue] = React.useState();
 
-  
   const primaryAxis = React.useMemo<
     AxisOptions<typeof data[number]["data"][number]>
   >(
@@ -80,13 +76,9 @@ export default function StressTest() {
       primary: true,
       position: "bottom",
       tickCount: 10,
-      
-
     }),
     [showAxes, frameRate, datumCount]
   );
-  
-
 
   const secondaryAxes = React.useMemo<
     AxisOptions<typeof data[number]["data"][number]>[]
@@ -98,28 +90,26 @@ export default function StressTest() {
         show: showAxes,
         dataType: "linear",
         elementType: chartType === "bar" ? "bar" : "line",
-        
       },
     ],
     [showAxes, showPoints, chartType]
   );
 
-  
-  
   function setChartTypeHandler(e: React.ChangeEvent<HTMLSelectElement>) {
     setChartType(e.target.value);
   }
-  
+
   // a handler that stores and updates the text selection start and end in the textarea
   function handleTextChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     const { selectionStart, selectionEnd } = e.target;
     setHighlightedText(e.target.value.substring(selectionStart, selectionEnd));
- 
   }
- // console.log(highlightedText);
+  // console.log(highlightedText);
 
   function copyHighlightedTextHandler() {
-    navigator.clipboard.writeText(highlightedText.replace(/[^0-9.,():-]/g, " ").trimStart());
+    navigator.clipboard.writeText(
+      highlightedText.replace(/[^0-9.,():-]/g, " ").trimStart()
+    );
   }
 
   React.useEffect(() => {
@@ -136,241 +126,241 @@ export default function StressTest() {
     };
   }, [liveData, liveDataInterval, randomizeData]);
 
+  const yArray = data[0].data.map((datum, i) => {
+    return `${datum.primary % frameRate === 0 ? "\r\n" : ""}${
+      datum.primary <= 9 ? "  " : ""
+    }${datum.primary >= 10 ? " " : ""}${datum.primary <= 99 ? " " : ""}${i}:${
+      Math.sign(Number(datum.secondary)) === 1 || -1 ? " " : ""
+    }${Math.sign(Number(datum.secondary)) === -1 ? "" : ""}(${datum.secondary
+      ?.toFixed(2)
+      .replace("-0.00", " 0.00")})`;
+  });
 
-    const yArray = data[0].data.map((datum, i) => {    
-         return  `${datum.primary % frameRate === 0 ? "\r\n" : "" }${datum.primary <= 9 ? "  " : ""}${datum.primary >= 10 ? " " : ""}${datum.primary <= 99 ? " " : ""}${i}:${Math.sign(Number(datum.secondary)) === 1 || -1 ? " " : ""}${Math.sign(Number(datum.secondary)) === -1 ? "" : ""}(${datum.secondary?.toFixed(2).replace("-0.00", "0.00")})`   
-    });
+  // console.log(yArray);
+  // const yArraySum = yArray.reduce((a, b) => a + b, 0);
+  // console.log(yArraySum);
 
-    // console.log(yArray);
-    // const yArraySum = yArray.reduce((a, b) => a + b, 0);
-    // console.log(yArraySum);
+  // sinusoid: `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin"}((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend} + ${upDownOffset})`,
+  // saw: `(-(2*${amplitude} / 3.141) * arctan((1 * ${bend}+1) / tan(( t * 3.141 * ${tempo} / ${rhythmRate} / ${frameRate}))) + ${upDownOffset})`,
+  // // square: `2 * ${amplitude} * Math.sign(Math.cos(tempo / rhythmRate * Math.PI * i / frameRate))**bend + upDownOffset`,
+  // triangle: `((2 * ${amplitude} / 3.141) * arcsin(${toggleSinCos === "cos" ? "cos" : "sin"}( ${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate})**${bend}) + ${upDownOffset})`,
+  // bumpdip: `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin"}((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend}0 + ${upDownOffset})`,
+  let currentFormula = `(${amplitude} * ${
+    toggleSinCos === "cos" ? "cos" : "sin"
+  }((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend} + ${upDownOffset})`;
 
-  
-      // sinusoid: `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin"}((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend} + ${upDownOffset})`,
-      // saw: `(-(2*${amplitude} / 3.141) * arctan((1 * ${bend}+1) / tan(( t * 3.141 * ${tempo} / ${rhythmRate} / ${frameRate}))) + ${upDownOffset})`,
-      // // square: `2 * ${amplitude} * Math.sign(Math.cos(tempo / rhythmRate * Math.PI * i / frameRate))**bend + upDownOffset`,
-      // triangle: `((2 * ${amplitude} / 3.141) * arcsin(${toggleSinCos === "cos" ? "cos" : "sin"}( ${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate})**${bend}) + ${upDownOffset})`,
-      // bumpdip: `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin"}((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend}0 + ${upDownOffset})`,
-    let currentFormula = `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin"}((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend} + ${upDownOffset})`;
-
-    if (waveType === "sinusoid") {
-     currentFormula = `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin"}((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend} + ${upDownOffset})`;
-    } else if (waveType === "saw") {
-      currentFormula = `(-(2*${amplitude} / 3.141) * arctan((1 * ${bend}+1) / tan(( t * 3.141 * ${tempo} / ${rhythmRate} / ${frameRate}))) + ${upDownOffset})`;
-    } else if (waveType === "triangle") {
-      currentFormula = `((2 * ${amplitude} / 3.141) * arcsin(${toggleSinCos === "cos" ? "cos" : "sin"}( ${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate})**${bend}) + ${upDownOffset})`;
-    } else if (waveType === "bumpdip") {
-      currentFormula = `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin"}((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend}0 + ${upDownOffset})`;
-    } else if (waveType === "square") {
-      currentFormula = ``;
-    }
-    
+  if (waveType === "sinusoid") {
+    currentFormula = `(${amplitude} * ${
+      toggleSinCos === "cos" ? "cos" : "sin"
+    }((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend} + ${upDownOffset})`;
+  } else if (waveType === "saw") {
+    currentFormula = `(-(2 * ${amplitude} / 3.141) * arctan((1 * ${bend} + 1) / tan((t * 3.141 * ${tempo} / ${rhythmRate} / ${frameRate}))) + ${upDownOffset})`;
+  } else if (waveType === "triangle") {
+    currentFormula = `((2 * ${amplitude} / 3.141) * arcsin(${
+      toggleSinCos === "cos" ? "cos" : "sin"
+    }( ${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate})**${bend}) + ${upDownOffset})`;
+  } else if (waveType === "bumpdip") {
+    currentFormula = `(${amplitude} * ${
+      toggleSinCos === "cos" ? "cos" : "sin"
+    }((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend}0 + ${upDownOffset})`;
+  } else if (waveType === "square") {
+    currentFormula = ``;
+  }
 
   return (
     <>
-     
-        <br />
-        
-        {/* Value Sum {yArraySum} */}
-        
-        {/* Duration {datumCount / frameRate}s */}
+      <br />
 
-        
-      
-      
+      {/* Value Sum {yArraySum} */}
+
+      {/* Duration {datumCount / frameRate}s */}
+
       <br />
 
       <div className="inputs-container">
-      {/* Tempo */}
-      <label>
-        Tempo{" "}
+        {/* Tempo */}
+        <label>
+          Tempo <br />
+          <input
+            type="number"
+            min="1"
+            value={tempo}
+            placeholder="1"
+            onChange={(e) => {
+              e.persist();
+              setState((old) => ({
+                ...old,
+                tempo: parseInt(e.target.value),
+              }));
+            }}
+          />
+        </label>
         <br />
+        {/* Frame Rate */}
+        <label>
+          Frame Rate <br />
+          <input
+            type="number"
+            min="1"
+            placeholder="1"
+            value={frameRate}
+            onChange={(e) => {
+              e.persist();
+              setState((old) => ({
+                ...old,
+                frameRate: parseInt(e.target.value),
+              }));
+            }}
+          />
+        </label>
+        <br />
+        {/* Frame Count */}
+        <label>
+          Frame Count <br />
+          <input
+            type="number"
+            min="1"
+            max="1200"
+            placeholder="1"
+            step={1}
+            value={datumCount}
+            onChange={(e) => {
+              e.persist();
+              setState((old) => ({
+                ...old,
+                datumCount: parseInt(e.target.value),
+              }));
+            }}
+          />
+        </label>
+        {/* Amplitude */}
+        <label>
+          Amplitude <br />
+          <input
+            type="number"
+            step="0.1"
+            value={amplitude}
+            onChange={(e) => {
+              e.persist();
+              setState((old) => ({
+                ...old,
+                amplitude: parseFloat(e.target.value),
+              }));
+            }}
+          />
+        </label>
+        {/* Up/Down Offset*/}
+        <label>
+          Offset{" "}
+          <input
+            type="number"
+            step="0.1"
+            value={upDownOffset}
+            onChange={(e) => {
+              e.persist();
+              setState((old) => ({
+                ...old,
+                upDownOffset: parseFloat(e.target.value),
+              }));
+            }}
+          />
+        </label>
+        {/* Bend*/}
+        <label>
+          Bend{" "}
+          <input
+            type="number"
+            step={waveType === "saw" ? "0.1" : "2"}
+            min={waveType === "saw" ? -30 : 1}
+            max={waveType === "saw" ? 30 : 200}
+            list="tickmarks"
+            value={bend}
+            placeholder="1"
+            onChange={(e) => {
+              e.persist();
+              setState((old) => ({
+                ...old,
+                bend: parseFloat(e.target.value),
+              }));
+            }}
+          />
+        </label>
+        {/* Rhythm Rate */}
+        <label>
+          Rhythm Rate{" "}
+          <select
+            value={rhythmRate}
+            onChange={(e) => {
+              e.persist();
+              setState((old) => ({
+                ...old,
+                rhythmRate: parseFloat(e.target.value),
+              }));
+            }}>
+            <option value="3840">16 bars</option>
+            <option value="1920">8 bars</option>
+            <option value="960">4 bars</option>
+            <option value="480">2 bars</option>
+            <option value="240">1 bar</option>
+            <option value="120">1/2 note</option>
+            <option value="40">1/2 note triplet</option>
+            <option value="60">1/4 note (beat)</option>
+            <option value="20">1/4 note triplet</option>
+            <option value="30">1/8 note</option>
+            <option value="10">1/8 note triplet</option>
+            <option value="15">1/16 note</option>
+            <option value="5">1/16 note triplet</option>
+            <option value="7.5">1/32 note</option>
+            <option value="2.5">1/32 note triplet</option>
+          </select>
+        </label>
+        {/* Wave Type */}
+        <label>
+          Wave Type{" "}
+          <select
+            value={waveType}
+            onChange={(e) => {
+              e.persist();
+              setState((old) => ({
+                ...old,
+                waveType: e.target.value,
+              }));
+            }}>
+            <option value="sinusoid">Sinusoid</option>
+            <option value="saw">Saw</option>
+            <option value="square">Square</option>
+            <option value="triangle">Triangle</option>
+            <option value="bumpdip">BumpDip</option>
+          </select>
+        </label>
+        {/* Sin/Cos */}
+        <label>
+          sin/cos{" "}
+          <select
+            value={toggleSinCos}
+            onChange={(e) => {
+              e.persist();
+              setState((old) => ({
+                ...old,
+                toggleSinCos: e.target.value,
+              }));
+            }}>
+            <option value="cos">Cosine</option>
+            <option value="sin">Sine</option>
+          </select>
+        </label>
 
-        <input
-          type="number"
-          min="1"
-          value={tempo}
-          onChange={(e) => {
-            e.persist();
-            setState((old) => ({
-              ...old,
-              tempo: parseInt(e.target.value),
-            }));
-          }}
-        />
-      </label>
-      <br />
-      
-      {/* Frame Rate */}
-      <label>
-        Frame Rate{" "}
         <br />
+        {/* Chart Type */}
+        <label>
+          Chart{" "}
+          <select value={chartType} onChange={setChartTypeHandler}>
+            <option value="line">Line</option>
+            <option value="bar">Bar</option>
+          </select>
+        </label>
 
-        <input
-          type="number"
-          min="1"
-          value={frameRate >= 1 ? frameRate : 0}
-          onChange={(e) => {
-            e.persist();
-            setState((old) => ({
-              ...old,
-              frameRate: parseInt(e.target.value),
-            }));
-          }}
-        />
-      </label>
-      <br />
-      {/* Frame Count */}
-      <label>
-        Frame Count{" "}
         <br />
-
-        <input
-          type="number"
-          min="1"
-          max="1200"
-          step={1}
-          value={datumCount >= 1 ? datumCount : 1}
-          onChange={(e) => {
-            e.persist();
-            setState((old) => ({
-              ...old,
-              datumCount: parseInt(e.target.value),
-            }));
-          }}
-        />
-      </label>
-      {/* Amplitude */}
-      <label>
-        Amplitude{" "}
-        <br />
-        <input
-          type="number"
-          step="0.1"
-          value={amplitude}
-          onChange={(e) => {
-            e.persist();
-            setState((old) => ({
-              ...old,
-              amplitude: parseFloat(e.target.value),
-            }));
-          }}
-        />
-      </label>
-      {/* Up/Down Offset*/}
-      <label>
-        Offset{" "}
-        <input
-          type="number"
-          step="0.1"
-          value={upDownOffset}
-          onChange={(e) => {
-            e.persist();
-            setState((old) => ({
-              ...old,
-              upDownOffset: parseFloat(e.target.value),
-            }));
-          }}
-        />
-      </label>
-      {/* Bend*/}
-      <label>
-        Bend{" "}
-        <input
-          type="number"
-          step={waveType === "saw" ? "0.1" : "2"}
-          min={waveType === "saw" ? -30 : 1}
-          max={waveType === "saw" ?  30 : 200}
-          list="tickmarks"
-          value={bend}
-          placeholder="1"
-          onChange={(e) => {
-            e.persist();
-            setState((old) => ({
-              ...old,
-              bend: parseFloat(e.target.value),
-            }));
-          }}
-        />
-      </label>
-      {/* Rhythm Rate */}
-      <label>
-        Rhythm Rate{" "}
-        <select
-          value={rhythmRate}
-          onChange={(e) => {
-            e.persist();
-            setState((old) => ({
-              ...old,
-              rhythmRate: parseFloat(e.target.value),
-            }));
-          }}>
-          <option value="3840">16 bars</option>
-          <option value="1920">8 bars</option>
-          <option value="960">4 bars</option>
-          <option value="480">2 bars</option>
-          <option value="240">1 bar</option>
-          <option value="120">1/2 note</option>
-          <option value="40">1/2 note triplet</option>
-          <option value="60">1/4 note (beat)</option>
-          <option value="20">1/4 note triplet</option>
-          <option value="30">1/8 note</option>
-          <option value="10">1/8 note triplet</option>
-          <option value="15">1/16 note</option>
-          <option value="5">1/16 note triplet</option>
-          <option value="7.5">1/32 note</option>
-          <option value="2.5">1/32 note triplet</option>
-        </select>
-      </label>
-      {/* Wave Type */}
-      <label>
-        Wave Type{" "}
-        <select
-          value={waveType}
-          onChange={(e) => {
-            e.persist();
-            setState((old) => ({
-              ...old,
-              waveType: e.target.value,
-            }));
-          }}>
-          <option value="sinusoid">Sinusoid</option>
-          <option value="saw">Saw</option>
-          <option value="square">Square</option>
-          <option value="triangle">Triangle</option>
-          <option value="bumpdip">BumpDip</option>
-        </select>
-      </label>
-      {/* Sin/Cos */}
-      <label>
-        sin/cos{" "}
-        <select
-          value={toggleSinCos}
-          onChange={(e) => {
-            e.persist();
-            setState((old) => ({
-              ...old,
-              toggleSinCos: e.target.value,
-            }));
-          }}>
-          <option value="cos">Cosine</option>
-          <option value="sin">Sine</option>
-        </select>
-      </label>
-    
-      <br />
-      {/* Chart Type */}
-      <label>
-        Chart{" "}
-        <select
-          value={chartType}
-          onChange={setChartTypeHandler}>
-          <option value="line">Line</option>
-          <option value="bar">Bar</option>
-        </select>
-      </label>
-    
-      <br />
       </div>
       <br />
       {[...new Array(chartCount)].map((d, i) => (
@@ -382,7 +372,7 @@ export default function StressTest() {
               secondaryAxes,
               memoizeSeries,
               dark: true,
-              
+
               getSeriesStyle: (series) => ({
                 color: "orange",
                 opacity:
@@ -392,7 +382,7 @@ export default function StressTest() {
                       : 0.1
                     : 1,
               }),
-              
+
               primaryCursor: {
                 value: primaryCursorValue,
                 onChange: (value) => {
@@ -410,41 +400,236 @@ export default function StressTest() {
                   ...old,
                   activeSeriesIndex: datum ? datum.seriesIndex : -1,
                 }));
-              
               },
             }}
           />
         </ResizableBox>
-      ))
-      }
+      ))}
 
-      <br />
-      
+      {/* Test Sliders */}
+      {/* <div className="slider-container">
+        <div className="inputs-col">
+          <div className="slider-row">
+            <label className="slider-label">Amplitude </label>
+
+            <input
+              type="range"
+              min="0"
+              max="50"
+              step="0.1"
+              className="slider"
+              value={amplitude}
+              onChange={(e) => {
+                e.persist();
+                setState((old) => ({
+                  ...old,
+                  amplitude: parseFloat(e.target.value),
+                }));
+              }}
+            />
+            <input
+              type="number"
+              step="0.1"
+              value={amplitude}
+              onChange={(e) => {
+                e.persist();
+                setState((old) => ({
+                  ...old,
+                  amplitude: parseFloat(e.target.value),
+                }));
+              }}
+            />
+          </div>
+          <div className="slider-row">
+            <label className="slider-label">Amplitude </label>
+
+            <input
+              type="range"
+              min="0"
+              max="50"
+              step="0.1"
+              className="slider"
+              value={amplitude}
+              onChange={(e) => {
+                e.persist();
+                setState((old) => ({
+                  ...old,
+                  amplitude: parseFloat(e.target.value),
+                }));
+              }}
+            />
+            <input
+              type="number"
+              step="0.1"
+              value={amplitude}
+              onChange={(e) => {
+                e.persist();
+                setState((old) => ({
+                  ...old,
+                  amplitude: parseFloat(e.target.value),
+                }));
+              }}
+            />
+          </div>
+        </div>
+        <div className="inputs-col">
+          <div className="slider-row">
+            <label className="slider-label">Amplitude </label>
+
+            <input
+              type="range"
+              min="0"
+              max="50"
+              step="0.1"
+              className="slider"
+              value={amplitude}
+              onChange={(e) => {
+                e.persist();
+                setState((old) => ({
+                  ...old,
+                  amplitude: parseFloat(e.target.value),
+                }));
+              }}
+            />
+            <input
+              type="number"
+              step="0.1"
+              value={amplitude}
+              onChange={(e) => {
+                e.persist();
+                setState((old) => ({
+                  ...old,
+                  amplitude: parseFloat(e.target.value),
+                }));
+              }}
+            />
+          </div>
+          <div className="slider-row">
+            <label className="slider-label">Amplitude </label>
+
+            <input
+              type="range"
+              min="0"
+              max="50"
+              step="0.1"
+              className="slider"
+              value={amplitude}
+              onChange={(e) => {
+                e.persist();
+                setState((old) => ({
+                  ...old,
+                  amplitude: parseFloat(e.target.value),
+                }));
+              }}
+            />
+            <input
+              type="number"
+              step="0.1"
+              value={amplitude}
+              onChange={(e) => {
+                e.persist();
+                setState((old) => ({
+                  ...old,
+                  amplitude: parseFloat(e.target.value),
+                }));
+              }}
+            />
+          </div>
+        </div>
+        <div className="inputs-col">
+          <div className="slider-row">
+            <label className="slider-label">Amplitude </label>
+
+            <input
+              type="range"
+              min="0"
+              max="50"
+              step="0.1"
+              className="slider"
+              value={amplitude}
+              onChange={(e) => {
+                e.persist();
+                setState((old) => ({
+                  ...old,
+                  amplitude: parseFloat(e.target.value),
+                }));
+              }}
+            />
+            <input
+              type="number"
+              step="0.1"
+              value={amplitude}
+              onChange={(e) => {
+                e.persist();
+                setState((old) => ({
+                  ...old,
+                  amplitude: parseFloat(e.target.value),
+                }));
+              }}
+            />
+          </div>
+          <div className="slider-row">
+            <label className="slider-label">Amplitude </label>
+
+            <input
+              type="range"
+              min="0"
+              max="50"
+              step="0.1"
+              className="slider"
+              value={amplitude}
+              onChange={(e) => {
+                e.persist();
+                setState((old) => ({
+                  ...old,
+                  amplitude: parseFloat(e.target.value),
+                }));
+              }}
+            />
+            <input
+              type="number"
+              step="0.1"
+              value={amplitude}
+              onChange={(e) => {
+                e.persist();
+                setState((old) => ({
+                  ...old,
+                  amplitude: parseFloat(e.target.value),
+                }));
+              }}
+            />
+          </div>
+        </div>
+      </div> */}
+
       <div className="outputContainer">
-      <h3>Formula Output</h3>
-      <div className="formulaOutput">
-      {currentFormula}
-      </div>
-      <br />
-      <h3>Raw Keyframe Output</h3>
-      <label>
-      <textarea
-        id="keyframeOutput"
-        style={{ width: "90%", height: "300px", position: "relative", overflow: "scroll" }}
-        onSelect={handleTextChange}
-        onCopy={copyHighlightedTextHandler}
-        wrap="off"
-        value={yArray}
-        onChange={(e) => {
-          e.persist();
-          setState((old) => ({
-            ...old,
-            yArray: e.target.value,
-          }));
-        }}
-      />
-      </label>
+        <h3>Formula Output</h3>
+        <div className="formulaOutput">{currentFormula}</div>
+
+        <h3>Raw Keyframe Output</h3>
+        <label>
+          <textarea
+            id="keyframeOutput"
+            style={{
+              width: "90%",
+              height: "300px",
+              position: "relative",
+              overflow: "scroll",
+            }}
+            onSelect={handleTextChange}
+            onCopy={copyHighlightedTextHandler}
+            wrap="off"
+            value={yArray}
+            onChange={(e) => {
+              e.persist();
+              setState((old) => ({
+                ...old,
+                yArray: e.target.value,
+              }));
+            }}
+          />
+        </label>
       </div>
     </>
-  );  
+  );
 }

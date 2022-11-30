@@ -56,11 +56,11 @@ type TooltipGroupingMode = typeof options["tooltipGroupingMode"][number];
 const optionKeys = Object.keys(options) as (keyof typeof options)[];
 
 export default function useChartConfig({
-  series,
+  series = 1,
   datums = 10,
   useR,
   show = [],
-  count = 1,
+  count = 12,
   resizable = true,
   canRandomize = true,
   dataType = "time",
@@ -80,7 +80,7 @@ export default function useChartConfig({
   snapCursor = true,
   tempo = 120,
   frameRate = 24,
-  amplitude = 2.00,
+  amplitude = 2.0,
   upDownOffset = 0,
   rhythmRate = 60,
   waveType = "sinusoid",
@@ -150,7 +150,7 @@ export default function useChartConfig({
       waveType,
       bend,
       toggleSinCos,
-      useR,
+      useR
     ),
   });
 
@@ -207,7 +207,6 @@ export default function useChartConfig({
       ),
     }));
 
-
   const Options = optionKeys
     .filter((option) => show.indexOf(option) > -1)
     .map((option) => (
@@ -238,10 +237,7 @@ export default function useChartConfig({
     randomizeData,
     Options,
   };
-
 }
-
-
 
 function makeDataFrom(
   dataType: DataType,
@@ -270,10 +266,10 @@ function makeDataFrom(
       waveType,
       bend,
       toggleSinCos,
-      useR,
+      useR
     )
   );
-} 
+}
 
 function makeSeries(
   i: number,
@@ -291,130 +287,84 @@ function makeSeries(
 ) {
   const length = datums;
 
-  
-
   return {
     label: `${waveType} ${1}`,
-    data: [...new Array(length)].map((_, i) => {
-      let x = i;
+    data: [...new Array(length | 1)].map((_, i) => {
+      let x: number = i;
       let y;
 
-      
-
       if (waveType === "sinusoid") {
-
-       toggleSinCos === "cos" ? y = amplitude * Math.cos((tempo / rhythmRate * Math.PI * i / frameRate))**bend + upDownOffset : y = amplitude * Math.sin((tempo / rhythmRate * Math.PI * i / frameRate))**bend + upDownOffset;
-
-      } else if (waveType === "saw") {      
-       
-        y = (-(2 * amplitude / Math.PI) * Math.atan((1 * bend + 1) / Math.tan((i * Math.PI * tempo / rhythmRate / frameRate))) + upDownOffset)
-       
-       //  y = ((4 * amplitude * (( i / frameRate) % ( rhythmRate / tempo )) * amplitude + upDownOffset))
-       // y = Math.atan2(-1, (-(2 * amplitude / Math.PI) * Math.atan(1 / Math.tan((i * Math.PI * tempo / rhythmRate / frameRate))) + upDownOffset))
-
+        toggleSinCos === "cos"
+          ? (y =
+              amplitude *
+                Math.cos(((tempo / rhythmRate) * Math.PI * x) / frameRate) **
+                  bend +
+              upDownOffset)
+          : (y =
+              amplitude *
+                Math.sin(((tempo / rhythmRate) * Math.PI * x) / frameRate) **
+                  bend +
+              upDownOffset);
+      } else if (waveType === "saw") {
+        y =
+          -((2 * amplitude) / Math.PI) *
+            Math.atan(
+              (1 * bend + 1) /
+                Math.tan((x * Math.PI * tempo) / rhythmRate / frameRate)
+            ) +
+          upDownOffset;
       } else if (waveType === "square") {
-        
-        toggleSinCos === "cos" ? y = 2 * amplitude * Math.sign(Math.cos(tempo / rhythmRate * Math.PI * i / frameRate))**bend + upDownOffset : y = 2 * amplitude * Math.sign(Math.sin(tempo / rhythmRate * Math.PI * i / frameRate)**bend) + upDownOffset;
-        
-        // if (toggleSinCos === "sin") y = 2 * amplitude * Math.sign(Math.sin(tempo / rhythmRate * Math.PI * i / frameRate)) + upDownOffset
-        // if (toggleSinCos === "cos") y = 2 * amplitude * Math.sign(Math.cos(tempo / rhythmRate * Math.PI * i / frameRate)) + upDownOffset
-        // y = 2 * amplitude * Math.sign(Math.cos(tempo / rhythmRate * Math.PI * i / frameRate)) + upDownOffset
-        // y = 2 * amplitude * Math.sign(Math.sin(tempo / rhythmRate * Math.PI * i / frameRate)) + upDownOffset
-      
+        toggleSinCos === "cos"
+          ? (y =
+              2 *
+                amplitude *
+                Math.sign(
+                  Math.cos(((tempo / rhythmRate) * Math.PI * x) / frameRate)
+                ) **
+                  bend +
+              upDownOffset)
+          : (y =
+              2 *
+                amplitude *
+                Math.sign(
+                  Math.sin(((tempo / rhythmRate) * Math.PI * x) / frameRate) **
+                    bend
+                ) +
+              upDownOffset);
       } else if (waveType === "triangle") {
-        
-        toggleSinCos === "cos" ? y = (2 * amplitude / Math.PI) * Math.asin(Math.cos( tempo / rhythmRate * Math.PI * i / frameRate)**bend) + upDownOffset : y = (2 * amplitude / Math.PI) * Math.asin(Math.sin( tempo / rhythmRate * Math.PI * i / frameRate)**bend) + upDownOffset
-      
+        toggleSinCos === "cos"
+          ? (y =
+              ((2 * amplitude) / Math.PI) *
+                Math.asin(
+                  Math.cos(((tempo / rhythmRate) * Math.PI * x) / frameRate) **
+                    bend
+                ) +
+              upDownOffset)
+          : (y =
+              ((2 * amplitude) / Math.PI) *
+                Math.asin(
+                  Math.sin(((tempo / rhythmRate) * Math.PI * x) / frameRate) **
+                    bend
+                ) +
+              upDownOffset);
       } else if (waveType === "bumpdip") {
-       
-       toggleSinCos === "cos" ? y = amplitude * (Math.cos(tempo / rhythmRate * Math.PI * i / frameRate)**Number(`${bend}0`)) + upDownOffset : y = amplitude * (Math.sin(tempo / rhythmRate * Math.PI * i / frameRate)**Number(`${bend}0`)) + upDownOffset
-        // TO DO: cos/sin options and alternate options
+        toggleSinCos === "cos"
+          ? (y =
+              amplitude *
+                Math.cos(((tempo / rhythmRate) * Math.PI * x) / frameRate) **
+                  Number(`${bend}0`) +
+              upDownOffset)
+          : (y =
+              amplitude *
+                Math.sin(((tempo / rhythmRate) * Math.PI * i) / frameRate) **
+                  Number(`${bend}0`) +
+              upDownOffset);
       }
 
-      
-      
-      return ( {
+      return {
         primary: x,
         secondary: y,
-      }  
-   
-    )}),
-  
+      };
+    }),
   };
 }
-
-   
-      // ((2)*((t/24)%(60/120))-(60/120)*1+0)
-      //  (0.5*(cos(120/60*3.141*t/24))+0)
-      //TO DO - figure out the saw wave amplitude issue
-      // 24, 0.2525
-      // 24, 0.51 1 bar = 1
-      // 24, 1.05 1/2 = 1
-      // 24, 2.2, 1/4 = 1
-      // 24, 4.8, 1/8 = 1
-      // 24, 12, 1/16 = 1
-      // 24, 24, 1/32 = 1
-
-
-// function makeSeries(
-//   i: number,
-//   dataType: DataType,
-//   datums: number,
-//   useR?: boolean
-// ) {
-//   const start = 0;
-//   const startDate = new Date();
-//   // startDate.setFullYear(2020);
-//   startDate.setUTCHours(0);
-//   startDate.setUTCMinutes(0);
-//   startDate.setUTCSeconds(0);
-//   startDate.setUTCMilliseconds(0);
-//   // const length = 5 + Math.round(Math.random() * 15)
-//   const length = datums;
-//   const min = 0;
-//   const max = 100;
-//   const rMin = 2;
-//   const rMax = 20;
-//   const nullChance = 0;
-//   return {
-//     label: `Series ${i + 1}`,
-//     data: [...new Array(length)].map((_, i) => {
-//       let x;
-
-//       if (dataType === "ordinal") {
-//         x = `Ordinal Group ${start + i}`;
-//       } else if (dataType === "time") {
-//         x = new Date(startDate.getTime() + 60 * 1000 * 60 * 24 * i);
-//       } else if (dataType === "linear") {
-//         x =
-//           Math.random() < nullChance
-//             ? null
-//             : min + Math.round(Math.random() * (max - min));
-//       } else {
-//         x = start + i;
-//       }
-
-//       const distribution = 1.1;
-
-//       const y =
-//         Math.random() < nullChance
-//           ? null
-//           : min + Math.round(Math.random() * (max - min));
-
-//       const r = !useR
-//         ? undefined
-//         : rMax -
-//           Math.floor(
-//             Math.log(Math.random() * (distribution ** rMax - rMin) + rMin) /
-//               Math.log(distribution)
-//           );
-
-//       return {
-//         primary: x,
-//         secondary: y,
-//         radius: r,
-//       };
-//     }),
-//   };
-// }
-

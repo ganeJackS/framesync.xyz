@@ -79,3 +79,42 @@ g rect {
   align-items: center;
   margin: 0 auto;
 }
+
+
+.slider-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.slider-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 auto;
+  width: 100%;
+}
+
+
+.slider {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.sliderNumField {
+  width: 50px;
+  margin: 0 auto;
+}
+
+.inputs-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  width: 100%;
+}
