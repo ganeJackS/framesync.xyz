@@ -77,7 +77,7 @@ export default function StressTest() {
       position: "bottom",
       tickCount: 10,
     }),
-    [showAxes, frameRate, datumCount]
+    [showAxes]
   );
 
   const secondaryAxes = React.useMemo<
@@ -219,14 +219,13 @@ export default function StressTest() {
           Frame Count <br />
           <input
             type="number"
-            minLength={1}
-            min={1}
-            max={1000}
+            min="1"
+            max="1200"
             placeholder="1"
-            step={1}
             value={datumCount}
             onChange={(e) => {
               e.persist();
+
               setState((old) => ({
                 ...old,
                 datumCount: parseInt(e.target.value),

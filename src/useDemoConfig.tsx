@@ -53,6 +53,8 @@ type TooltipAlign = typeof options["tooltipAlign"][number];
 type InteractionMode = typeof options["interactionMode"][number];
 type TooltipGroupingMode = typeof options["tooltipGroupingMode"][number];
 
+
+
 const optionKeys = Object.keys(options) as (keyof typeof options)[];
 
 export default function useChartConfig({
@@ -155,6 +157,7 @@ export default function useChartConfig({
   });
 
   React.useEffect(() => {
+    console.log(datums);
     setState((old) => ({
       ...old,
       data: makeDataFrom(
@@ -285,14 +288,15 @@ function makeSeries(
   toggleSinCos: string,
   useR?: boolean
 ) {
-  const length = datums;
-  const minlength = 1;
-
+  
+  let length = datums;  
+  
   return {
     label: `${waveType} ${1}`,
-    data: [...new Array(length)].map((_, i) => {
+    data: [...new Array(length >= 1 ? length : (length = 1))].map((_, i) => {
       let x: number = i;
-      let y;
+      let y;      
+
 
       if (waveType === "sinusoid") {
         toggleSinCos === "cos"
