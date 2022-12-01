@@ -160,7 +160,6 @@ export default function useChartConfig({
   });
 
   React.useEffect(() => {
-    console.log(datums);
     setState((old) => ({
       ...old,
       data: makeDataFrom(
