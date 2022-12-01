@@ -84,6 +84,7 @@ export default function useChartConfig({
   frameRate = 24,
   amplitude = 2.0,
   upDownOffset = 0,
+  leftRightOffset = 0,
   rhythmRate = 60,
   waveType = "sinusoid",
   bend = 0,
@@ -115,6 +116,7 @@ export default function useChartConfig({
   frameRate?: number;
   amplitude?: number;
   upDownOffset?: number;
+  leftRightOffset?: number;
   rhythmRate?: number;
   waveType?: string;
   bend?: number;
@@ -148,6 +150,7 @@ export default function useChartConfig({
       frameRate,
       amplitude,
       upDownOffset,
+      leftRightOffset,
       rhythmRate,
       waveType,
       bend,
@@ -168,6 +171,7 @@ export default function useChartConfig({
         frameRate,
         amplitude,
         upDownOffset,
+        leftRightOffset,
         rhythmRate,
         waveType,
         bend,
@@ -184,6 +188,7 @@ export default function useChartConfig({
     frameRate,
     amplitude,
     upDownOffset,
+    leftRightOffset,
     rhythmRate,
     waveType,
     bend,
@@ -202,6 +207,7 @@ export default function useChartConfig({
         frameRate,
         amplitude,
         upDownOffset,
+        leftRightOffset,
         rhythmRate,
         waveType,
         bend,
@@ -250,6 +256,7 @@ function makeDataFrom(
   frameRate: number,
   amplitude: number,
   upDownOffset: number,
+  leftRightOffset: number,
   rhythmRate: number,
   waveType: string,
   bend: number,
@@ -265,6 +272,7 @@ function makeDataFrom(
       frameRate,
       amplitude,
       upDownOffset,
+      leftRightOffset,
       rhythmRate,
       waveType,
       bend,
@@ -282,6 +290,7 @@ function makeSeries(
   frameRate: number,
   amplitude: number,
   upDownOffset: number,
+  leftRightOffset: number,
   rhythmRate: number,
   waveType: string,
   bend: number,
@@ -294,7 +303,7 @@ function makeSeries(
   return {
     label: `${waveType} ${1}`,
     data: [...new Array(length >= 1 ? length : (length = 1))].map((_, i) => {
-      let x: number = i;
+      let x = i + leftRightOffset;
       let y;      
 
 

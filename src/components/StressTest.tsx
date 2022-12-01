@@ -20,6 +20,7 @@ export default function StressTest() {
       frameRate,
       amplitude,
       upDownOffset,
+      leftRightOffset,
       rhythmRate,
       waveType,
       bend,
@@ -41,6 +42,7 @@ export default function StressTest() {
     frameRate: 24,
     amplitude: 2.0,
     upDownOffset: 0,
+    leftRightOffset: 0,
     rhythmRate: 60,
     waveType: "sinusoid",
     bend: 1,
@@ -55,6 +57,7 @@ export default function StressTest() {
     frameRate: frameRate,
     amplitude: amplitude,
     upDownOffset: upDownOffset,
+    leftRightOffset: leftRightOffset,
     rhythmRate: rhythmRate,
     waveType: waveType,
     bend: bend,
@@ -62,6 +65,7 @@ export default function StressTest() {
   });
 
   const [chartType, setChartType] = React.useState("line");
+  const [linkFrameOffset, setLinkFrameOffset] = React.useState(true);
   const [highlightedText, setHighlightedText] = React.useState("");
   const [primaryCursorValue, setPrimaryCursorValue] = React.useState();
   const [secondaryCursorValue, setSecondaryCursorValue] = React.useState();
@@ -112,6 +116,10 @@ export default function StressTest() {
     );
   }
 
+  function linkFrameOffsetHandler(e: React.ChangeEvent<HTMLInputElement>) {
+    setLinkFrameOffset(e.target.checked);
+  }
+
   React.useEffect(() => {
     let interval: ReturnType<typeof setTimeout>;
 
@@ -129,7 +137,7 @@ export default function StressTest() {
   const yArray = data[0].data.map((datum, i) => {
     return `${datum.primary % frameRate === 0 ? "\r\n" : ""}${
       datum.primary <= 9 ? "  " : ""
-    }${datum.primary >= 10 ? " " : ""}${datum.primary <= 99 ? " " : ""}${i}:${
+    }${datum.primary >= 10 ? " " : ""}${datum.primary <= 99 ? " " : ""}${linkFrameOffset == true ? i + leftRightOffset : i}:${
       Math.sign(Number(datum.secondary)) === 1 || -1 ? " " : ""
     }${Math.sign(Number(datum.secondary)) === -1 ? "" : ""}(${datum.secondary
       ?.toFixed(2)
@@ -251,7 +259,7 @@ export default function StressTest() {
         </label>
         {/* Up/Down Offset*/}
         <label>
-          Offset{" "}
+        Offset🡹🡻{" "}
           <input
             type="number"
             step="0.1"
@@ -261,6 +269,23 @@ export default function StressTest() {
               setState((old) => ({
                 ...old,
                 upDownOffset: parseFloat(e.target.value),
+              }));
+            }}
+          />
+        </label>
+         {/* Left/Right Offset*/}
+         <label>
+        Offset 🡸🡺{" "}
+          <input
+            type="number"
+            step="1"
+            min="0"
+            value={leftRightOffset}
+            onChange={(e) => {
+              e.persist();
+              setState((old) => ({
+                ...old,
+                leftRightOffset: parseFloat(e.target.value),
               }));
             }}
           />
@@ -349,7 +374,6 @@ export default function StressTest() {
             <option value="sin">Sine</option>
           </select>
         </label>
-
         <br />
         {/* Chart Type */}
         <label>
@@ -358,6 +382,13 @@ export default function StressTest() {
             <option value="line">Line</option>
             <option value="bar">Bar</option>
           </select>
+        </label>
+        {/* Link Horizonal Offset & Starting Frame */}
+        <label>
+          Link Offset 🡸🡺 & Start Frame{" "}
+          <input type="checkbox" checked={linkFrameOffset} 
+          onChange={linkFrameOffsetHandler}
+           />
         </label>
 
         <br />
@@ -604,9 +635,10 @@ export default function StressTest() {
 
       <div className="outputContainer">
         <h3>Formula Output</h3>
-        <div className="formulaOutput">{currentFormula}</div>
+        <div className="formulaOutput">{`${linkFrameOffset == true ? leftRightOffset : 0}: ${currentFormula}`}</div>
 
         <h3>Raw Keyframe Output</h3>
+       
         <label>
           <textarea
             id="keyframeOutput"
