@@ -9,7 +9,7 @@ import "react-resizable/css/styles.css";
 function ResizableBox({
   children,
   width = 1920,
-  height = {height: "100%"},
+  height = 400,
   resizable = true,
   style = {minWidth: "100vw"},
   className = "chartConatiner",

@@ -152,8 +152,8 @@ export default function StressTest() {
 
   const yArraySum = yArrayRaw.reduce((a, b) => Number(a) + Number(b), 0);
   const yArrayAvg = (Number(yArraySum) / yArrayRaw.length);
-  const yArrayMin = Math.min(...yArrayRaw);
-  const yArrayMax = Math.max(...yArrayRaw);
+  const yArrayMin = Math.min(...yArrayRaw as number[]);
+  const yArrayMax = Math.max(...yArrayRaw as number[]);
   
   // console.log(yArraySum);
 
