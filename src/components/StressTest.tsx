@@ -143,13 +143,15 @@ export default function StressTest() {
     }(${datum.secondary?.toFixed(2).replace("-0.00", " 0.00")})`;
   });
 
-  const yArrayRaw = data[0].data.map((datum, i) => { return datum.secondary});
+  const yArrayRaw = data[0].data.map((datum) => { return datum.secondary });
 
   //console.log(yArray);
-  const yArraySum = yArrayRaw.reduce((a, b) => a + b, 0)?.toFixed(2);
-  const yArrayAvg = (yArraySum / yArrayRaw.length)?.toFixed(2);
-  const yArrayMin = Math.min(...yArrayRaw)?.toFixed(2);
-  const yArrayMax = Math.max(...yArrayRaw)?.toFixed(2);
+
+
+  const yArraySum = yArrayRaw.reduce((a, b) => a + b, 0);
+  const yArrayAvg = (yArraySum / yArrayRaw.length)
+  const yArrayMin = Math.min(...yArrayRaw)
+  const yArrayMax = Math.max(...yArrayRaw)
   
   // console.log(yArraySum);
 
