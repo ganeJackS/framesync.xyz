@@ -393,7 +393,7 @@ function makeSeries(
 
 
       return {
-        primary: linkFrameOffset === true ? (t) : (t - leftRightOffset),
+        primary: linkFrameOffset === true ? (t.toString()) : (t - leftRightOffset),
         secondary: y,
       };
     }),

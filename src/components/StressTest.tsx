@@ -81,7 +81,7 @@ export default function StressTest() {
     () => ({
       getValue: (datum) => datum.primary,
       show: showAxes,
-      dataType: "ordinal",
+      dataType: "linear",
       primary: true,
       position: "bottom",
       tickCount: 10,
@@ -150,10 +150,10 @@ export default function StressTest() {
   //console.log(yArray);
 
 
-  const yArraySum = yArrayRaw.reduce((a, b) => Number(a) + Number(b), 0)?.toFixed(2);
-  const yArrayAvg = (Number(yArraySum) / yArrayRaw.length).toFixed(2);
-  const yArrayMin = Math.min(Number(...yArrayRaw)).toFixed(2);
-  const yArrayMax = Math.max(Number(...yArrayRaw)).toFixed(2);
+  const yArraySum = yArrayRaw.reduce((a, b) => Number(a) + Number(b), 0);
+  const yArrayAvg = (Number(yArraySum) / yArrayRaw.length);
+  const yArrayMin = Math.min(...yArrayRaw);
+  const yArrayMax = Math.max(...yArrayRaw);
   
   // console.log(yArraySum);
 
@@ -405,7 +405,7 @@ export default function StressTest() {
         <ResizableBox
           key={i}
           height={height}
-          width={boxWidth * datumCount * 3}
+          width={boxWidth * datumCount * 3 + 1440}
           >
           <Chart
             options={{
@@ -466,17 +466,54 @@ export default function StressTest() {
         />
       </label>
       <h3>Metrics</h3>
-      Duration: {(datumCount / frameRate).toFixed(3)}s
+      Duration: {(datumCount / frameRate).toFixed(2)}s |
+
+      Sum: {yArraySum?.toPrecision(2)} |
+
+      Max: {yArrayMax?.toPrecision(2)} |
+
+      Min: {yArrayMin?.toPrecision(2)} |
+
+      Average: {yArrayAvg?.toPrecision(2)} |
+
+      
       <br />
-      Sum: {yArraySum}
       <br />
-      Max: {yArrayMax}
+      
       <br />
-      Average: {yArrayAvg}
+      <div className="outputContainer">
+        <h3>Formula Output</h3>
+        <div className="formulaOutput">{`${
+          linkFrameOffset == true ? leftRightOffset : 0
+        }: ${currentFormula}`}</div>
+
+        <h3>Raw Keyframe Output</h3>
+
+        <label>
+          <textarea
+            id="keyframeOutput"
+            style={{
+              width: "90%",
+              height: "300px",
+              position: "relative",
+              overflow: "scroll",
+            }}
+            onSelect={handleTextChange}
+            onCopy={copyHighlightedTextHandler}
+            wrap="off"
+            value={yArray}
+            onChange={(e) => {
+              e.persist();
+              setState((old) => ({
+                ...old,
+                yArray: e.target.value,
+              }));
+            }}
+          />
+        </label>
+      </div>
       <br />
-      Min: {yArrayMin}
-      <br />
-      Beat Chart:
+      <h3>Timing Chart</h3>
       {/* create a table with a column for beat divisions and seconds and frames. Each row is a beat division and the seconds column is the seconds for that beat division. Divide the beat divisions by the tempo. Use the values from the opions on the dropdown field below */}
       <table>
         <thead>
@@ -562,38 +599,6 @@ export default function StressTest() {
           <td>{((2.5 / tempo) * frameRate).toFixed(2)}</td>
         </tr>
       </table>
-      <br />
-      <div className="outputContainer">
-        <h3>Formula Output</h3>
-        <div className="formulaOutput">{`${
-          linkFrameOffset == true ? leftRightOffset : 0
-        }: ${currentFormula}`}</div>
-
-        <h3>Raw Keyframe Output</h3>
-
-        <label>
-          <textarea
-            id="keyframeOutput"
-            style={{
-              width: "90%",
-              height: "300px",
-              position: "relative",
-              overflow: "scroll",
-            }}
-            onSelect={handleTextChange}
-            onCopy={copyHighlightedTextHandler}
-            wrap="off"
-            value={yArray}
-            onChange={(e) => {
-              e.persist();
-              setState((old) => ({
-                ...old,
-                yArray: e.target.value,
-              }));
-            }}
-          />
-        </label>
-      </div>
     </>
   );
 }
