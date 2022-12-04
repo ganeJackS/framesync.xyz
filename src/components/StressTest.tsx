@@ -148,10 +148,10 @@ export default function StressTest() {
   //console.log(yArray);
 
 
-  const yArraySum = yArrayRaw.reduce((a, b) => a + b, 0);
-  const yArrayAvg = (yArraySum / yArrayRaw.length)
-  const yArrayMin = Math.min(...yArrayRaw)
-  const yArrayMax = Math.max(...yArrayRaw)
+  const yArraySum = yArrayRaw.reduce((a, b) => Number(a) + Number(b), 0);
+  const yArrayAvg = (Number(yArraySum) / yArrayRaw.length).toFixed(2);
+  const yArrayMin = Math.min(Number(...yArrayRaw)).toFixed(2);
+  const yArrayMax = Math.max(Number(...yArrayRaw)).toFixed(2);
   
   // console.log(yArraySum);
 
@@ -399,7 +399,7 @@ export default function StressTest() {
         <br />
       </div>
       <br />
-      {[...new Array(chartCount)].map((d, i) => (
+      {[...new Array(chartCount)].map((_d, i) => (
         <ResizableBox
           key={i}
           height={height}
@@ -413,7 +413,7 @@ export default function StressTest() {
               memoizeSeries,
               dark: true,
               tooltip: true,
-              getSeriesStyle: (series, status) => ({
+              getSeriesStyle: (series, _status) => ({
                 color: "orange",
                 opacity:
                   activeSeriesIndex > -1
@@ -456,7 +456,7 @@ export default function StressTest() {
           value={boxWidth}
           onChange={(e) => {
             e.persist();
-            setBoxWidth((old) => parseFloat(e.target.value));
+            setBoxWidth((_old) => parseInt(e.target.value));
           }}
         />
       </label>
