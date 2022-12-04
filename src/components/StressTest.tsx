@@ -25,7 +25,8 @@ export default function StressTest() {
       waveType,
       bend,
       toggleSinCos,
-      linkFrameOffset
+      linkFrameOffset,
+      boxWidth,
     },
     setState,
   ] = React.useState({
@@ -49,6 +50,7 @@ export default function StressTest() {
     bend: 1,
     toggleSinCos: "cos",
     linkFrameOffset: false,
+    boxWidth: 0,
   });
 
   const { data, randomizeData } = useDemoConfig({
@@ -71,7 +73,7 @@ export default function StressTest() {
   const [highlightedText, setHighlightedText] = React.useState("");
   const [primaryCursorValue, setPrimaryCursorValue] = React.useState();
   const [secondaryCursorValue, setSecondaryCursorValue] = React.useState();
-  const [boxWidth, setBoxWidth] = React.useState("50");
+
 
   const primaryAxis = React.useMemo<
     AxisOptions<typeof data[number]["data"][number]>
@@ -148,7 +150,7 @@ export default function StressTest() {
   //console.log(yArray);
 
 
-  const yArraySum = yArrayRaw.reduce((a, b) => Number(a) + Number(b), 0);
+  const yArraySum = yArrayRaw.reduce((a, b) => Number(a) + Number(b), 0)?.toFixed(2);
   const yArrayAvg = (Number(yArraySum) / yArrayRaw.length).toFixed(2);
   const yArrayMin = Math.min(Number(...yArrayRaw)).toFixed(2);
   const yArrayMax = Math.max(Number(...yArrayRaw)).toFixed(2);
@@ -403,7 +405,7 @@ export default function StressTest() {
         <ResizableBox
           key={i}
           height={height}
-          width={parseInt(boxWidth) * datumCount * 3}
+          width={boxWidth * datumCount * 3}
           >
           <Chart
             options={{
@@ -456,7 +458,10 @@ export default function StressTest() {
           value={boxWidth}
           onChange={(e) => {
             e.persist();
-            setBoxWidth((_old) => parseInt(e.target.value));
+            setState((old) => ({
+              ...old,
+              boxWidth: parseFloat(e.target.value),
+            }));
           }}
         />
       </label>
