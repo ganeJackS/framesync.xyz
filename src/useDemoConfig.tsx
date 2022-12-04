@@ -89,6 +89,7 @@ export default function useChartConfig({
   waveType = "sinusoid",
   bend = 0,
   toggleSinCos = "cos",
+  linkFrameOffset = false,
 }: {
   series: number;
   datums?: number;
@@ -121,6 +122,7 @@ export default function useChartConfig({
   waveType?: string;
   bend?: number;
   toggleSinCos?: string;
+  linkFrameOffset?: boolean;
 }) {
   const [state, setState] = React.useState({
     count,
@@ -155,6 +157,7 @@ export default function useChartConfig({
       waveType,
       bend,
       toggleSinCos,
+      linkFrameOffset,
       useR
     ),
   });
@@ -175,6 +178,7 @@ export default function useChartConfig({
         waveType,
         bend,
         toggleSinCos,
+        linkFrameOffset,
         useR
       ),
     }));
@@ -192,6 +196,7 @@ export default function useChartConfig({
     waveType,
     bend,
     toggleSinCos,
+    linkFrameOffset,
     useR,
   ]);
 
@@ -211,6 +216,7 @@ export default function useChartConfig({
         waveType,
         bend,
         toggleSinCos,
+        linkFrameOffset,
         useR
       ),
     }));
@@ -247,6 +253,9 @@ export default function useChartConfig({
   };
 }
 
+// function to normalize data
+
+
 function makeDataFrom(
   dataType: DataType,
   series: number,
@@ -260,8 +269,10 @@ function makeDataFrom(
   waveType: string,
   bend: number,
   toggleSinCos: string,
+  linkFrameOffset: boolean,
   useR?: boolean
 ) {
+
   return [...new Array(series)].map((d, i) =>
     makeSeries(
       i,
@@ -276,6 +287,7 @@ function makeDataFrom(
       waveType,
       bend,
       toggleSinCos,
+      linkFrameOffset,
       useR
     )
   );
@@ -294,45 +306,46 @@ function makeSeries(
   waveType: string,
   bend: number,
   toggleSinCos: string,
+  linkFrameOffset: boolean,
   useR?: boolean
 ) {
   
   let length = datums;  
-  
+
   return {
     label: `${waveType} ${1}`,
     data: [...new Array(length >= 1 ? length : (length = 1))].map((_, i) => {
-      let x = i + leftRightOffset;
-      let y;      
+      
+    let t = i + leftRightOffset;
+    
+    // t = linkFrameOffset === true ? t - leftRightOffset : t + leftRightOffset;
+    
+    let y;    
 
 
       if (waveType === "sinusoid") {
         toggleSinCos === "cos"
           ? (y =
               amplitude *
-                Math.cos(((tempo / rhythmRate) * Math.PI * x) / frameRate) **
+                Math.cos(((tempo / rhythmRate) * Math.PI * t) / frameRate) **
                   bend +
               upDownOffset)
           : (y =
               amplitude *
-                Math.sin(((tempo / rhythmRate) * Math.PI * x) / frameRate) **
+                Math.sin(((tempo / rhythmRate) * Math.PI * t) / frameRate) **
                   bend +
               upDownOffset);
       } else if (waveType === "saw") {
-        y =
-          -((2 * amplitude) / Math.PI) *
-            Math.atan(
-              (1 * bend + 1) /
-                Math.tan((x * Math.PI * tempo) / rhythmRate / frameRate)
-            ) +
-          upDownOffset;
+       
+        y = -((2 * amplitude) / Math.PI) * Math.atan((1 * bend + 1) / Math.tan((t * Math.PI * tempo) / rhythmRate / frameRate)) + upDownOffset;
+
       } else if (waveType === "square") {
         toggleSinCos === "cos"
           ? (y =
               2 *
                 amplitude *
                 Math.sign(
-                  Math.cos(((tempo / rhythmRate) * Math.PI * x) / frameRate)
+                  Math.cos(((tempo / rhythmRate) * Math.PI * t) / frameRate)
                 ) **
                   bend +
               upDownOffset)
@@ -340,7 +353,7 @@ function makeSeries(
               2 *
                 amplitude *
                 Math.sign(
-                  Math.sin(((tempo / rhythmRate) * Math.PI * x) / frameRate) **
+                  Math.sin(((tempo / rhythmRate) * Math.PI * t) / frameRate) **
                     bend
                 ) +
               upDownOffset);
@@ -349,14 +362,14 @@ function makeSeries(
           ? (y =
               ((2 * amplitude) / Math.PI) *
                 Math.asin(
-                  Math.cos(((tempo / rhythmRate) * Math.PI * x) / frameRate) **
+                  Math.cos(((tempo / rhythmRate) * Math.PI * t) / frameRate) **
                     bend
                 ) +
               upDownOffset)
           : (y =
               ((2 * amplitude) / Math.PI) *
                 Math.asin(
-                  Math.sin(((tempo / rhythmRate) * Math.PI * x) / frameRate) **
+                  Math.sin(((tempo / rhythmRate) * Math.PI * t) / frameRate) **
                     bend
                 ) +
               upDownOffset);
@@ -364,7 +377,7 @@ function makeSeries(
         toggleSinCos === "cos"
           ? (y =
               amplitude *
-                Math.cos(((tempo / rhythmRate) * Math.PI * x) / frameRate) **
+                Math.cos(((tempo / rhythmRate) * Math.PI * t) / frameRate) **
                   Number(`${bend}0`) +
               upDownOffset)
           : (y =
@@ -374,8 +387,13 @@ function makeSeries(
               upDownOffset);
       }
 
+      // if (linkFrameOffset === false) {
+      //   t = t - leftRightOffset;
+      // }
+
+
       return {
-        primary: x,
+        primary: linkFrameOffset === true ? (t) : (t - leftRightOffset),
         secondary: y,
       };
     }),

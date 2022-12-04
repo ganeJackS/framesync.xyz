@@ -1,30 +1,30 @@
 import React from "react";
 import { ResizableBox as ReactResizableBox } from "react-resizable";
 
+
 import "react-resizable/css/styles.css";
 
 
 
 function ResizableBox({
   children,
-  width = "auto",
+  width = 1920,
   height = 400,
   resizable = true,
-  style = {},
-  className = "",
+  style = {minWidth: "100vw"},
+  className = "chartConatiner",
 }) {
 
 
   return (
-    <div style={{ marginLeft: 0 }}>
+    <div style={{ minWidth: "100vw" }}>
       <div
         style={{
-          display: "flex",
-          justifyContent: "center",
-          justifyItems: "center",
+          display: "block",
           width: "100%",
           background: "rgba(0, 27, 45, 0.9)",
-          overflow: "visible",
+          overflowX: "scroll",
+         
           // padding: ".5rem",
           // borderRadius: "0.5rem",
           // boxShadow: "0 30px 40px rgba(0,0,0,.1)",
@@ -35,7 +35,8 @@ function ResizableBox({
           <ReactResizableBox width={width} height={height}>
             <div
               style={{
-                width: "auto",
+                width: width,
+                minWidth: "100vw",
                 height: "100%",
               }}
               className={className}

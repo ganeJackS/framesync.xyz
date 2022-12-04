@@ -25,6 +25,7 @@ export default function StressTest() {
       waveType,
       bend,
       toggleSinCos,
+      linkFrameOffset
     },
     setState,
   ] = React.useState({
@@ -47,6 +48,7 @@ export default function StressTest() {
     waveType: "sinusoid",
     bend: 1,
     toggleSinCos: "cos",
+    linkFrameOffset: false,
   });
 
   const { data, randomizeData } = useDemoConfig({
@@ -62,13 +64,14 @@ export default function StressTest() {
     waveType: waveType,
     bend: bend,
     toggleSinCos: toggleSinCos,
+    linkFrameOffset: linkFrameOffset,
   });
 
   const [chartType, setChartType] = React.useState("line");
-  const [linkFrameOffset, setLinkFrameOffset] = React.useState(true);
   const [highlightedText, setHighlightedText] = React.useState("");
   const [primaryCursorValue, setPrimaryCursorValue] = React.useState();
   const [secondaryCursorValue, setSecondaryCursorValue] = React.useState();
+  const [boxWidth, setBoxWidth] = React.useState("50");
 
   const primaryAxis = React.useMemo<
     AxisOptions<typeof data[number]["data"][number]>
@@ -92,7 +95,7 @@ export default function StressTest() {
         getValue: (datum) => datum.secondary,
         showDatumElements: showPoints,
         show: showAxes,
-        dataType: "linear",
+        dataType: "ordinal",
         elementType: chartType === "bar" ? "bar" : "line",
       },
     ],
@@ -108,17 +111,13 @@ export default function StressTest() {
     const { selectionStart, selectionEnd } = e.target;
     setHighlightedText(e.target.value.substring(selectionStart, selectionEnd));
   }
-  // console.log(highlightedText);
 
   function copyHighlightedTextHandler() {
     navigator.clipboard.writeText(
-      highlightedText.replace(/[^0-9.,():-]/g, " ").trimStart()
+      highlightedText.replace(/[^0-9.,():-]/g, "").trimStart()
     );
   }
 
-  function linkFrameOffsetHandler(e: React.ChangeEvent<HTMLInputElement>) {
-    setLinkFrameOffset(e.target.checked);
-  }
 
   React.useEffect(() => {
     let interval: ReturnType<typeof setTimeout>;
@@ -137,22 +136,23 @@ export default function StressTest() {
   const yArray = data[0].data.map((datum, i) => {
     return `${datum.primary % frameRate === 0 ? "\r\n" : ""}${
       datum.primary <= 9 ? "  " : ""
-    }${datum.primary >= 10 ? " " : ""}${datum.primary <= 99 ? " " : ""}${linkFrameOffset == true ? i + leftRightOffset : i}:${
-      Math.sign(Number(datum.secondary)) === 1 || -1 ? " " : ""
-    }${Math.sign(Number(datum.secondary)) === -1 ? "" : ""}(${datum.secondary
-      ?.toFixed(2)
-      .replace("-0.00", " 0.00")})`;
+    }${datum.primary >= 10 ? " " : ""}${datum.primary <= 99 ? " " : ""}${
+      linkFrameOffset == true ? i + leftRightOffset : i
+    }:${Math.sign(Number(datum.secondary)) === 1 || -1 ? " " : ""}${
+      Math.sign(Number(datum.secondary)) === -1 ? "" : ""
+    }(${datum.secondary?.toFixed(2).replace("-0.00", " 0.00")})`;
   });
 
-  // console.log(yArray);
-  // const yArraySum = yArray.reduce((a, b) => a + b, 0);
+  const yArrayRaw = data[0].data.map((datum, i) => { return datum.secondary});
+
+  //console.log(yArray);
+  const yArraySum = yArrayRaw.reduce((a, b) => a + b, 0)?.toFixed(2);
+  const yArrayAvg = (yArraySum / yArrayRaw.length)?.toFixed(2);
+  const yArrayMin = Math.min(...yArrayRaw)?.toFixed(2);
+  const yArrayMax = Math.max(...yArrayRaw)?.toFixed(2);
+  
   // console.log(yArraySum);
 
-  // sinusoid: `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin"}((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend} + ${upDownOffset})`,
-  // saw: `(-(2*${amplitude} / 3.141) * arctan((1 * ${bend}+1) / tan(( t * 3.141 * ${tempo} / ${rhythmRate} / ${frameRate}))) + ${upDownOffset})`,
-  // // square: `2 * ${amplitude} * Math.sign(Math.cos(tempo / rhythmRate * Math.PI * i / frameRate))**bend + upDownOffset`,
-  // triangle: `((2 * ${amplitude} / 3.141) * arcsin(${toggleSinCos === "cos" ? "cos" : "sin"}( ${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate})**${bend}) + ${upDownOffset})`,
-  // bumpdip: `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin"}((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend}0 + ${upDownOffset})`,
   let currentFormula = `(${amplitude} * ${
     toggleSinCos === "cos" ? "cos" : "sin"
   }((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend} + ${upDownOffset})`;
@@ -175,16 +175,11 @@ export default function StressTest() {
     currentFormula = ``;
   }
 
+
+
+
   return (
     <>
-      <br />
-
-      {/* Value Sum {yArraySum} */}
-
-      {/* Duration {datumCount / frameRate}s */}
-
-      <br />
-
       <div className="inputs-container">
         {/* Tempo */}
         <label>
@@ -259,7 +254,7 @@ export default function StressTest() {
         </label>
         {/* Up/Down Offset*/}
         <label>
-        Offset🡹🡻{" "}
+          Offset🡹🡻{" "}
           <input
             type="number"
             step="0.1"
@@ -273,9 +268,9 @@ export default function StressTest() {
             }}
           />
         </label>
-         {/* Left/Right Offset*/}
-         <label>
-        Offset 🡸🡺{" "}
+        {/* Left/Right Offset*/}
+        <label>
+          Offset 🡸🡺{" "}
           <input
             type="number"
             step="1"
@@ -295,8 +290,8 @@ export default function StressTest() {
           Bend{" "}
           <input
             type="number"
-            step={waveType === "saw" ? "0.1" : "2"}
-            min={waveType === "saw" ? -30 : 1}
+            step={waveType === "saw" ? "1" : "2"}
+            min={waveType === "saw" ? 0 : 1}
             max={waveType === "saw" ? 30 : 200}
             list="tickmarks"
             value={bend}
@@ -386,16 +381,28 @@ export default function StressTest() {
         {/* Link Horizonal Offset & Starting Frame */}
         <label>
           Link Offset 🡸🡺 & Start Frame{" "}
-          <input type="checkbox" checked={linkFrameOffset} 
-          onChange={linkFrameOffsetHandler}
-           />
+          <input
+            type="checkbox"
+            checked={linkFrameOffset}
+            onChange={(e) => {
+              e.persist();
+              setState((old) => ({
+                ...old,
+                linkFrameOffset: e.target.checked,
+              }));
+            }}
+          />
         </label>
 
         <br />
       </div>
       <br />
       {[...new Array(chartCount)].map((d, i) => (
-        <ResizableBox key={i} height={height}>
+        <ResizableBox
+          key={i}
+          height={height}
+          width={parseInt(boxWidth) * datumCount * 3}
+          >
           <Chart
             options={{
               data,
@@ -403,8 +410,8 @@ export default function StressTest() {
               secondaryAxes,
               memoizeSeries,
               dark: true,
-
-              getSeriesStyle: (series) => ({
+              tooltip: true,
+              getSeriesStyle: (series, status) => ({
                 color: "orange",
                 opacity:
                   activeSeriesIndex > -1
@@ -436,209 +443,127 @@ export default function StressTest() {
           />
         </ResizableBox>
       ))}
-
-      {/* Test Sliders */}
-      {/* <div className="slider-container">
-        <div className="inputs-col">
-          <div className="slider-row">
-            <label className="slider-label">Amplitude </label>
-
-            <input
-              type="range"
-              min="0"
-              max="50"
-              step="0.1"
-              className="slider"
-              value={amplitude}
-              onChange={(e) => {
-                e.persist();
-                setState((old) => ({
-                  ...old,
-                  amplitude: parseFloat(e.target.value),
-                }));
-              }}
-            />
-            <input
-              type="number"
-              step="0.1"
-              value={amplitude}
-              onChange={(e) => {
-                e.persist();
-                setState((old) => ({
-                  ...old,
-                  amplitude: parseFloat(e.target.value),
-                }));
-              }}
-            />
-          </div>
-          <div className="slider-row">
-            <label className="slider-label">Amplitude </label>
-
-            <input
-              type="range"
-              min="0"
-              max="50"
-              step="0.1"
-              className="slider"
-              value={amplitude}
-              onChange={(e) => {
-                e.persist();
-                setState((old) => ({
-                  ...old,
-                  amplitude: parseFloat(e.target.value),
-                }));
-              }}
-            />
-            <input
-              type="number"
-              step="0.1"
-              value={amplitude}
-              onChange={(e) => {
-                e.persist();
-                setState((old) => ({
-                  ...old,
-                  amplitude: parseFloat(e.target.value),
-                }));
-              }}
-            />
-          </div>
-        </div>
-        <div className="inputs-col">
-          <div className="slider-row">
-            <label className="slider-label">Amplitude </label>
-
-            <input
-              type="range"
-              min="0"
-              max="50"
-              step="0.1"
-              className="slider"
-              value={amplitude}
-              onChange={(e) => {
-                e.persist();
-                setState((old) => ({
-                  ...old,
-                  amplitude: parseFloat(e.target.value),
-                }));
-              }}
-            />
-            <input
-              type="number"
-              step="0.1"
-              value={amplitude}
-              onChange={(e) => {
-                e.persist();
-                setState((old) => ({
-                  ...old,
-                  amplitude: parseFloat(e.target.value),
-                }));
-              }}
-            />
-          </div>
-          <div className="slider-row">
-            <label className="slider-label">Amplitude </label>
-
-            <input
-              type="range"
-              min="0"
-              max="50"
-              step="0.1"
-              className="slider"
-              value={amplitude}
-              onChange={(e) => {
-                e.persist();
-                setState((old) => ({
-                  ...old,
-                  amplitude: parseFloat(e.target.value),
-                }));
-              }}
-            />
-            <input
-              type="number"
-              step="0.1"
-              value={amplitude}
-              onChange={(e) => {
-                e.persist();
-                setState((old) => ({
-                  ...old,
-                  amplitude: parseFloat(e.target.value),
-                }));
-              }}
-            />
-          </div>
-        </div>
-        <div className="inputs-col">
-          <div className="slider-row">
-            <label className="slider-label">Amplitude </label>
-
-            <input
-              type="range"
-              min="0"
-              max="50"
-              step="0.1"
-              className="slider"
-              value={amplitude}
-              onChange={(e) => {
-                e.persist();
-                setState((old) => ({
-                  ...old,
-                  amplitude: parseFloat(e.target.value),
-                }));
-              }}
-            />
-            <input
-              type="number"
-              step="0.1"
-              value={amplitude}
-              onChange={(e) => {
-                e.persist();
-                setState((old) => ({
-                  ...old,
-                  amplitude: parseFloat(e.target.value),
-                }));
-              }}
-            />
-          </div>
-          <div className="slider-row">
-            <label className="slider-label">Amplitude </label>
-
-            <input
-              type="range"
-              min="0"
-              max="50"
-              step="0.1"
-              className="slider"
-              value={amplitude}
-              onChange={(e) => {
-                e.persist();
-                setState((old) => ({
-                  ...old,
-                  amplitude: parseFloat(e.target.value),
-                }));
-              }}
-            />
-            <input
-              type="number"
-              step="0.1"
-              value={amplitude}
-              onChange={(e) => {
-                e.persist();
-                setState((old) => ({
-                  ...old,
-                  amplitude: parseFloat(e.target.value),
-                }));
-              }}
-            />
-          </div>
-        </div>
-      </div> */}
-
+      {/* Zoom slider */}
+      <label>
+        <input
+          className="zoom-slider"
+          type="range"
+          min="0"
+          max="100"
+          step="1"
+          value={boxWidth}
+          onChange={(e) => {
+            e.persist();
+            setBoxWidth((old) => parseFloat(e.target.value));
+          }}
+        />
+      </label>
+      <h3>Metrics</h3>
+      Duration: {(datumCount / frameRate).toFixed(3)}s
+      <br />
+      Sum: {yArraySum}
+      <br />
+      Max: {yArrayMax}
+      <br />
+      Average: {yArrayAvg}
+      <br />
+      Min: {yArrayMin}
+      <br />
+      Beat Chart:
+      {/* create a table with a column for beat divisions and seconds and frames. Each row is a beat division and the seconds column is the seconds for that beat division. Divide the beat divisions by the tempo. Use the values from the opions on the dropdown field below */}
+      <table>
+        <thead>
+          <tr>
+            <th>Divisions</th>
+            <th>Seconds</th>
+            <th>Frames</th>
+          </tr>
+        </thead>
+        <tr>
+          <td>16 bars</td>
+          <td>{(3840 / tempo).toFixed(2)}</td>
+          <td>{((3840 / tempo) * frameRate).toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td>8 bars</td>
+          <td>{(1920 / tempo).toFixed(2)}</td>
+          <td>{((1920 / tempo) * frameRate).toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td>4 bars</td>
+          <td>{(960 / tempo).toFixed(2)}</td>
+          <td>{((960 / tempo) * frameRate).toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td>2 bars</td>
+          <td>{(480 / tempo).toFixed(2)}</td>
+          <td>{((480 / tempo) * frameRate).toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td>1 bar</td>
+          <td>{(240 / tempo).toFixed(2)}</td>
+          <td>{((240 / tempo) * frameRate).toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td>1/2 note</td>
+          <td>{(120 / tempo).toFixed(2)}</td>
+          <td>{((120 / tempo) * frameRate).toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td>1/2 note triplet</td>
+          <td>{(40 / tempo).toFixed(2)}</td>
+          <td>{((40 / tempo) * frameRate).toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td>1/4 note (beat)</td>
+          <td>{(60 / tempo).toFixed(2)}</td>
+          <td>{((60 / tempo) * frameRate).toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td>1/4 note triplet</td>
+          <td>{(20 / tempo).toFixed(2)}</td>
+          <td>{((20 / tempo) * frameRate).toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td>1/8 note</td>
+          <td>{(30 / tempo).toFixed(2)}</td>
+          <td>{((30 / tempo) * frameRate).toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td>1/8 note triplet</td>
+          <td>{(10 / tempo).toFixed(2)}</td>
+          <td>{((10 / tempo) * frameRate).toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td>1/16 note</td>
+          <td>{(15 / tempo).toFixed(2)}</td>
+          <td>{((15 / tempo) * frameRate).toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td>1/16 note triplet</td>
+          <td>{(5 / tempo).toFixed(2)}</td>
+          <td>{((5 / tempo) * frameRate).toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td>1/32 note</td>
+          <td>{(7.5 / tempo).toFixed(2)}</td>
+          <td>{((7.5 / tempo) * frameRate).toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td>1/32 note triplet</td>
+          <td>{(2.5 / tempo).toFixed(2)}</td>
+          <td>{((2.5 / tempo) * frameRate).toFixed(2)}</td>
+        </tr>
+      </table>
+      <br />
       <div className="outputContainer">
         <h3>Formula Output</h3>
-        <div className="formulaOutput">{`${linkFrameOffset == true ? leftRightOffset : 0}: ${currentFormula}`}</div>
+        <div className="formulaOutput">{`${
+          linkFrameOffset == true ? leftRightOffset : 0
+        }: ${currentFormula}`}</div>
 
         <h3>Raw Keyframe Output</h3>
-       
+
         <label>
           <textarea
             id="keyframeOutput"
