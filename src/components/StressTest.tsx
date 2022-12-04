@@ -136,7 +136,7 @@ export default function StressTest() {
   }, [liveData, liveDataInterval, randomizeData]);
 
   const yArray = data[0].data.map((datum, i) => {
-    return `${datum.primary % frameRate === 0 ? "\r\n" : ""}${
+    return `${Number(datum.primary) % frameRate === 0 ? "\r\n" : ""}${
       datum.primary <= 9 ? "  " : ""
     }${datum.primary >= 10 ? " " : ""}${datum.primary <= 99 ? " " : ""}${
       linkFrameOffset == true ? i + leftRightOffset : i
