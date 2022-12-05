@@ -342,7 +342,7 @@ function makeSeries(
       } else if (waveType === "square") {
         toggleSinCos === "cos"
           ? (y =
-              2 *
+              
                 amplitude *
                 Math.sign(
                   Math.cos(((tempo / rhythmRate) * Math.PI * t) / frameRate)
@@ -350,7 +350,7 @@ function makeSeries(
                   bend +
               upDownOffset)
           : (y =
-              2 *
+              
                 amplitude *
                 Math.sign(
                   Math.sin(((tempo / rhythmRate) * Math.PI * t) / frameRate) **

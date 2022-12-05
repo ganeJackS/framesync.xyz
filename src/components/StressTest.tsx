@@ -150,8 +150,8 @@ export default function StressTest() {
   //console.log(yArray);
 
 
-  const yArraySum = yArrayRaw.reduce((a, b) => Number(a) + Number(b), 0);
-  const yArrayAvg = (Number(yArraySum) / yArrayRaw.length);
+  const yArraySum = yArrayRaw.reduce((accumulator, currentValue) => accumulator? + currentValue!: 0);
+  const yArrayAvg = ((yArraySum as number) / yArrayRaw.length);
   const yArrayMin = Math.min(...yArrayRaw as number[]);
   const yArrayMax = Math.max(...yArrayRaw as number[]);
   
@@ -159,22 +159,22 @@ export default function StressTest() {
 
   let currentFormula = `(${amplitude} * ${
     toggleSinCos === "cos" ? "cos" : "sin"
-  }((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend} + ${upDownOffset})`;
+  }((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate} + ${leftRightOffset}))**${bend} + ${upDownOffset})`;
 
   if (waveType === "sinusoid") {
     currentFormula = `(${amplitude} * ${
       toggleSinCos === "cos" ? "cos" : "sin"
-    }((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend} + ${upDownOffset})`;
+    }((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate} + ${leftRightOffset}))**${bend} + ${upDownOffset})`;
   } else if (waveType === "saw") {
-    currentFormula = `(-(2 * ${amplitude} / 3.141) * arctan((1 * ${bend} + 1) / tan((t * 3.141 * ${tempo} / ${rhythmRate} / ${frameRate}))) + ${upDownOffset})`;
+    currentFormula = `(-(2 * ${amplitude} / 3.141) * arctan((1 * ${bend} + 1) / tan((t * 3.141 * ${tempo} / ${rhythmRate} / ${frameRate} + ${leftRightOffset}))) + ${upDownOffset})`;
   } else if (waveType === "triangle") {
     currentFormula = `((2 * ${amplitude} / 3.141) * arcsin(${
       toggleSinCos === "cos" ? "cos" : "sin"
-    }( ${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate})**${bend}) + ${upDownOffset})`;
+    }( ${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate})**${bend} + ${leftRightOffset}) + ${upDownOffset})`;
   } else if (waveType === "bumpdip") {
     currentFormula = `(${amplitude} * ${
       toggleSinCos === "cos" ? "cos" : "sin"
-    }((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate}))**${bend}0 + ${upDownOffset})`;
+    }((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate} + ${leftRightOffset}))**${bend}0 + ${upDownOffset})`;
   } else if (waveType === "square") {
     currentFormula = ``;
   }
@@ -468,13 +468,13 @@ export default function StressTest() {
       <h3>Metrics</h3>
       Duration: {(datumCount / frameRate).toFixed(2)}s |
 
-      Sum: {yArraySum?.toPrecision(2)} |
+      Sum: {yArraySum} |
 
-      Max: {yArrayMax?.toPrecision(2)} |
+      Max: {yArrayMax?.toFixed(2)} |
 
-      Min: {yArrayMin?.toPrecision(2)} |
+      Min: {yArrayMin?.toFixed(2)} |
 
-      Average: {yArrayAvg?.toPrecision(2)} |
+      Average: {yArrayAvg?.toFixed(2)} |
 
       
       <br />
