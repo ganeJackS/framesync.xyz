@@ -1,5 +1,6 @@
 import React from "react";
 
+
 //
 
 const options = {
@@ -253,8 +254,6 @@ export default function useChartConfig({
   };
 }
 
-// function to normalize data
-
 
 function makeDataFrom(
   dataType: DataType,
@@ -316,11 +315,11 @@ function makeSeries(
     label: `${waveType} ${1}`,
     data: [...new Array(length >= 1 ? length : (length = 1))].map((_, i) => {
       
-    let t = i + leftRightOffset;
-    
+    let t = i + leftRightOffset;    
     // t = linkFrameOffset === true ? t - leftRightOffset : t + leftRightOffset;
-    
     let y;    
+
+    
 
 
       if (waveType === "sinusoid") {
@@ -337,7 +336,7 @@ function makeSeries(
               upDownOffset);
       } else if (waveType === "saw") {
        
-        y = -((2 * amplitude) / Math.PI) * Math.atan((1 * bend + 1) / Math.tan((t * Math.PI * tempo) / rhythmRate / frameRate)) + upDownOffset;
+        y = -((2 * amplitude) / Math.PI) * Math.atan((1 * bend) / Math.tan((t * Math.PI * tempo) / rhythmRate / frameRate)) + upDownOffset;
 
       } else if (waveType === "square") {
         toggleSinCos === "cos"
@@ -391,6 +390,7 @@ function makeSeries(
       //   t = t - leftRightOffset;
       // }
 
+      
 
       return {
         primary: linkFrameOffset === true ? (t.toString()) : (t - leftRightOffset),

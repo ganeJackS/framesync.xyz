@@ -1,5 +1,7 @@
 import StressTest from "./components/StressTest";
-import "./App.css";
+import "./global.css";
+import "./App.css"
+import NavigationBar from "./components/Navbar";
 
 const components = [["Stress Test", StressTest]];
 
@@ -8,6 +10,7 @@ const components = [["Stress Test", StressTest]];
 export default function App() {
   return (
     <div>
+      {/* <NavigationBar /> */}
       {components.map(([label, Comp]) => {
         return (
           <div key={label + ""}>
