@@ -1,7 +1,7 @@
 import StressTest from "./components/StressTest";
 import "./global.css";
-import "./App.css"
-import NavigationBar from "./components/Navbar";
+
+
 
 const components = [["Stress Test", StressTest]];
 
