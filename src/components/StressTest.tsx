@@ -3,7 +3,6 @@ import useDemoConfig from "../useDemoConfig";
 import React from "react";
 import { AxisOptions, Chart } from "react-charts";
 import NumberInput from "./NumberInput";
-import "../global.css";
 import {
   curveCatmullRom,
   curveCardinal,

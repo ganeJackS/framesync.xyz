@@ -1,5 +1,5 @@
 import StressTest from "./components/StressTest";
-import "./global.css";
+import "./index.css";
 
 
 
