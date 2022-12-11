@@ -266,7 +266,12 @@ export default function StressTest() {
           }}
         />
       </label>
-
+   {/* Stats */}
+   <div className="flex flex-row justify-center space-x-2 mb-4 font-mono">
+        Duration: {(datumCount / frameRate).toFixed(2)}s |  Max: {yArrayMax?.toFixed(2)} | Min:{" "}
+        {yArrayMin?.toFixed(2)} | Average: {yArrayAvg?.toFixed(2)} | Absolute Sum:{" "}
+        {yArraySum} |
+      </div>
      
       {/* Control Panel */}
       <div className="flex flex-row justify-center space-x-4 font-mono">
@@ -831,12 +836,7 @@ export default function StressTest() {
         
       </div>
      
-      {/* Stats */}
-      {/* <div className="flex flex-row justify-center space-x-2 font-mono">
-        Duration: {(datumCount / frameRate).toFixed(2)}s | Absolute Sum:{" "}
-        {yArraySum} | Max: {yArrayMax?.toFixed(2)} | Min:{" "}
-        {yArrayMin?.toFixed(2)} | Average: {yArrayAvg?.toFixed(2)} |
-      </div> */}
+   
 
 
       <div className="flex flex-row justify-center justify-items-center">
