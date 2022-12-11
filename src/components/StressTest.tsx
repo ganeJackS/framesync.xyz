@@ -745,7 +745,73 @@ export default function StressTest() {
               </div>
             </div>
           </fieldset>
-          {/* <table className="text-left mt-4 border-2 border-dark-blue">
+          
+        
+        </div>
+        
+      </div>
+     
+   
+
+
+      <div className="flex flex-row justify-center justify-items-center">
+        <div className="flex flex-row justify-center justify-items-center ">
+          
+          {/* a button to copy the currentFormula to the clipboard */}
+          
+       
+        </div>
+      </div>
+      <br />
+     
+      <div className="flex flex-row grow justify-center items-center">
+          {/* a button to copy keyframeOutput to the clipboard */}
+        <label>
+        <button
+            className="bg-orange-800 text-white font-mono p-2"
+            onCopy={copyHighlightedTextHandler}
+            onClick={() => {
+              navigator.clipboard.writeText(yArray as unknown as string);
+            }}
+            
+          >
+            Copy Keyframes
+          </button>
+          <button
+            className="bg-orange-700 text-white font-mono p-2"
+            onClick={() => {
+              navigator.clipboard.writeText(currentFormula);
+            }}
+          >
+            Copy Formula
+          </button>
+          <div className="font-mono inline-flex bg-darkest-blue p-3">
+            {`${
+              linkFrameOffset == true ? leftRightOffset : 0
+            }: ${currentFormula}`}
+          </div>
+        <textarea
+          className="flex flex-row justify-center items-center h-96 w-2/3 min-w-1080px w-1080px resize-x font-mono bg-darkest-blue border-2 border-dark-blue "
+          id="keyframeOutput"
+          onSelect={handleTextChange}
+          onCopy={copyHighlightedTextHandler}
+          wrap="off"
+          value={yArray}
+          onChange={(e) => {
+            e.persist();
+            setState((old) => ({
+              ...old,
+              yArray: e.target.value,
+            }));
+          }}
+          style={{
+            width: "1080px",
+          }}
+        />
+        </label>
+      
+      </div>
+      <table className="text-left mt-4 border-2 border-dark-blue">
                 <thead>
                   <tr>
                     <th>Divisions</th>
@@ -830,72 +896,7 @@ export default function StressTest() {
                     <td>{((2.5 / tempo) * frameRate).toFixed(2)}</td>
                   </tr>
                 </tbody>
-              </table> */}
-        
-        </div>
-        
-      </div>
-     
-   
-
-
-      <div className="flex flex-row justify-center justify-items-center">
-        <div className="flex flex-row justify-center justify-items-center ">
-          
-          {/* a button to copy the currentFormula to the clipboard */}
-          
-       
-        </div>
-      </div>
-      <br />
-     
-      <div className="flex flex-row grow justify-center items-center">
-          {/* a button to copy keyframeOutput to the clipboard */}
-        <label>
-        <button
-            className="bg-orange-800 text-white font-mono p-2"
-            onCopy={copyHighlightedTextHandler}
-            onClick={() => {
-              navigator.clipboard.writeText(yArray as unknown as string);
-            }}
-            
-          >
-            Copy Keyframes
-          </button>
-          <button
-            className="bg-orange-700 text-white font-mono p-2"
-            onClick={() => {
-              navigator.clipboard.writeText(currentFormula);
-            }}
-          >
-            Copy Formula
-          </button>
-          <div className="font-mono inline-flex bg-darkest-blue p-3">
-            {`${
-              linkFrameOffset == true ? leftRightOffset : 0
-            }: ${currentFormula}`}
-          </div>
-        <textarea
-          className="flex flex-row justify-center items-center h-96 w-2/3 min-w-1080px w-1080px resize-x font-mono bg-darkest-blue border-2 border-dark-blue "
-          id="keyframeOutput"
-          onSelect={handleTextChange}
-          onCopy={copyHighlightedTextHandler}
-          wrap="off"
-          value={yArray}
-          onChange={(e) => {
-            e.persist();
-            setState((old) => ({
-              ...old,
-              yArray: e.target.value,
-            }));
-          }}
-          style={{
-            width: "1080px",
-          }}
-        />
-        </label>
-      
-      </div>
+              </table>
       {/* <h3>Timing Chart</h3>
       <table>
         <thead>
