@@ -99,7 +99,7 @@ export default function StressTest() {
       show: showAxes,
       dataType: "linear",
       primary: true,
-      position: "bottom",
+     
       tickCount: 10,
     }),
     [showAxes]
@@ -116,7 +116,7 @@ export default function StressTest() {
         dataType: "linear",
         elementType: chartType === "bar" ? "bar" : "line",
         tickCount: 10,
-        curve: curveStep,
+        curve: curveCatmullRom,
       },
     ],
     [showAxes, showPoints, chartType]
