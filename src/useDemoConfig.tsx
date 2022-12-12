@@ -401,7 +401,14 @@ function makeSeries(
 
       // y = as number + Math.random() * 0.5;
       
-      y = y as number + Math.random() * Number(noiseAmount) as number;
+      if (y as number > 0) {
+        y = y as number + Math.random() * Number(noiseAmount);
+      } else if (y as number < 0) {
+        y = y as number - Math.random() * Number(noiseAmount);
+      }
+      
+
+      // y = y as number + Math.random() * Number(noiseAmount) as number;
 
       return {
         primary: linkFrameOffset === true ? (t.toString()) : (t - leftRightOffset),
