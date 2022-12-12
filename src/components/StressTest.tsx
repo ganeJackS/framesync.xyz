@@ -18,6 +18,8 @@ import saw from "../assets/saw.svg";
 import square from "../assets/square.svg";
 import triangle from "../assets/triangle.svg";
 import bumpdip from "../assets/bumpdip.svg";
+import ToggleContent from "./ShowHideToggle";
+import ToggleButton from "./SelectToggle";
 
 export default function StressTest() {
   const [
@@ -105,9 +107,8 @@ export default function StressTest() {
       show: showAxes,
       dataType: "linear",
       primary: true,
-      
+
       tickCount: 10,
-     
     }),
     [showAxes]
   );
@@ -273,13 +274,13 @@ export default function StressTest() {
           }}
         />
       </label>
-   {/* Stats */}
-   <div className="flex flex-row justify-center space-x-2 mb-4 font-mono">
-        Duration: {(datumCount / frameRate).toFixed(2)}s |  Max: {yArrayMax?.toFixed(2)} | Min:{" "}
-        {yArrayMin?.toFixed(2)} | Average: {yArrayAvg?.toFixed(2)} | Absolute Sum:{" "}
-        {yArraySum?.toFixed(2)} |
+      {/* Stats */}
+      <div className="flex flex-row justify-center space-x-2 mb-4 font-mono">
+        Duration: {(datumCount / frameRate).toFixed(2)}s | Max:{" "}
+        {yArrayMax?.toFixed(2)} | Min: {yArrayMin?.toFixed(2)} | Average:{" "}
+        {yArrayAvg?.toFixed(2)} | Absolute Sum: {yArraySum?.toFixed(2)} |
       </div>
-     
+
       {/* Control Panel */}
       <div className="flex flex-row justify-center space-x-4 font-mono">
         {/* Wave Settings */}
@@ -472,7 +473,37 @@ export default function StressTest() {
                   }
                 />
               </label>
-              
+            </div>
+            <div className="flex flex-row grow space-x-2 mt-4">
+              {/* Sin/Cos */}
+              <label>
+                sin/cos{" "}
+                <select
+                  className="bg-darker-blue border-2 border-dark-blue"
+                  value={toggleSinCos}
+                  onChange={(e) => {
+                    e.persist();
+                    setState((old) => ({
+                      ...old,
+                      toggleSinCos: e.target.value,
+                    }));
+                  }}>
+                  <option value="cos">Cosine</option>
+                  <option value="sin">Sine</option>
+                </select>
+              </label>
+         
+              {/* Chart Type */}
+              <label>
+                Chart{" "}
+                <select
+                  className="bg-darker-blue border-2 border-dark-blue"
+                  value={chartType}
+                  onChange={setChartTypeHandler}>
+                  <option value="line">Line</option>
+                  <option value="bar">Bar</option>
+                </select>
+              </label>
             </div>
           </div>
         </fieldset>
@@ -519,7 +550,7 @@ export default function StressTest() {
             <legend>Sync Settings</legend>
             <div className="flex flex-col">
               {/*New Rythm Rate*/}
-              <div className="flex flex-row-reverse justify-start justify-items-start text-center text-xs mb-2">
+              <div className="flex flex-row-reverse flex-wrap justify-start justify-items-start text-center text-xs mb-2">
                 <input
                   className="appearance-none radio"
                   type="radio"
@@ -678,13 +709,37 @@ export default function StressTest() {
                       rhythmRate: parseFloat(e.target.value),
                     }));
                   }}
-                />
+                />            
                 <label
                   className={`p-2 border-2 bg-darker-blue mr-2 ${
                     rhythmRate === 60 ? "border-orange-500" : "border-dark-blue"
                   } hover:border-orange-600 cursor-pointer ease-out duration-300`}
                   htmlFor="quarterbar">
                   1/4
+                </label>
+                <input
+                  className="appearance-none radio"
+                  type="radio"
+                  id="halfbarTriplet"
+                  name="rhythmRate"
+                  value="40"
+                  checked={rhythmRate === 40}
+                  onChange={(e) => {
+                    e.persist();
+                    setState((old) => ({
+                      ...old,
+                      rhythmRate: parseFloat(e.target.value),
+                    }));
+                  }}
+                />
+                <label
+                  className={`p-2 border-2 bg-darker-blue mr-2 ${
+                    rhythmRate === 40
+                      ? "border-orange-500"
+                      : "border-dark-blue"
+                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                  htmlFor="halfbarTriplet">
+                  1/2T
                 </label>
                 <input
                   className="appearance-none radio"
@@ -708,6 +763,32 @@ export default function StressTest() {
                   htmlFor="eighthbar">
                   1/8
                 </label>
+                
+                <input 
+                  className="appearance-none radio"
+                  type="radio"
+                  id="quarterbarTriplet"
+                  name="rhythmRate"
+                  value="20"
+                  checked={rhythmRate === 20}
+                  onChange={(e) => {
+                    e.persist();
+                    setState((old) => ({
+                      ...old,
+                      rhythmRate: parseFloat(e.target.value),
+                    }));
+                  }}
+                />
+                <label
+                  className={`p-2 border-2 bg-darker-blue mr-2 ${
+                    rhythmRate === 20
+                      ? "border-orange-500"
+                      : "border-dark-blue"
+                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                  htmlFor="quarterbarTriplet">
+                  1/4T
+                </label>
+
                 <input
                   className="appearance-none radio"
                   type="radio"
@@ -730,7 +811,77 @@ export default function StressTest() {
                   htmlFor="sixteenthbar">
                   1/16
                 </label>
-              </div>
+                <input 
+                  className="appearance-none radio"
+                  type="radio"
+                  id="eighthbarTriplet"
+                  name="rhythmRate"
+                  value="10"
+                  checked={rhythmRate === 10}
+                  onChange={(e) => {
+                    e.persist();
+                    setState((old) => ({
+                      ...old,
+                      rhythmRate: parseFloat(e.target.value),
+                    }));
+                  }}
+                />
+                <label
+                  className={`p-2 border-2 bg-darker-blue mr-2 ${
+                    rhythmRate === 10
+                      ? "border-orange-500"
+                      : "border-dark-blue"
+                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                  htmlFor="eighthbarTriplet">
+                  1/8T
+                </label>
+                <input
+                  className="appearance-none radio"
+                  type="radio"
+                  id="thirtysecondbar"
+                  name="rhythmRate"
+                  value="7.5"
+                  checked={rhythmRate === 7.5}
+                  onChange={(e) => {
+                    e.persist();
+                    setState((old) => ({
+                      ...old,
+                      rhythmRate: parseFloat(e.target.value),
+                    }));
+                  }}
+                />
+                <label
+                  className={`p-2 border-2 bg-darker-blue mr-2 ${
+                    rhythmRate === 7.5 ? "border-orange-500" : "border-dark-blue"
+                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                  htmlFor="thirtysecondbar">
+                  1/32
+                </label>
+                <input
+                  className="appearance-none radio"
+                  type="radio"
+                  id="sixteenthbarTriplet"
+                  name="rhythmRate"
+                  value="5"
+                  checked={rhythmRate === 5}
+                  onChange={(e) => {
+                    e.persist();
+                    setState((old) => ({
+                      ...old,
+                      rhythmRate: parseFloat(e.target.value),
+                    }));
+                  }}
+                />
+                <label
+                  className={`p-2 border-2 bg-darker-blue mr-2 ${
+                    rhythmRate === 5
+                      ? "border-orange-500"
+                      : "border-dark-blue"
+                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                  htmlFor="sixteenthbarTriplet">
+                  1/16T
+                </label>
+                </div>
               <div className="flex flex-row grow space-x-2">
                 {/* Tempo */}
                 <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
@@ -750,8 +901,24 @@ export default function StressTest() {
                   />
                 </label>
                 {/* Shift Left/Right */}
+                
                 <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
                   SHIFT LEFT/RIGHT
+                   {/* Link Horizonal Offset & Starting Frame */}
+        <label className="text-xs">
+          START FRAME{" "}
+          <input
+            type="checkbox"
+            checked={linkFrameOffset}
+            onChange={(e) => {
+              e.persist();
+              setState((old) => ({
+                ...old,
+                linkFrameOffset: e.target.checked,
+              }));
+            }}
+          />
+        </label>
                   <NumberInput
                     value={leftRightOffset}
                     min={0}
@@ -765,48 +932,128 @@ export default function StressTest() {
                       }))
                     }
                   />
+                  
                 </label>
+                
               </div>
             </div>
+            
           </fieldset>
-          
-        
-        </div>
-        
-      </div>
-     
-   
 
+          <ToggleContent label={"Timing Table"}>
+            <table className="text-left mt-4 border-2 border-dark-blue">
+              <thead>
+                <tr>
+                  <th>Divisions</th>
+                  <th>Seconds</th>
+                  <th>Frames</th>
+                </tr>
+              </thead>
+              <tbody className="border-2 border-dark-blue">
+                <tr className="border-2 border-dark-blue">
+                  <td>16 bars</td>
+                  <td>{(3840 / tempo).toFixed(2)}</td>
+                  <td>{((3840 / tempo) * frameRate).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td>8 bars</td>
+                  <td>{(1920 / tempo).toFixed(2)}</td>
+                  <td>{((1920 / tempo) * frameRate).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td>4 bars</td>
+                  <td>{(960 / tempo).toFixed(2)}</td>
+                  <td>{((960 / tempo) * frameRate).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td>2 bars</td>
+                  <td>{(480 / tempo).toFixed(2)}</td>
+                  <td>{((480 / tempo) * frameRate).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td>1 bar</td>
+                  <td>{(240 / tempo).toFixed(2)}</td>
+                  <td>{((240 / tempo) * frameRate).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td>1/2 note</td>
+                  <td>{(120 / tempo).toFixed(2)}</td>
+                  <td>{((120 / tempo) * frameRate).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td>1/2 note triplet</td>
+                  <td>{(40 / tempo).toFixed(2)}</td>
+                  <td>{((40 / tempo) * frameRate).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td>1/4 note (beat)</td>
+                  <td>{(60 / tempo).toFixed(2)}</td>
+                  <td>{((60 / tempo) * frameRate).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td>1/4 note triplet</td>
+                  <td>{(20 / tempo).toFixed(2)}</td>
+                  <td>{((20 / tempo) * frameRate).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td>1/8 note</td>
+                  <td>{(30 / tempo).toFixed(2)}</td>
+                  <td>{((30 / tempo) * frameRate).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td>1/8 note triplet</td>
+                  <td>{(10 / tempo).toFixed(2)}</td>
+                  <td>{((10 / tempo) * frameRate).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td>1/16 note</td>
+                  <td>{(15 / tempo).toFixed(2)}</td>
+                  <td>{((15 / tempo) * frameRate).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td>1/16 note triplet</td>
+                  <td>{(5 / tempo).toFixed(2)}</td>
+                  <td>{((5 / tempo) * frameRate).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td>1/32 note</td>
+                  <td>{(7.5 / tempo).toFixed(2)}</td>
+                  <td>{((7.5 / tempo) * frameRate).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td>1/32 note triplet</td>
+                  <td>{(2.5 / tempo).toFixed(2)}</td>
+                  <td>{((2.5 / tempo) * frameRate).toFixed(2)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </ToggleContent>
+        </div>
+      </div>
 
       <div className="flex flex-row justify-center justify-items-center">
         <div className="flex flex-row justify-center justify-items-center ">
-          
           {/* a button to copy the currentFormula to the clipboard */}
-          
-       
         </div>
       </div>
       <br />
-     
+
       <div className="flex flex-row grow justify-center items-center">
-          {/* a button to copy keyframeOutput to the clipboard */}
+        {/* a button to copy keyframeOutput to the clipboard */}
         <label>
-        <button
+          <button
             className="bg-orange-800 text-white font-mono p-2"
             onCopy={copyHighlightedTextHandler}
             onClick={() => {
               navigator.clipboard.writeText(yArray as unknown as string);
-            }}
-            
-          >
+            }}>
             Copy Keyframes
           </button>
           <button
             className="bg-orange-700 text-white font-mono p-2"
             onClick={() => {
               navigator.clipboard.writeText(currentFormula);
-            }}
-          >
+            }}>
             Copy Formula
           </button>
           <div className="font-mono inline-flex bg-darkest-blue p-3">
@@ -814,113 +1061,112 @@ export default function StressTest() {
               linkFrameOffset == true ? leftRightOffset : 0
             }: ${currentFormula}`}
           </div>
-        <textarea
-          className="flex flex-row justify-center items-center h-96 w-2/3 min-w-1080px w-1080px resize-x font-mono bg-darkest-blue border-2 border-dark-blue "
-          id="keyframeOutput"
-          onSelect={handleTextChange}
-          onCopy={copyHighlightedTextHandler}
-          wrap="off"
-          value={yArray}
-          onChange={(e) => {
-            e.persist();
-            setState((old) => ({
-              ...old,
-              yArray: e.target.value,
-            }));
-          }}
-          style={{
-            width: "1080px",
-          }}
-        />
+          <textarea
+            className="flex flex-row justify-center items-center h-96 w-2/3 min-w-1080px w-1080px resize-x font-mono bg-darkest-blue border-2 border-dark-blue "
+            id="keyframeOutput"
+            onSelect={handleTextChange}
+            onCopy={copyHighlightedTextHandler}
+            wrap="off"
+            value={yArray}
+            onChange={(e) => {
+              e.persist();
+              setState((old) => ({
+                ...old,
+                yArray: e.target.value,
+              }));
+            }}
+            style={{
+              width: "1080px",
+            }}
+          />
         </label>
-      
       </div>
       <table className="text-left mt-4 border-2 border-dark-blue">
-                <thead>
-                  <tr>
-                    <th>Divisions</th>
-                    <th>Seconds</th>
-                    <th>Frames</th>
-                  </tr>
-                </thead>
-                <tbody className="border-2 border-dark-blue">
-                  <tr className="border-2 border-dark-blue">
-                    <td>16 bars</td>
-                    <td>{(3840 / tempo).toFixed(2)}</td>
-                    <td>{((3840 / tempo) * frameRate).toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>8 bars</td>
-                    <td>{(1920 / tempo).toFixed(2)}</td>
-                    <td>{((1920 / tempo) * frameRate).toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>4 bars</td>
-                    <td>{(960 / tempo).toFixed(2)}</td>
-                    <td>{((960 / tempo) * frameRate).toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>2 bars</td>
-                    <td>{(480 / tempo).toFixed(2)}</td>
-                    <td>{((480 / tempo) * frameRate).toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>1 bar</td>
-                    <td>{(240 / tempo).toFixed(2)}</td>
-                    <td>{((240 / tempo) * frameRate).toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>1/2 note</td>
-                    <td>{(120 / tempo).toFixed(2)}</td>
-                    <td>{((120 / tempo) * frameRate).toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>1/2 note triplet</td>
-                    <td>{(40 / tempo).toFixed(2)}</td>
-                    <td>{((40 / tempo) * frameRate).toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>1/4 note (beat)</td>
-                    <td>{(60 / tempo).toFixed(2)}</td>
-                    <td>{((60 / tempo) * frameRate).toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>1/4 note triplet</td>
-                    <td>{(20 / tempo).toFixed(2)}</td>
-                    <td>{((20 / tempo) * frameRate).toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>1/8 note</td>
-                    <td>{(30 / tempo).toFixed(2)}</td>
-                    <td>{((30 / tempo) * frameRate).toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>1/8 note triplet</td>
-                    <td>{(10 / tempo).toFixed(2)}</td>
-                    <td>{((10 / tempo) * frameRate).toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>1/16 note</td>
-                    <td>{(15 / tempo).toFixed(2)}</td>
-                    <td>{((15 / tempo) * frameRate).toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>1/16 note triplet</td>
-                    <td>{(5 / tempo).toFixed(2)}</td>
-                    <td>{((5 / tempo) * frameRate).toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>1/32 note</td>
-                    <td>{(7.5 / tempo).toFixed(2)}</td>
-                    <td>{((7.5 / tempo) * frameRate).toFixed(2)}</td>
-                  </tr>
-                  <tr>
-                    <td>1/32 note triplet</td>
-                    <td>{(2.5 / tempo).toFixed(2)}</td>
-                    <td>{((2.5 / tempo) * frameRate).toFixed(2)}</td>
-                  </tr>
-                </tbody>
-              </table>
+        <thead>
+          <tr>
+            <th>Divisions</th>
+            <th>Seconds</th>
+            <th>Frames</th>
+          </tr>
+        </thead>
+        <tbody className="border-2 border-dark-blue">
+          <tr className="border-2 border-dark-blue">
+            <td>16 bars</td>
+            <td>{(3840 / tempo).toFixed(2)}</td>
+            <td>{((3840 / tempo) * frameRate).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>8 bars</td>
+            <td>{(1920 / tempo).toFixed(2)}</td>
+            <td>{((1920 / tempo) * frameRate).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>4 bars</td>
+            <td>{(960 / tempo).toFixed(2)}</td>
+            <td>{((960 / tempo) * frameRate).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>2 bars</td>
+            <td>{(480 / tempo).toFixed(2)}</td>
+            <td>{((480 / tempo) * frameRate).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>1 bar</td>
+            <td>{(240 / tempo).toFixed(2)}</td>
+            <td>{((240 / tempo) * frameRate).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>1/2 note</td>
+            <td>{(120 / tempo).toFixed(2)}</td>
+            <td>{((120 / tempo) * frameRate).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>1/2 note triplet</td>
+            <td>{(40 / tempo).toFixed(2)}</td>
+            <td>{((40 / tempo) * frameRate).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>1/4 note (beat)</td>
+            <td>{(60 / tempo).toFixed(2)}</td>
+            <td>{((60 / tempo) * frameRate).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>1/4 note triplet</td>
+            <td>{(20 / tempo).toFixed(2)}</td>
+            <td>{((20 / tempo) * frameRate).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>1/8 note</td>
+            <td>{(30 / tempo).toFixed(2)}</td>
+            <td>{((30 / tempo) * frameRate).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>1/8 note triplet</td>
+            <td>{(10 / tempo).toFixed(2)}</td>
+            <td>{((10 / tempo) * frameRate).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>1/16 note</td>
+            <td>{(15 / tempo).toFixed(2)}</td>
+            <td>{((15 / tempo) * frameRate).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>1/16 note triplet</td>
+            <td>{(5 / tempo).toFixed(2)}</td>
+            <td>{((5 / tempo) * frameRate).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>1/32 note</td>
+            <td>{(7.5 / tempo).toFixed(2)}</td>
+            <td>{((7.5 / tempo) * frameRate).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td>1/32 note triplet</td>
+            <td>{(2.5 / tempo).toFixed(2)}</td>
+            <td>{((2.5 / tempo) * frameRate).toFixed(2)}</td>
+          </tr>
+        </tbody>
+      </table>
       {/* <h3>Timing Chart</h3>
       <table>
         <thead>
@@ -1008,10 +1254,10 @@ export default function StressTest() {
           </tr>
         </tbody>
       </table> */}
-            {/* Old */}
-            <div className="inputs-container">
+      {/* Old */}
+      <div className="inputs-container">
         {/* Rhythm Rate */}
-        <label>
+        {/* <label>
           Rhythm Rate{" "}
           <select
             value={rhythmRate}
@@ -1028,63 +1274,22 @@ export default function StressTest() {
             <option value="480">2 bars</option>
             <option value="240">1 bar</option>
             <option value="120">1/2 note</option>
-            <option value="40">1/2 note triplet</option>
             <option value="60">1/4 note (beat)</option>
-            <option value="20">1/4 note triplet</option>
+            <option value="40">1/2 note triplet</option>
             <option value="30">1/8 note</option>
-            <option value="10">1/8 note triplet</option>
+            <option value="20">1/4 note triplet</option>
             <option value="15">1/16 note</option>
-            <option value="5">1/16 note triplet</option>
+            <option value="10">1/8 note triplet</option>
             <option value="7.5">1/32 note</option>
+            <option value="5">1/16 note triplet</option>
             <option value="2.5">1/32 note triplet</option>
           </select>
-        </label>
+        </label> */}
 
-        {/* Sin/Cos */}
-        <label>
-          sin/cos{" "}
-          <select
-            value={toggleSinCos}
-            onChange={(e) => {
-              e.persist();
-              setState((old) => ({
-                ...old,
-                toggleSinCos: e.target.value,
-              }));
-            }}>
-            <option value="cos">Cosine</option>
-            <option value="sin">Sine</option>
-          </select>
-        </label>
-        <br />
-        {/* Chart Type */}
-        <label>
-          Chart{" "}
-          <select value={chartType} onChange={setChartTypeHandler}>
-            <option value="line">Line</option>
-            <option value="bar">Bar</option>
-          </select>
-        </label>
-        {/* Link Horizonal Offset & Starting Frame */}
-        <label>
-          Link Offset 🡸🡺 & Start Frame{" "}
-          <input
-            type="checkbox"
-            checked={linkFrameOffset}
-            onChange={(e) => {
-              e.persist();
-              setState((old) => ({
-                ...old,
-                linkFrameOffset: e.target.checked,
-              }));
-            }}
-          />
-        </label>
+       
 
         <br />
       </div>
     </>
   );
 }
-
-
