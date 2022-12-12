@@ -9,6 +9,9 @@ import {
   curveStep,
   curveStepAfter,
   curveStepBefore,
+  curveNatural,
+  curveMonotoneX,
+  curveMonotoneY,
 } from "d3-shape";
 import sinusoid from "../assets/sinusoid.svg";
 import saw from "../assets/saw.svg";
@@ -39,6 +42,7 @@ export default function StressTest() {
       bend,
       toggleSinCos,
       linkFrameOffset,
+      noiseAmount,
       boxWidth,
     },
     setState,
@@ -63,6 +67,7 @@ export default function StressTest() {
     bend: 1,
     toggleSinCos: "cos",
     linkFrameOffset: false,
+    noiseAmount: 0,
     boxWidth: 0,
   });
 
@@ -80,6 +85,7 @@ export default function StressTest() {
     bend: bend,
     toggleSinCos: toggleSinCos,
     linkFrameOffset: linkFrameOffset,
+    noiseAmount: noiseAmount,
   });
 
   const [chartType, setChartType] = React.useState("line");
@@ -99,8 +105,9 @@ export default function StressTest() {
       show: showAxes,
       dataType: "linear",
       primary: true,
-     
+      
       tickCount: 10,
+     
     }),
     [showAxes]
   );
@@ -116,7 +123,7 @@ export default function StressTest() {
         dataType: "linear",
         elementType: chartType === "bar" ? "bar" : "line",
         tickCount: 10,
-        curve: curveCatmullRom,
+        curve: curveMonotoneX,
       },
     ],
     [showAxes, showPoints, chartType]
@@ -270,7 +277,7 @@ export default function StressTest() {
    <div className="flex flex-row justify-center space-x-2 mb-4 font-mono">
         Duration: {(datumCount / frameRate).toFixed(2)}s |  Max: {yArrayMax?.toFixed(2)} | Min:{" "}
         {yArrayMin?.toFixed(2)} | Average: {yArrayAvg?.toFixed(2)} | Absolute Sum:{" "}
-        {yArraySum} |
+        {yArraySum?.toFixed(2)} |
       </div>
      
       {/* Control Panel */}
@@ -444,6 +451,23 @@ export default function StressTest() {
                     setState((old) => ({
                       ...old,
                       upDownOffset: parseFloat(value as string),
+                    }))
+                  }
+                />
+              </label>
+              {/* Noise*/}
+              <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
+                NOISE{" "}
+                <NumberInput
+                  value={noiseAmount}
+                  min={-10}
+                  max={10}
+                  step={0.01}
+                  isInt={false}
+                  onChange={(value) =>
+                    setState((old) => ({
+                      ...old,
+                      noiseAmount: parseFloat(value as unknown as string),
                     }))
                   }
                 />

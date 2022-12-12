@@ -91,6 +91,7 @@ export default function useChartConfig({
   bend = 0,
   toggleSinCos = "cos",
   linkFrameOffset = false,
+  noiseAmount = 0,
 }: {
   series: number;
   datums?: number;
@@ -124,6 +125,7 @@ export default function useChartConfig({
   bend?: number;
   toggleSinCos?: string;
   linkFrameOffset?: boolean;
+  noiseAmount?: number;
 }) {
   const [state, setState] = React.useState({
     count,
@@ -159,7 +161,8 @@ export default function useChartConfig({
       bend,
       toggleSinCos,
       linkFrameOffset,
-      useR
+      noiseAmount,
+      useR,
     ),
   });
 
@@ -180,6 +183,7 @@ export default function useChartConfig({
         bend,
         toggleSinCos,
         linkFrameOffset,
+        noiseAmount,
         useR
       ),
     }));
@@ -198,6 +202,7 @@ export default function useChartConfig({
     bend,
     toggleSinCos,
     linkFrameOffset,
+    noiseAmount,
     useR,
   ]);
 
@@ -218,7 +223,8 @@ export default function useChartConfig({
         bend,
         toggleSinCos,
         linkFrameOffset,
-        useR
+        noiseAmount,
+        useR,
       ),
     }));
 
@@ -269,6 +275,7 @@ function makeDataFrom(
   bend: number,
   toggleSinCos: string,
   linkFrameOffset: boolean,
+  noiseAmount: number,
   useR?: boolean
 ) {
 
@@ -287,6 +294,7 @@ function makeDataFrom(
       bend,
       toggleSinCos,
       linkFrameOffset,
+      noiseAmount,
       useR
     )
   );
@@ -306,7 +314,8 @@ function makeSeries(
   bend: number,
   toggleSinCos: string,
   linkFrameOffset: boolean,
-  useR?: boolean
+  noiseAmount?: number,
+  useR?: boolean,
 ) {
   
   let length = datums;  
@@ -318,8 +327,8 @@ function makeSeries(
     let t = i + leftRightOffset;    
     // t = linkFrameOffset === true ? t - leftRightOffset : t + leftRightOffset;
     let y;    
+  
 
-    
 
 
       if (waveType === "sinusoid") {
@@ -390,7 +399,9 @@ function makeSeries(
       //   t = t - leftRightOffset;
       // }
 
+      // y = as number + Math.random() * 0.5;
       
+      y = y as number + Math.random() * Number(noiseAmount) as number;
 
       return {
         primary: linkFrameOffset === true ? (t.toString()) : (t - leftRightOffset),
