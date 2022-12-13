@@ -12,7 +12,6 @@ import square from "../assets/square.svg";
 import triangle from "../assets/triangle.svg";
 import bumpdip from "../assets/bumpdip.svg";
 import ShowHideToggle from "./ShowHideToggle";
-import tooltipRenderer from "react-charts/types/components/TooltipRenderer";
 
 export default function StressTest() {
   const [
@@ -105,12 +104,7 @@ export default function StressTest() {
       show: showAxes,
       dataType: "linear",
       primary: true,
-      tickCount: 10,
-      tooltipAlign: "auto",
-      tooltipAnchor: "closest",
-      snapCursor: true,
-      interactionMode: "primary",
-      tooltipGroupingMode: "primary",
+
 
     }),
     [showAxes]
@@ -126,13 +120,8 @@ export default function StressTest() {
         show: showAxes,
         dataType: "linear",
         elementType: chartType === "bar" ? "bar" : "line",
-        tickCount: 10,
         curve: curveMonotoneX,
-        tooltipAlign: "auto",
-        tooltipAnchor: "closest",
-        snapCursor: true,
-        interactionMode: "primary",
-        tooltipGroupingMode: "primary",
+   
       },
     ],
     [showAxes, showPoints, chartType]
@@ -222,7 +211,7 @@ export default function StressTest() {
       {[...new Array(chartCount)].map((_d, i) => (
         <ResizableBox
           key={i}
-          height={height}
+          height={240}
           width={boxWidth * datumCount * 3 + 1440}>
           <Chart
             options={{
@@ -284,10 +273,10 @@ export default function StressTest() {
         />
       </label>
       {/* Stats */}
-      <div className="flex flex-row justify-center space-x-2 mb-4 font-mono">
-        Duration: {(datumCount / frameRate).toFixed(2)}s | Max:{" "}
-        {yArrayMax?.toFixed(2)} | Min: {yArrayMin?.toFixed(2)} | Average:{" "}
-        {yArrayAvg?.toFixed(2)} | Absolute Sum: {yArraySum?.toFixed(2)} |
+      <div className="flex flex-row justify-center shrink text-gray-400 bg-darkest-blue space-x-2 mb-4 font-mono">
+        Min:{" "}
+        {yArrayMin?.toFixed(2)} | Max: {yArrayMax?.toFixed(2)} | Average:{" "}
+        {yArrayAvg?.toFixed(2)} | Absolute Sum: {yArraySum?.toFixed(2)} | Duration: {(datumCount / frameRate).toFixed(2)}s 
       </div>
 
       {/* Control Panel */}
@@ -1151,7 +1140,7 @@ export default function StressTest() {
             }: ${currentFormula}`}
           </div>
           <textarea
-            className="flex flex-row justify-center items-center h-96 w-2/3 min-w-1080px w-1080px resize font-mono bg-darkest-blue border-2 border-dark-blue "
+            className="flex flex-row justify-center items-center h-96 w-2/3 min-w-980px w-980px resize font-mono bg-darkest-blue border-2 border-dark-blue "
             id="keyframeOutput"
             onSelect={handleTextChange}
             onCopy={copyHighlightedTextHandler}
@@ -1165,7 +1154,7 @@ export default function StressTest() {
               }));
             }}
             style={{
-              width: "1080px",
+              width: "980px",
             }}
           />
         </label>
