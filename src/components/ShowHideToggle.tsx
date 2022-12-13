@@ -6,9 +6,9 @@ type Props = {
   label: string;
 };
 
-const ToggleContent: React.FC<Props> = ({ children, label }) => {
+const ShowHideToggle: React.FC<Props> = ({ children, label }) => {
   // `hidden` is the state that tracks whether the content is currently hidden or not
-  const [hidden, setHidden] = useState(false);
+  const [hidden, setHidden] = useState(true);
 
 
 
@@ -16,7 +16,7 @@ const ToggleContent: React.FC<Props> = ({ children, label }) => {
     <>
       {/* The button that toggles the hidden state of the content */}
       <button 
-      className="flex flex-auto justify-start text-orange-500 hover:text-orange-700"
+      className="flex flex-auto justify-start mt-2 text-orange-500 hover:text-orange-700"
       onClick={() => setHidden(!hidden)}>
         {hidden ? `Show ${label}`  : `Hide ${label}`}
       </button>
@@ -26,4 +26,4 @@ const ToggleContent: React.FC<Props> = ({ children, label }) => {
   );
 };
 
-export default ToggleContent;
+export default ShowHideToggle;

@@ -97,7 +97,14 @@ body {
   } */
   
  
-  
+  td {
+    padding: 0 10px;
+  }
+
+  tr {
+    padding: 0 10px;
+  }
+
   
   .slider-container {
     display: flex;

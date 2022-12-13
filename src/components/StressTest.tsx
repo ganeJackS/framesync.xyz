@@ -4,22 +4,15 @@ import React from "react";
 import { AxisOptions, Chart } from "react-charts";
 import NumberInput from "./NumberInput";
 import {
-  curveCatmullRom,
-  curveCardinal,
-  curveStep,
-  curveStepAfter,
-  curveStepBefore,
-  curveNatural,
   curveMonotoneX,
-  curveMonotoneY,
 } from "d3-shape";
 import sinusoid from "../assets/sinusoid.svg";
 import saw from "../assets/saw.svg";
 import square from "../assets/square.svg";
 import triangle from "../assets/triangle.svg";
 import bumpdip from "../assets/bumpdip.svg";
-import ToggleContent from "./ShowHideToggle";
-import ToggleButton from "./SelectToggle";
+import ShowHideToggle from "./ShowHideToggle";
+import tooltipRenderer from "react-charts/types/components/TooltipRenderer";
 
 export default function StressTest() {
   const [
@@ -88,6 +81,11 @@ export default function StressTest() {
     toggleSinCos: toggleSinCos,
     linkFrameOffset: linkFrameOffset,
     noiseAmount: noiseAmount,
+    tooltipAlign: "auto",
+    tooltipAnchor: "closest",
+    snapCursor: true,
+    interactionMode: "primary",
+    tooltipGroupingMode: "primary",
   });
 
   const [chartType, setChartType] = React.useState("line");
@@ -107,8 +105,13 @@ export default function StressTest() {
       show: showAxes,
       dataType: "linear",
       primary: true,
-
       tickCount: 10,
+      tooltipAlign: "auto",
+      tooltipAnchor: "closest",
+      snapCursor: true,
+      interactionMode: "primary",
+      tooltipGroupingMode: "primary",
+
     }),
     [showAxes]
   );
@@ -125,6 +128,11 @@ export default function StressTest() {
         elementType: chartType === "bar" ? "bar" : "line",
         tickCount: 10,
         curve: curveMonotoneX,
+        tooltipAlign: "auto",
+        tooltipAnchor: "closest",
+        snapCursor: true,
+        interactionMode: "primary",
+        tooltipGroupingMode: "primary",
       },
     ],
     [showAxes, showPoints, chartType]
@@ -224,6 +232,7 @@ export default function StressTest() {
               memoizeSeries,
               dark: true,
               tooltip: true,
+             
               getSeriesStyle: (series, _status) => ({
                 color: "#F97316",
                 opacity:
@@ -282,9 +291,9 @@ export default function StressTest() {
       </div>
 
       {/* Control Panel */}
-      <div className="flex flex-row justify-center space-x-4 font-mono">
+      <div className="flex flex-row justify-center justify-items-start space-x-4 font-mono">
         {/* Wave Settings */}
-        <fieldset className="bg-darkest-blue p-4 space-x-2 font-mono">
+        <fieldset className=" bg-darkest-blue p-4 space-x-2 font-mono">
           <legend>Select Wave</legend>
           <div className="flex flex-col">
             {/* Wave Type */}
@@ -492,7 +501,7 @@ export default function StressTest() {
                   <option value="sin">Sine</option>
                 </select>
               </label>
-         
+
               {/* Chart Type */}
               <label>
                 Chart{" "}
@@ -507,11 +516,12 @@ export default function StressTest() {
             </div>
           </div>
         </fieldset>
+        {/* Framesync Settings */}
         <div className="grid grid-cols-1 font-mono">
           {/* Frame Settings */}
-          <fieldset className="bg-darkest-blue flex row-auto justify-start p-4 space-x-3 font-mono">
+          <fieldset className="bg-darkest-blue flex flex-row justify-start pl-3 pr-3 pb-3 font-mono">
             <legend>Frame Settings</legend>
-            <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
+            <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 mr-2 border-2 border-dark-blue z-index-100 text-sm">
               FRAME RATE (FPS)
               <NumberInput
                 value={frameRate}
@@ -546,343 +556,10 @@ export default function StressTest() {
           </fieldset>
 
           {/* Sync Settings */}
-          <fieldset className="bg-darkest-blue flex row-auto justify-start p-4 space-x-3 font-mono">
-            <legend>Sync Settings</legend>
-            <div className="flex flex-col">
-              {/*New Rythm Rate*/}
-              <div className="flex flex-row-reverse flex-wrap justify-start justify-items-start text-center text-xs mb-2">
-                <input
-                  className="appearance-none radio"
-                  type="radio"
-                  id="16bars"
-                  name="rhythmRate"
-                  value="3840"
-                  checked={rhythmRate === 3840}
-                  onChange={(e) => {
-                    e.persist();
-                    setState((old) => ({
-                      ...old,
-                      rhythmRate: parseFloat(e.target.value),
-                    }));
-                  }}
-                />
-                <label
-                  className={`p-2 border-2 bg-darker-blue mr-2 ${
-                    rhythmRate === 3840
-                      ? "border-orange-500"
-                      : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="16bars">
-                  16
-                </label>
-                <input
-                  className="appearance-none radio"
-                  type="radio"
-                  id="8bars"
-                  name="rhythmRate"
-                  value="1920"
-                  checked={rhythmRate === 1920}
-                  onChange={(e) => {
-                    e.persist();
-                    setState((old) => ({
-                      ...old,
-                      rhythmRate: parseFloat(e.target.value),
-                    }));
-                  }}
-                />
-                <label
-                  className={`p-2 border-2 bg-darker-blue mr-2 ${
-                    rhythmRate === 1920
-                      ? "border-orange-500"
-                      : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="8bars">
-                  8
-                </label>
-                <input
-                  className="appearance-none radio"
-                  type="radio"
-                  id="4bars"
-                  name="rhythmRate"
-                  value="960"
-                  checked={rhythmRate === 960}
-                  onChange={(e) => {
-                    e.persist();
-                    setState((old) => ({
-                      ...old,
-                      rhythmRate: parseFloat(e.target.value),
-                    }));
-                  }}
-                />
-                <label
-                  className={`p-2 border-2 bg-darker-blue mr-2 ${
-                    rhythmRate === 960
-                      ? "border-orange-500"
-                      : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="4bars">
-                  4
-                </label>
-                <input
-                  className="appearance-none radio"
-                  type="radio"
-                  id="2bars"
-                  name="rhythmRate"
-                  value="480"
-                  checked={rhythmRate === 480}
-                  onChange={(e) => {
-                    e.persist();
-                    setState((old) => ({
-                      ...old,
-                      rhythmRate: parseFloat(e.target.value),
-                    }));
-                  }}
-                />
-                <label
-                  className={`p-2 border-2 bg-darker-blue mr-2 ${
-                    rhythmRate === 480
-                      ? "border-orange-500"
-                      : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="2bars">
-                  2
-                </label>
-                <input
-                  className="appearance-none radio"
-                  type="radio"
-                  id="1bar"
-                  name="rhythmRate"
-                  value="240"
-                  checked={rhythmRate === 240}
-                  onChange={(e) => {
-                    e.persist();
-                    setState((old) => ({
-                      ...old,
-                      rhythmRate: parseFloat(e.target.value),
-                    }));
-                  }}
-                />
-                <label
-                  className={`p-2 border-2 bg-darker-blue mr-2 ${
-                    rhythmRate === 240
-                      ? "border-orange-500"
-                      : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="1bar">
-                  1
-                </label>
-                <input
-                  className="appearance-none radio"
-                  type="radio"
-                  id="halfbar"
-                  name="rhythmRate"
-                  value="120"
-                  checked={rhythmRate === 120}
-                  onChange={(e) => {
-                    e.persist();
-                    setState((old) => ({
-                      ...old,
-                      rhythmRate: parseFloat(e.target.value),
-                    }));
-                  }}
-                />
-                <label
-                  className={`p-2 border-2 bg-darker-blue mr-2 ${
-                    rhythmRate === 120
-                      ? "border-orange-500"
-                      : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="halfbar">
-                  1/2
-                </label>
-                <input
-                  className="appearance-none radio"
-                  type="radio"
-                  id="quarterbar"
-                  name="rhythmRate"
-                  value="60"
-                  checked={rhythmRate === 60}
-                  onChange={(e) => {
-                    e.persist();
-                    setState((old) => ({
-                      ...old,
-                      rhythmRate: parseFloat(e.target.value),
-                    }));
-                  }}
-                />            
-                <label
-                  className={`p-2 border-2 bg-darker-blue mr-2 ${
-                    rhythmRate === 60 ? "border-orange-500" : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="quarterbar">
-                  1/4
-                </label>
-                <input
-                  className="appearance-none radio"
-                  type="radio"
-                  id="halfbarTriplet"
-                  name="rhythmRate"
-                  value="40"
-                  checked={rhythmRate === 40}
-                  onChange={(e) => {
-                    e.persist();
-                    setState((old) => ({
-                      ...old,
-                      rhythmRate: parseFloat(e.target.value),
-                    }));
-                  }}
-                />
-                <label
-                  className={`p-2 border-2 bg-darker-blue mr-2 ${
-                    rhythmRate === 40
-                      ? "border-orange-500"
-                      : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="halfbarTriplet">
-                  1/2T
-                </label>
-                <input
-                  className="appearance-none radio"
-                  type="radio"
-                  id="eighthbar"
-                  name="rhythmRate"
-                  value="30"
-                  checked={rhythmRate === 30}
-                  onChange={(e) => {
-                    e.persist();
-                    setState((old) => ({
-                      ...old,
-                      rhythmRate: parseFloat(e.target.value),
-                    }));
-                  }}
-                />
-                <label
-                  className={`p-2 border-2 bg-darker-blue mr-2 ${
-                    rhythmRate === 30 ? "border-orange-500" : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="eighthbar">
-                  1/8
-                </label>
-                
-                <input 
-                  className="appearance-none radio"
-                  type="radio"
-                  id="quarterbarTriplet"
-                  name="rhythmRate"
-                  value="20"
-                  checked={rhythmRate === 20}
-                  onChange={(e) => {
-                    e.persist();
-                    setState((old) => ({
-                      ...old,
-                      rhythmRate: parseFloat(e.target.value),
-                    }));
-                  }}
-                />
-                <label
-                  className={`p-2 border-2 bg-darker-blue mr-2 ${
-                    rhythmRate === 20
-                      ? "border-orange-500"
-                      : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="quarterbarTriplet">
-                  1/4T
-                </label>
-
-                <input
-                  className="appearance-none radio"
-                  type="radio"
-                  id="sixteenthbar"
-                  name="rhythmRate"
-                  value="15"
-                  checked={rhythmRate === 15}
-                  onChange={(e) => {
-                    e.persist();
-                    setState((old) => ({
-                      ...old,
-                      rhythmRate: parseFloat(e.target.value),
-                    }));
-                  }}
-                />
-                <label
-                  className={`p-2 border-2 bg-darker-blue mr-2 ${
-                    rhythmRate === 15 ? "border-orange-500" : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="sixteenthbar">
-                  1/16
-                </label>
-                <input 
-                  className="appearance-none radio"
-                  type="radio"
-                  id="eighthbarTriplet"
-                  name="rhythmRate"
-                  value="10"
-                  checked={rhythmRate === 10}
-                  onChange={(e) => {
-                    e.persist();
-                    setState((old) => ({
-                      ...old,
-                      rhythmRate: parseFloat(e.target.value),
-                    }));
-                  }}
-                />
-                <label
-                  className={`p-2 border-2 bg-darker-blue mr-2 ${
-                    rhythmRate === 10
-                      ? "border-orange-500"
-                      : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="eighthbarTriplet">
-                  1/8T
-                </label>
-                <input
-                  className="appearance-none radio"
-                  type="radio"
-                  id="thirtysecondbar"
-                  name="rhythmRate"
-                  value="7.5"
-                  checked={rhythmRate === 7.5}
-                  onChange={(e) => {
-                    e.persist();
-                    setState((old) => ({
-                      ...old,
-                      rhythmRate: parseFloat(e.target.value),
-                    }));
-                  }}
-                />
-                <label
-                  className={`p-2 border-2 bg-darker-blue mr-2 ${
-                    rhythmRate === 7.5 ? "border-orange-500" : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="thirtysecondbar">
-                  1/32
-                </label>
-                <input
-                  className="appearance-none radio"
-                  type="radio"
-                  id="sixteenthbarTriplet"
-                  name="rhythmRate"
-                  value="5"
-                  checked={rhythmRate === 5}
-                  onChange={(e) => {
-                    e.persist();
-                    setState((old) => ({
-                      ...old,
-                      rhythmRate: parseFloat(e.target.value),
-                    }));
-                  }}
-                />
-                <label
-                  className={`p-2 border-2 bg-darker-blue mr-2 ${
-                    rhythmRate === 5
-                      ? "border-orange-500"
-                      : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="sixteenthbarTriplet">
-                  1/16T
-                </label>
-                </div>
-              <div className="flex flex-row grow space-x-2">
+          <fieldset className="bg-darkest-blue flex-row-auto justify-start pl-3 pr-3 pb-3 font-mono">
+            <legend>Sync Settings</legend>           
+            {/* Tempo and Shift Left/Right */}
+            <div className="flex flex-row grow space-x-2 mb-2">
                 {/* Tempo */}
                 <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
                   TEMPO (BPM)
@@ -901,24 +578,24 @@ export default function StressTest() {
                   />
                 </label>
                 {/* Shift Left/Right */}
-                
+
                 <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
                   SHIFT LEFT/RIGHT
-                   {/* Link Horizonal Offset & Starting Frame */}
-        <label className="text-xs">
-          START FRAME{" "}
-          <input
-            type="checkbox"
-            checked={linkFrameOffset}
-            onChange={(e) => {
-              e.persist();
-              setState((old) => ({
-                ...old,
-                linkFrameOffset: e.target.checked,
-              }));
-            }}
-          />
-        </label>
+                  {/* Link Horizonal Offset & Starting Frame */}
+                  <label className="text-xs">
+                    START FRAME{" "}
+                    <input
+                      type="checkbox"
+                      checked={linkFrameOffset}
+                      onChange={(e) => {
+                        e.persist();
+                        setState((old) => ({
+                          ...old,
+                          linkFrameOffset: e.target.checked,
+                        }));
+                      }}
+                    />
+                  </label>
                   <NumberInput
                     value={leftRightOffset}
                     min={0}
@@ -932,16 +609,421 @@ export default function StressTest() {
                       }))
                     }
                   />
-                  
                 </label>
-                
               </div>
-            </div>
             
+            <div className="flex flex-col">
+            <fieldset className="border-2 border-dark-blue pl-2 pr-2">
+            <legend className="text-sm">RHYTHM RATE</legend>
+              {/*New Rythm Rate*/}
+              <div className="flex flex-col-reverse flex-wrap justify-start text-center text-xs mb-2">
+                {/* Row 1 */}
+            
+                  <div className="flex flex-row mt-2">
+                    <input
+                      className="appearance-none radio"
+                      type="radio"
+                      id="halfbarTriplet"
+                      name="rhythmRate"
+                      value="40"
+                      checked={rhythmRate === 40}
+                      onChange={(e) => {
+                        e.persist();
+                        setState((old) => ({
+                          ...old,
+                          rhythmRate: parseFloat(e.target.value),
+                        }));
+                      }}
+                    />
+                    <label
+                      className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                        rhythmRate === 40
+                          ? "border-orange-500"
+                          : "border-dark-blue"
+                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      htmlFor="halfbarTriplet">
+                      1/2T
+                    </label>
+                    <input
+                      className="appearance-none radio"
+                      type="radio"
+                      id="quarterbarTriplet"
+                      name="rhythmRate"
+                      value="20"
+                      checked={rhythmRate === 20}
+                      onChange={(e) => {
+                        e.persist();
+                        setState((old) => ({
+                          ...old,
+                          rhythmRate: parseFloat(e.target.value),
+                        }));
+                      }}
+                    />
+                    <label
+                      className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                        rhythmRate === 20
+                          ? "border-orange-500"
+                          : "border-dark-blue"
+                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      htmlFor="quarterbarTriplet">
+                      1/4T
+                    </label>
+                    <input
+                      className="appearance-none radio"
+                      type="radio"
+                      id="eighthbarTriplet"
+                      name="rhythmRate"
+                      value="10"
+                      checked={rhythmRate === 10}
+                      onChange={(e) => {
+                        e.persist();
+                        setState((old) => ({
+                          ...old,
+                          rhythmRate: parseFloat(e.target.value),
+                        }));
+                      }}
+                    />
+                    <label
+                      className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                        rhythmRate === 10
+                          ? "border-orange-500"
+                          : "border-dark-blue"
+                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      htmlFor="eighthbarTriplet">
+                      1/8T
+                    </label>
+                    <input
+                      className="appearance-none radio"
+                      type="radio"
+                      id="sixteenthbarTriplet"
+                      name="rhythmRate"
+                      value="5"
+                      checked={rhythmRate === 5}
+                      onChange={(e) => {
+                        e.persist();
+                        setState((old) => ({
+                          ...old,
+                          rhythmRate: parseFloat(e.target.value),
+                        }));
+                      }}
+                    />
+                    <label
+                      className={`p-2 border-2 grow mr-2 bg-darker-blue ${
+                        rhythmRate === 5
+                          ? "border-orange-500"
+                          : "border-dark-blue"
+                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      htmlFor="sixteenthbarTriplet">
+                      1/16T
+                    </label>
+                    <input
+                      className="appearance-none radio"
+                      type="radio"
+                      id="thirtysecondbarTriplet"
+                      name="rhythmRate"
+                      value="2.5"
+                      checked={rhythmRate === 2.5}
+                      onChange={(e) => {
+                        e.persist();
+                        setState((old) => ({
+                          ...old,
+                          rhythmRate: parseFloat(e.target.value),
+                        }));
+                      }}
+                    />
+                    <label
+                      className={`p-2 border-2 grow bg-darker-blue  ${
+                        rhythmRate === 2.5
+                          ? "border-orange-500"
+                          : "border-dark-blue"
+                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      htmlFor="thirtysecondbarTriplet">
+                      1/32T
+                    </label>
+                  </div>
+      
+                {/* Row 2 */}
+                <div className="flex flex-row mt-2">
+                  <input
+                    className="appearance-none radio"
+                    type="radio"
+                    id="halfbar"
+                    name="rhythmRate"
+                    value="120"
+                    checked={rhythmRate === 120}
+                    onChange={(e) => {
+                      e.persist();
+                      setState((old) => ({
+                        ...old,
+                        rhythmRate: parseFloat(e.target.value),
+                      }));
+                    }}
+                  />
+                  <label
+                    className={`p-2 border-2 grow mr-2 bg-darker-blue ${
+                      rhythmRate === 120
+                        ? "border-orange-500"
+                        : "border-dark-blue"
+                    } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                    htmlFor="halfbar">
+                    1/2
+                  </label>
+                  <input
+                    className="appearance-none radio"
+                    type="radio"
+                    id="quarterbar"
+                    name="rhythmRate"
+                    value="60"
+                    checked={rhythmRate === 60}
+                    onChange={(e) => {
+                      e.persist();
+                      setState((old) => ({
+                        ...old,
+                        rhythmRate: parseFloat(e.target.value),
+                      }));
+                    }}
+                  />
+                  <label
+                    className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                      rhythmRate === 60
+                        ? "border-orange-500"
+                        : "border-dark-blue"
+                    } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                    htmlFor="quarterbar">
+                    1/4
+                  </label>
+
+                  <input
+                    className="appearance-none radio"
+                    type="radio"
+                    id="eighthbar"
+                    name="rhythmRate"
+                    value="30"
+                    checked={rhythmRate === 30}
+                    onChange={(e) => {
+                      e.persist();
+                      setState((old) => ({
+                        ...old,
+                        rhythmRate: parseFloat(e.target.value),
+                      }));
+                    }}
+                  />
+                  <label
+                    className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                      rhythmRate === 30
+                        ? "border-orange-500"
+                        : "border-dark-blue"
+                    } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                    htmlFor="eighthbar">
+                    1/8
+                  </label>
+
+                  <input
+                    className="appearance-none radio"
+                    type="radio"
+                    id="sixteenthbar"
+                    name="rhythmRate"
+                    value="15"
+                    checked={rhythmRate === 15}
+                    onChange={(e) => {
+                      e.persist();
+                      setState((old) => ({
+                        ...old,
+                        rhythmRate: parseFloat(e.target.value),
+                      }));
+                    }}
+                  />
+                  <label
+                    className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                      rhythmRate === 15
+                        ? "border-orange-500"
+                        : "border-dark-blue"
+                    } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                    htmlFor="sixteenthbar">
+                    1/16
+                  </label>
+
+                  <input
+                    className="appearance-none radio"
+                    type="radio"
+                    id="thirtysecondbar"
+                    name="rhythmRate"
+                    value="7.5"
+                    checked={rhythmRate === 7.5}
+                    onChange={(e) => {
+                      e.persist();
+                      setState((old) => ({
+                        ...old,
+                        rhythmRate: parseFloat(e.target.value),
+                      }));
+                    }}
+                  />
+                  <label
+                    className={`p-2 border-2 grow bg-darker-blue  ${
+                      rhythmRate === 7.5
+                        ? "border-orange-500"
+                        : "border-dark-blue"
+                    } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                    htmlFor="thirtysecondbar">
+                    1/32
+                  </label>
+                </div>
+                {/* Row 3 */}
+                <div className="flex flex-row">
+                  <input
+                    className="appearance-none radio"
+                    type="radio"
+                    id="thirtytwoBars"
+                    name="rhythmRate"
+                    value="7680"
+                    checked={rhythmRate === 7680}
+                    onChange={(e) => {
+                      e.persist();
+                      setState((old) => ({
+                        ...old,
+                        rhythmRate: parseFloat(e.target.value),
+                      }));
+                    }}
+                  />
+                  <label
+                    className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                      rhythmRate === 7680
+                        ? "border-orange-500"
+                        : "border-dark-blue"
+                    } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                    htmlFor="thirtytwoBars">
+                    32
+                  </label>
+                  <input
+                    className="appearance-none radio"
+                    type="radio"
+                    id="16bars"
+                    name="rhythmRate"
+                    value="3840"
+                    checked={rhythmRate === 3840}
+                    onChange={(e) => {
+                      e.persist();
+                      setState((old) => ({
+                        ...old,
+                        rhythmRate: parseFloat(e.target.value),
+                      }));
+                    }}
+                  />
+                  <label
+                    className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                      rhythmRate === 3840
+                        ? "border-orange-500"
+                        : "border-dark-blue"
+                    } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                    htmlFor="16bars">
+                    16
+                  </label>
+                  <input
+                    className="appearance-none radio"
+                    type="radio"
+                    id="8bars"
+                    name="rhythmRate"
+                    value="1920"
+                    checked={rhythmRate === 1920}
+                    onChange={(e) => {
+                      e.persist();
+                      setState((old) => ({
+                        ...old,
+                        rhythmRate: parseFloat(e.target.value),
+                      }));
+                    }}
+                  />
+                  <label
+                    className={`p-2 border-2 grow mr-2 bg-darker-blue ${
+                      rhythmRate === 1920
+                        ? "border-orange-500"
+                        : "border-dark-blue"
+                    } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                    htmlFor="8bars">
+                    8
+                  </label>
+                  <input
+                    className="appearance-none radio"
+                    type="radio"
+                    id="4bars"
+                    name="rhythmRate"
+                    value="960"
+                    checked={rhythmRate === 960}
+                    onChange={(e) => {
+                      e.persist();
+                      setState((old) => ({
+                        ...old,
+                        rhythmRate: parseFloat(e.target.value),
+                      }));
+                    }}
+                  />
+                  <label
+                    className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                      rhythmRate === 960
+                        ? "border-orange-500"
+                        : "border-dark-blue"
+                    } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                    htmlFor="4bars">
+                    4
+                  </label>
+                  <input
+                    className="appearance-none radio"
+                    type="radio"
+                    id="2bars"
+                    name="rhythmRate"
+                    value="480"
+                    checked={rhythmRate === 480}
+                    onChange={(e) => {
+                      e.persist();
+                      setState((old) => ({
+                        ...old,
+                        rhythmRate: parseFloat(e.target.value),
+                      }));
+                    }}
+                  />
+                  <label
+                    className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                      rhythmRate === 480
+                        ? "border-orange-500"
+                        : "border-dark-blue"
+                    } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                    htmlFor="2bars">
+                    2
+                  </label>
+                  <input
+                    className="appearance-none radio"
+                    type="radio"
+                    id="1bar"
+                    name="rhythmRate"
+                    value="240"
+                    checked={rhythmRate === 240}
+                    onChange={(e) => {
+                      e.persist();
+                      setState((old) => ({
+                        ...old,
+                        rhythmRate: parseFloat(e.target.value),
+                      }));
+                    }}
+                  />
+                  <label
+                    className={`p-2 border-2 grow  bg-darker-blue  ${
+                      rhythmRate === 240
+                        ? "border-orange-500"
+                        : "border-dark-blue"
+                    } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                    htmlFor="1bar">
+                    1
+                  </label>
+                </div>
+              </div>
+              </fieldset>
+              
+            </div>
           </fieldset>
 
-          <ToggleContent label={"Timing Table"}>
-            <table className="text-left mt-4 border-2 border-dark-blue">
+          <div className="flex flex-col justify-center justify-items-center">
+      <ShowHideToggle label={"Timing Table"}>
+            <table className=" mt-4 border-2 border-dark-blue">
               <thead>
                 <tr>
                   <th>Divisions</th>
@@ -949,8 +1031,8 @@ export default function StressTest() {
                   <th>Frames</th>
                 </tr>
               </thead>
-              <tbody className="border-2 border-dark-blue">
-                <tr className="border-2 border-dark-blue">
+              <tbody className="border-2 border-dark-blue text-right">
+                <tr>
                   <td>16 bars</td>
                   <td>{(3840 / tempo).toFixed(2)}</td>
                   <td>{((3840 / tempo) * frameRate).toFixed(2)}</td>
@@ -976,61 +1058,67 @@ export default function StressTest() {
                   <td>{((240 / tempo) * frameRate).toFixed(2)}</td>
                 </tr>
                 <tr>
-                  <td>1/2 note</td>
+                  <td>1/2 </td>
                   <td>{(120 / tempo).toFixed(2)}</td>
                   <td>{((120 / tempo) * frameRate).toFixed(2)}</td>
                 </tr>
+
                 <tr>
-                  <td>1/2 note triplet</td>
-                  <td>{(40 / tempo).toFixed(2)}</td>
-                  <td>{((40 / tempo) * frameRate).toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <td>1/4 note (beat)</td>
+                  <td>(beat) 1/4</td>
                   <td>{(60 / tempo).toFixed(2)}</td>
                   <td>{((60 / tempo) * frameRate).toFixed(2)}</td>
                 </tr>
                 <tr>
-                  <td>1/4 note triplet</td>
-                  <td>{(20 / tempo).toFixed(2)}</td>
-                  <td>{((20 / tempo) * frameRate).toFixed(2)}</td>
+                  <td>1/2t</td>
+                  <td>{(40 / tempo).toFixed(2)}</td>
+                  <td>{((40 / tempo) * frameRate).toFixed(2)}</td>
                 </tr>
+
                 <tr>
-                  <td>1/8 note</td>
+                  <td>1/8</td>
                   <td>{(30 / tempo).toFixed(2)}</td>
                   <td>{((30 / tempo) * frameRate).toFixed(2)}</td>
                 </tr>
                 <tr>
-                  <td>1/8 note triplet</td>
-                  <td>{(10 / tempo).toFixed(2)}</td>
-                  <td>{((10 / tempo) * frameRate).toFixed(2)}</td>
+                  <td>1/4t</td>
+                  <td>{(20 / tempo).toFixed(2)}</td>
+                  <td>{((20 / tempo) * frameRate).toFixed(2)}</td>
                 </tr>
                 <tr>
-                  <td>1/16 note</td>
+                  <td>1/16</td>
                   <td>{(15 / tempo).toFixed(2)}</td>
                   <td>{((15 / tempo) * frameRate).toFixed(2)}</td>
                 </tr>
                 <tr>
-                  <td>1/16 note triplet</td>
-                  <td>{(5 / tempo).toFixed(2)}</td>
-                  <td>{((5 / tempo) * frameRate).toFixed(2)}</td>
+                  <td>1/8t</td>
+                  <td>{(10 / tempo).toFixed(2)}</td>
+                  <td>{((10 / tempo) * frameRate).toFixed(2)}</td>
                 </tr>
                 <tr>
-                  <td>1/32 note</td>
+                  <td>1/32</td>
                   <td>{(7.5 / tempo).toFixed(2)}</td>
                   <td>{((7.5 / tempo) * frameRate).toFixed(2)}</td>
                 </tr>
                 <tr>
-                  <td>1/32 note triplet</td>
+                  <td>1/16t</td>
+                  <td>{(5 / tempo).toFixed(2)}</td>
+                  <td>{((5 / tempo) * frameRate).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td>1/32t</td>
                   <td>{(2.5 / tempo).toFixed(2)}</td>
                   <td>{((2.5 / tempo) * frameRate).toFixed(2)}</td>
                 </tr>
               </tbody>
             </table>
-          </ToggleContent>
+          </ShowHideToggle>
+      </div>
         </div>
       </div>
 
+      {/* Outputs */}
+
+      {/* Formula Output */}
       <div className="flex flex-row justify-center justify-items-center">
         <div className="flex flex-row justify-center justify-items-center ">
           {/* a button to copy the currentFormula to the clipboard */}
@@ -1038,6 +1126,7 @@ export default function StressTest() {
       </div>
       <br />
 
+      {/* Keyframe Output */}
       <div className="flex flex-row grow justify-center items-center">
         {/* a button to copy keyframeOutput to the clipboard */}
         <label>
@@ -1080,7 +1169,11 @@ export default function StressTest() {
             }}
           />
         </label>
+
+        
       </div>
+      
+  
     </>
   );
 }

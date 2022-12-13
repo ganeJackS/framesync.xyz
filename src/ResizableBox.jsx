@@ -8,8 +8,8 @@ import "react-resizable/css/styles.css";
 
 function ResizableBox({
   children,
-  width = 1920,
-  height = 400,
+  width = 600,
+  height = 300,
   resizable = true,
   style = {minWidth: "100vw"},
   className = "chartConatiner",
@@ -26,7 +26,7 @@ function ResizableBox({
           overflowX: "scroll",
         
          
-           padding: ".5rem",
+          // padding: ".5rem",
           //borderRadius: "0.5rem",
           // boxShadow: "0 30px 40px rgba(0,0,0,.1)",
           ...style,
