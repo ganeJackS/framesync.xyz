@@ -1062,7 +1062,7 @@ export default function StressTest() {
             }: ${currentFormula}`}
           </div>
           <textarea
-            className="flex flex-row justify-center items-center h-96 w-2/3 min-w-1080px w-1080px resize-x font-mono bg-darkest-blue border-2 border-dark-blue "
+            className="flex flex-row justify-center items-center h-96 w-2/3 min-w-1080px w-1080px resize font-mono bg-darkest-blue border-2 border-dark-blue "
             id="keyframeOutput"
             onSelect={handleTextChange}
             onCopy={copyHighlightedTextHandler}
