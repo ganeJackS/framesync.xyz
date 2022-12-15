@@ -12,6 +12,7 @@ import square from "../assets/square.svg";
 import triangle from "../assets/triangle.svg";
 import bumpdip from "../assets/bumpdip.svg";
 import ShowHideToggle from "./ShowHideToggle";
+import CopyToast from "./CopyToast";
 
 export default function StressTest() {
   const [
@@ -91,6 +92,7 @@ export default function StressTest() {
   const [highlightedText, setHighlightedText] = React.useState("");
   const [primaryCursorValue, setPrimaryCursorValue] = React.useState();
   const [secondaryCursorValue, setSecondaryCursorValue] = React.useState();
+
 
   // const audioFile = useRef(null);
   // const interval = 24; // extract amplitude data 24 times per second
@@ -423,21 +425,6 @@ export default function StressTest() {
                   }
                 />
               </label>
-              {/* Bend*/}
-              <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
-                BEND{" "}
-                <NumberInput
-                  value={bend === 0 && waveType != "saw" ? 1 : bend}
-                  min={1}
-                  max={waveType === "saw" ? 100 : 200}
-                  step={waveType === "saw" ? 1 : 2}
-                  isInt={true}
-                  onChange={(value) =>
-                    setState((old) => ({ ...old, bend: value as number }))
-                  }
-                />
-              </label>
-              {/* Up/Down Offset*/}
               <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
                 SHIFT UP/DOWN{" "}
                 <NumberInput
@@ -454,6 +441,22 @@ export default function StressTest() {
                   }
                 />
               </label>
+              {/* Bend*/}
+              <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
+                BEND{" "}
+                <NumberInput
+                  value={bend === 0 && waveType != "saw" ? 1 : bend}
+                  min={1}
+                  max={waveType === "saw" ? 100 : 200}
+                  step={waveType === "saw" ? 1 : 2}
+                  isInt={true}
+                  onChange={(value) =>
+                    setState((old) => ({ ...old, bend: value as number }))
+                  }
+                />
+              </label>
+              {/* Up/Down Offset*/}
+              
               {/* Noise*/}
               <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
                 NOISE{" "}
@@ -545,7 +548,7 @@ export default function StressTest() {
           </fieldset>
 
           {/* Sync Settings */}
-          <fieldset className="bg-darkest-blue flex-row-auto justify-start pl-3 pr-3 pb-3 font-mono">
+          <fieldset className="bg-darkest-blue flex-row-auto justify-start  pl-3 pr-3 pb-3 font-mono">
             <legend>Sync Settings</legend>           
             {/* Tempo and Shift Left/Right */}
             <div className="flex flex-row grow space-x-2 mb-2">
@@ -605,7 +608,7 @@ export default function StressTest() {
             <fieldset className="border-2 border-dark-blue pl-2 pr-2">
             <legend className="text-sm">RHYTHM RATE</legend>
               {/*New Rythm Rate*/}
-              <div className="flex flex-col-reverse flex-wrap justify-start text-center text-xs mb-2">
+              <div className="flex flex-col-reverse flex-wrap justify-start text-center text-xs font-mono mb-2">
                 {/* Row 1 */}
             
                   <div className="flex flex-row mt-2">
@@ -779,7 +782,7 @@ export default function StressTest() {
                         : "border-dark-blue"
                     } hover:border-orange-600 cursor-pointer ease-out duration-300`}
                     htmlFor="quarterbar">
-                    1/4
+                    1/4 
                   </label>
 
                   <input
@@ -1106,39 +1109,45 @@ export default function StressTest() {
       </div>
 
       {/* Outputs */}
-
+      
       {/* Formula Output */}
-      <div className="flex flex-row justify-center justify-items-center">
-        <div className="flex flex-row justify-center justify-items-center ">
-          {/* a button to copy the currentFormula to the clipboard */}
-        </div>
-      </div>
-      <br />
+
 
       {/* Keyframe Output */}
-      <div className="flex flex-row grow justify-center items-center">
+      
+      <div className="flex flex-row grow justify-center items-center mt-1">
         {/* a button to copy keyframeOutput to the clipboard */}
+       
+        <div>
         <label>
           <button
-            className="bg-orange-800 text-white font-mono p-2"
+            className="bg-green-800 text-white font-mono p-2 hover:bg-green-600 active:bg-green-700 transition-all ease-out duration-150"
             onCopy={copyHighlightedTextHandler}
             onClick={() => {
               navigator.clipboard.writeText(yArray as unknown as string);
             }}>
+            <CopyToast>
             Copy Keyframes
+            </CopyToast>
           </button>
+          </label>
+          <label>
           <button
-            className="bg-orange-700 text-white font-mono p-2"
+            className="bg-green-700 text-white font-mono p-2 hover:bg-green-500 active:bg-green-600 transition-all ease-out duration-150"
             onClick={() => {
               navigator.clipboard.writeText(currentFormula);
             }}>
-            Copy Formula
+            <CopyToast>
+            Copy Formula 
+            </CopyToast>
           </button>
           <div className="font-mono inline-flex bg-darkest-blue p-3">
             {`${
               linkFrameOffset == true ? leftRightOffset : 0
             }: ${currentFormula}`}
           </div>
+          </label>
+          <label>
           <textarea
             className="flex flex-row justify-center items-center h-96 w-2/3 min-w-980px w-980px resize font-mono bg-darkest-blue border-2 border-dark-blue "
             id="keyframeOutput"
@@ -1158,11 +1167,16 @@ export default function StressTest() {
             }}
           />
         </label>
-
-        
+        </div>
+      </div>
+       
+       <div className="flex flex-row justify-center justify-items-center mt-10 text-3xl">
+        <h2>Examples</h2>
       </div>
       
   
     </>
   );
 }
+
+
