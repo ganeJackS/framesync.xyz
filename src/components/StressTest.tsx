@@ -230,6 +230,11 @@ export default function StressTest() {
     currentFormula = ``;
   }
 
+  const currentFormulaMod = `(${modAmp} * ${
+    modToggleSinCos === "cos" ? "cos" : "sin"
+  }((${modTempo} / ${modRhythmRate} * 3.141 * t / ${modFrameRate} + ${modMoveLeftRight}))**${modBend} + ${modMoveUpDown})`;
+
+
   // console log the current select datum value
 
   // update secondary value on click
@@ -1339,7 +1344,7 @@ export default function StressTest() {
             <div className="font-mono inline-flex bg-darkest-blue p-3">
               {`${
                 linkFrameOffset == true ? leftRightOffset : 0
-              }: ${currentFormula}`}
+              }: ${currentFormula}*${modEnabled ? currentFormulaMod : ""}`}
             </div>
           </label>
           <label>
