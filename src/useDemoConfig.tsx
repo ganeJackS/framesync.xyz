@@ -1,7 +1,5 @@
+import { mod } from "numeric";
 import React from "react";
-
-
-//
 
 const options = {
   elementType: ["line", "area", "bar"],
@@ -54,8 +52,6 @@ type TooltipAlign = typeof options["tooltipAlign"][number];
 type InteractionMode = typeof options["interactionMode"][number];
 type TooltipGroupingMode = typeof options["tooltipGroupingMode"][number];
 
-
-
 const optionKeys = Object.keys(options) as (keyof typeof options)[];
 
 export default function useChartConfig({
@@ -92,6 +88,16 @@ export default function useChartConfig({
   toggleSinCos = "cos",
   linkFrameOffset = false,
   noiseAmount = 0,
+  modEnabled = false,
+  modAmp = 1,
+  modToggleSinCos = "cos",
+  modTempo = 120,
+  modRhythmRate = 60,
+  modRate = 1,
+  modFrameRate = 24,
+  modBend = 1,
+  modMoveUpDown = 0,
+  modMoveLeftRight = 0,
 }: {
   series: number;
   datums?: number;
@@ -126,6 +132,16 @@ export default function useChartConfig({
   toggleSinCos?: string;
   linkFrameOffset?: boolean;
   noiseAmount?: number;
+  modEnabled?: boolean;
+  modAmp?: number;
+  modToggleSinCos?: string;
+  modTempo?: number;
+  modRhythmRate?: number;
+  modFrameRate?: number;
+  modRate?: number;
+  modBend?: number;
+  modMoveLeftRight?: number;
+  modMoveUpDown?: number;
 }) {
   const [state, setState] = React.useState({
     count,
@@ -162,7 +178,17 @@ export default function useChartConfig({
       toggleSinCos,
       linkFrameOffset,
       noiseAmount,
-      useR,
+      modEnabled,
+      modAmp,
+      modToggleSinCos,
+      modTempo,
+      modRhythmRate,
+      modRate,
+      modFrameRate,
+      modBend,
+      modMoveUpDown,
+      modMoveLeftRight,
+      useR
     ),
   });
 
@@ -184,6 +210,16 @@ export default function useChartConfig({
         toggleSinCos,
         linkFrameOffset,
         noiseAmount,
+        modEnabled,
+        modAmp,
+        modToggleSinCos,
+        modTempo,
+        modRhythmRate,
+        modRate,
+        modFrameRate,
+        modBend,
+        modMoveUpDown,
+        modMoveLeftRight,
         useR
       ),
     }));
@@ -203,6 +239,16 @@ export default function useChartConfig({
     toggleSinCos,
     linkFrameOffset,
     noiseAmount,
+    modEnabled,
+    modAmp,
+    modToggleSinCos,
+    modTempo,
+    modRhythmRate,
+    modRate,
+    modFrameRate,
+    modBend,
+    modMoveUpDown,
+    modMoveLeftRight,
     useR,
   ]);
 
@@ -224,7 +270,17 @@ export default function useChartConfig({
         toggleSinCos,
         linkFrameOffset,
         noiseAmount,
-        useR,
+        modEnabled,
+        modAmp,
+        modToggleSinCos,
+        modTempo,
+        modRhythmRate,
+        modRate,
+        modFrameRate,
+        modBend,
+        modMoveUpDown,
+        modMoveLeftRight,
+        useR
       ),
     }));
 
@@ -260,7 +316,6 @@ export default function useChartConfig({
   };
 }
 
-
 function makeDataFrom(
   dataType: DataType,
   series: number,
@@ -276,9 +331,18 @@ function makeDataFrom(
   toggleSinCos: string,
   linkFrameOffset: boolean,
   noiseAmount: number,
+  modEnabled?: boolean,
+  modAmp?: number,
+  modToggleSinCos?: string,
+  modTempo?: number,
+  modRhythmRate?: number,
+  modFrameRate?: number,
+  modRate?: number,
+  modBend?: number,
+  modMoveLeftRight?: number,
+  modMoveUpDown?: number,
   useR?: boolean
 ) {
-
   return [...new Array(series)].map((d, i) =>
     makeSeries(
       i,
@@ -295,6 +359,16 @@ function makeDataFrom(
       toggleSinCos,
       linkFrameOffset,
       noiseAmount,
+      modEnabled,
+      modAmp,
+      modToggleSinCos,
+      modTempo,
+      modRhythmRate,
+      modRate,
+      modFrameRate,
+      modBend,
+      modMoveUpDown,
+      modMoveLeftRight,
       useR
     )
   );
@@ -315,21 +389,25 @@ function makeSeries(
   toggleSinCos: string,
   linkFrameOffset: boolean,
   noiseAmount?: number,
-  useR?: boolean,
+  modEnabled?: boolean,
+  modAmp?: number,
+  modToggleSinCos?: string,
+  modTempo?: number,
+  modRhythmRate?: number,
+  modFrameRate?: number,
+  modRate?: number,
+  modBend?: number,
+  modMoveLeftRight?: number,
+  modMoveUpDown?: number,
+  useR?: boolean
 ) {
-  
-  let length = datums;  
+  let length = datums;
 
   return {
     label: `${waveType} ${1}`,
     data: [...new Array(length >= 1 ? length : (length = 1))].map((_, i) => {
-      
-    let t = i + leftRightOffset;    
-    // t = linkFrameOffset === true ? t - leftRightOffset : t + leftRightOffset;
-    let y;    
-  
-
-
+      let t = i + leftRightOffset;
+      let y;
 
       if (waveType === "sinusoid") {
         toggleSinCos === "cos"
@@ -344,22 +422,24 @@ function makeSeries(
                   bend +
               upDownOffset);
       } else if (waveType === "saw") {
-       
-        y = -((2 * amplitude) / Math.PI) * Math.atan((1 * bend) / Math.tan((t * Math.PI * tempo) / rhythmRate / frameRate)) + upDownOffset;
-
+        y =
+          -((2 * amplitude) / Math.PI) *
+            Math.atan(
+              (1 * bend) /
+                Math.tan((t * Math.PI * tempo) / rhythmRate / frameRate)
+            ) +
+          upDownOffset;
       } else if (waveType === "square") {
         toggleSinCos === "cos"
           ? (y =
-              
-                amplitude *
+              amplitude *
                 Math.sign(
                   Math.cos(((tempo / rhythmRate) * Math.PI * t) / frameRate)
                 ) **
                   bend +
               upDownOffset)
           : (y =
-              
-                amplitude *
+              amplitude *
                 Math.sign(
                   Math.sin(((tempo / rhythmRate) * Math.PI * t) / frameRate) **
                     bend
@@ -395,23 +475,40 @@ function makeSeries(
               upDownOffset);
       }
 
-      // if (linkFrameOffset === false) {
-      //   t = t - leftRightOffset;
-      // }
-
-      // y = as number + Math.random() * 0.5;
-      
-      if (y as number > 0) {
-        y = y as number + Math.random() * Number(noiseAmount);
-      } else if (y as number < 0) {
-        y = y as number - Math.random() * Number(noiseAmount);
+      if ((y as number) > 0) {
+        y = (y as number) + Math.random() * Number(noiseAmount);
+      } else if ((y as number) < 0) {
+        y = (y as number) - Math.random() * Number(noiseAmount);
       }
-      
 
-      // y = y as number + Math.random() * Number(noiseAmount) as number;
+      if (!modEnabled) {
+        y = y;
+      } else {
+        modToggleSinCos === "cos"
+          ? (y =
+              (y as number) *
+              (Number(modAmp) *
+                Math.cos(
+                  ((Number(modTempo) / Number(modRhythmRate)) * Math.PI * t) /
+                    Number(modFrameRate) +
+                    Number(modMoveLeftRight)
+                ) **
+                Number(`${waveType === "bumpdip" ? Number(modBend) : Number(modBend)}0`) +
+                Number(modMoveUpDown)))
+          : (y =
+              (y as number) *
+              (Number(modAmp) *
+                Math.sin(
+                  ((Number(modTempo) / Number(modRhythmRate)) * Math.PI * t) /
+                    Number(modFrameRate) +
+                    Number(modMoveLeftRight)
+                ) **
+                Number(`${waveType === "bumpdip" ? Number(modBend) : Number(modBend)}0`) +
+                Number(modMoveUpDown)));
+      }
 
       return {
-        primary: linkFrameOffset === true ? (t.toString()) : (t - leftRightOffset),
+        primary: linkFrameOffset === true ? t.toString() : t - leftRightOffset,
         secondary: y,
       };
     }),

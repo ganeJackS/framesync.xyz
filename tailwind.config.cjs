@@ -10,7 +10,7 @@ module.exports = {
         "darkest-blue": "#011624",
         "darker-blue": "#021D2F",
         "dark-blue": "#032C48",
-      }
+      },
     },
   },
   plugins: [],
