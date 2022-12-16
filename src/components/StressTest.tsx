@@ -232,7 +232,7 @@ export default function StressTest() {
 
   const currentFormulaMod = `(${modAmp} * ${
     modToggleSinCos === "cos" ? "cos" : "sin"
-  }((${modTempo} / ${modRhythmRate} * 3.141 * t / ${modFrameRate} + ${modMoveLeftRight}))**${modBend} + ${modMoveUpDown})`;
+  }((${modTempo} / ${modRhythmRate} * 3.141 * t / ${modFrameRate} + ${modMoveLeftRight}))**${waveType != "bumpdup" ? modBend : modBend+0 } + ${modMoveUpDown})`;
 
 
   // console log the current select datum value
@@ -1344,7 +1344,7 @@ export default function StressTest() {
             <div className="font-mono inline-flex bg-darkest-blue p-3">
               {`${
                 linkFrameOffset == true ? leftRightOffset : 0
-              }: ${currentFormula}*${modEnabled ? currentFormulaMod : ""}`}
+              }: ${currentFormula}${modEnabled ? "*" : ""}${modEnabled ? currentFormulaMod : ""}`}
             </div>
           </label>
           <label>
