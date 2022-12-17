@@ -1337,14 +1337,14 @@ export default function StressTest() {
             <button
               className="bg-green-700 text-white font-mono p-2 hover:bg-green-500 active:bg-green-600 transition-all ease-out duration-150"
               onClick={() => {
-                navigator.clipboard.writeText(currentFormula);
+                navigator.clipboard.writeText(`(${currentFormula}${modEnabled ? "*" : ""}${modEnabled ? currentFormulaMod : ""})`);
               }}>
               <CopyToast>Copy Formula</CopyToast>
             </button>
             <div className="font-mono inline-flex bg-darkest-blue p-3">
               {`${
                 linkFrameOffset == true ? leftRightOffset : 0
-              }: ${currentFormula}${modEnabled ? "*" : ""}${modEnabled ? currentFormulaMod : ""}`}
+              }: (${currentFormula}${modEnabled ? "*" : ""}${modEnabled ? currentFormulaMod : ""})`}
             </div>
           </label>
           <label>
