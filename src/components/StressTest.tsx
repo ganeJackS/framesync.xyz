@@ -700,7 +700,7 @@ export default function StressTest() {
                     />
                   </label>
                   {/* Move Left/Right */}
-                  {/* <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                  <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
                     MOD SHIFT LEFT/RIGHT{" "}
                     <NumberInput
                       value={modMoveLeftRight}
@@ -715,7 +715,7 @@ export default function StressTest() {
                         }))
                       }
                     />
-                  </label> */}
+                  </label>
                 </div>
               </div>
             </fieldset>
