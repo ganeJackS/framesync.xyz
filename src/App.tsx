@@ -2,24 +2,14 @@ import StressTest from "./components/StressTest";
 import NavBar from "./components/NavBar";
 import "./index.css";
 
-// const components = [["Stress Test", StressTest]];
+//import Provider from 'zustand';
+//import { useAudioBufferStore } from './audioBufferStore';
 
 export default function App() {
-  
   return (
-    <div>
+    <>
       <NavBar />
       <StressTest />
-      {/* {components.map(([label, Comp]) => {
-        return (
-          <div key={label + ""}>
-            <div>
-              <Comp />
-            </div>
-          </div>
-        );
-      })} */}
-      
-    </div>
+    </>
   );
 }

@@ -1,5 +1,6 @@
-import { mod } from "numeric";
-import React from "react";
+import React, { useContext } from "react";
+import useAudio2Keyframes from "./useAudio2Keyframes";
+import { useAudioBufferStore } from "./audioBufferStore";
 
 const options = {
   elementType: ["line", "area", "bar"],
@@ -97,7 +98,7 @@ export default function useChartConfig({
   modFrameRate = 24,
   modBend = 1,
   modMoveUpDown = 0,
-  modMoveLeftRight = 0,
+  modMoveLeftRight = 0,  
 }: {
   series: number;
   datums?: number;
@@ -141,8 +142,10 @@ export default function useChartConfig({
   modRate?: number;
   modBend?: number;
   modMoveLeftRight?: number;
-  modMoveUpDown?: number;
+  modMoveUpDown?: number;  
 }) {
+  const [audioBuffer, setAudioBuffer] = useAudioBufferStore(state => [state.audioBuffer, state.setAudioBuffer]);
+  const keyframes = useAudio2Keyframes(audioBuffer as AudioBuffer, frameRate);
   const [state, setState] = React.useState({
     count,
     resizable,
@@ -188,8 +191,10 @@ export default function useChartConfig({
       modBend,
       modMoveUpDown,
       modMoveLeftRight,
-      useR
+      keyframes,
+      useR,
     ),
+    
   });
 
   React.useEffect(() => {
@@ -219,8 +224,9 @@ export default function useChartConfig({
         modFrameRate,
         modBend,
         modMoveUpDown,
-        modMoveLeftRight,
-        useR
+        modMoveLeftRight, 
+        keyframes,
+        useR,
       ),
     }));
   }, [
@@ -249,40 +255,10 @@ export default function useChartConfig({
     modBend,
     modMoveUpDown,
     modMoveLeftRight,
+    keyframes,
     useR,
   ]);
-
-  const randomizeData = () =>
-    setState((old) => ({
-      ...old,
-      data: makeDataFrom(
-        dataType,
-        series,
-        datums,
-        tempo,
-        frameRate,
-        amplitude,
-        upDownOffset,
-        leftRightOffset,
-        rhythmRate,
-        waveType,
-        bend,
-        toggleSinCos,
-        linkFrameOffset,
-        noiseAmount,
-        modEnabled,
-        modAmp,
-        modToggleSinCos,
-        modTempo,
-        modRhythmRate,
-        modRate,
-        modFrameRate,
-        modBend,
-        modMoveUpDown,
-        modMoveLeftRight,
-        useR
-      ),
-    }));
+  
 
   const Options = optionKeys
     .filter((option) => show.indexOf(option) > -1)
@@ -311,7 +287,6 @@ export default function useChartConfig({
     ));
   return {
     ...state,
-    randomizeData,
     Options,
   };
 }
@@ -341,6 +316,7 @@ function makeDataFrom(
   modBend?: number,
   modMoveLeftRight?: number,
   modMoveUpDown?: number,
+  keyframes?: number[],
   useR?: boolean
 ) {
   return [...new Array(series)].map((d, i) =>
@@ -369,10 +345,12 @@ function makeDataFrom(
       modBend,
       modMoveUpDown,
       modMoveLeftRight,
-      useR
+      keyframes,
+      useR,
     )
   );
 }
+
 
 function makeSeries(
   i: number,
@@ -399,15 +377,25 @@ function makeSeries(
   modBend?: number,
   modMoveLeftRight?: number,
   modMoveUpDown?: number,
+  keyframes?: number[],
   useR?: boolean
 ) {
+  
+ 
+  
   let length = datums;
+  waveType === "audio" ? (length = keyframes.length as number) : (length = datums);
 
   return {
     label: `${waveType} ${1}`,
     data: [...new Array(length >= 1 ? length : (length = 1))].map((_, i) => {
       let t = i + leftRightOffset;
       let y;
+      let ak = keyframes as number[];
+
+      waveType === "audio" ? (y = ak[i]) : (y = 0);
+      
+
 
       if (waveType === "sinusoid") {
         toggleSinCos === "cos"
@@ -473,6 +461,8 @@ function makeSeries(
                 Math.sin(((tempo / rhythmRate) * Math.PI * i) / frameRate) **
                   Number(`${bend}0`) +
               upDownOffset);
+      } else if (waveType === "audio") {
+        y = (amplitude) * (ak[i])**(bend) + upDownOffset;
       }
 
       if ((y as number) > 0) {
@@ -508,9 +498,12 @@ function makeSeries(
       }
 
       return {
-        primary: linkFrameOffset === true ? t.toString() : t - leftRightOffset,
+        primary: linkFrameOffset === true ? t : t - leftRightOffset,
         secondary: y,
       };
     }),
+ 
+
+
   };
 }

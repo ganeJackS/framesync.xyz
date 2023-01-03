@@ -1,7 +1,7 @@
 import ResizableBox from "../ResizableBox";
 import useDemoConfig from "../useDemoConfig";
-import React from "react";
-import { AxisOptions, Chart, Datum } from "react-charts";
+import React, { useRef, useState } from "react";
+import { AxisOptions, Chart, ChartOptions, Datum } from "react-charts";
 import NumberInput from "./NumberInput";
 import { curveMonotoneX } from "d3-shape";
 import sinusoid from "../assets/sinusoid.svg";
@@ -9,9 +9,12 @@ import saw from "../assets/saw.svg";
 import square from "../assets/square.svg";
 import triangle from "../assets/triangle.svg";
 import bumpdip from "../assets/bumpdip.svg";
+import audiofile from "../assets/audiofile.svg";
 import ShowHideToggle from "./ShowHideToggle";
 import CopyToast from "./CopyToast";
-import useLocalStorageState, { State } from "../useLocalStorageState";
+
+import KeyframeGenerator from "./KeyframeGenerator";
+import { useAudioBufferStore } from "../audioBufferStore";
 
 export default function StressTest() {
   const [
@@ -24,6 +27,8 @@ export default function StressTest() {
       liveDataInterval,
       showPoints,
       memoizeSeries,
+      contentEditable,
+      brush,
       height,
       showAxes,
       tempo,
@@ -58,9 +63,12 @@ export default function StressTest() {
     liveData: false,
     liveDataInterval: 1000,
     showPoints: true,
-    memoizeSeries: false,
+    memoizeSeries: true,
     height: 400,
     showAxes: true,
+    contentEditable: true,
+    brush: true,
+
     tempo: 120,
     frameRate: 24,
     amplitude: 2.0,
@@ -73,6 +81,7 @@ export default function StressTest() {
     linkFrameOffset: false,
     noiseAmount: 0,
     boxWidth: 0,
+
     modEnabled: false,
     modAmp: 1,
     modToggleSinCos: "cos",
@@ -85,10 +94,11 @@ export default function StressTest() {
     modMoveLeftRight: 0,
   });
 
-  const { data, randomizeData } = useDemoConfig({
+  const { data } = useDemoConfig({
     series: seriesCount,
     datums: datumCount,
     dataType: "time",
+
     tempo: tempo,
     frameRate: frameRate,
     amplitude: amplitude,
@@ -124,16 +134,58 @@ export default function StressTest() {
   const [primaryCursorValue, setPrimaryCursorValue] = React.useState();
   const [secondaryCursorValue, setSecondaryCursorValue] = React.useState();
 
+  const fileInput = useRef<HTMLInputElement>(null);
+  const audioElement = useRef<HTMLAudioElement>(null);
+  const [audioBuffer, setAudioBuffer] = useAudioBufferStore((state) => [
+    state.audioBuffer,
+    state.setAudioBuffer,
+  ]);
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files![0];
+    const fileReader = new FileReader();
+    fileReader.onload = () => {
+      const arrayBuffer = fileReader.result as ArrayBuffer;
+      const audioContext = new AudioContext();
+      audioContext.decodeAudioData(
+        arrayBuffer,
+        (buffer: React.SetStateAction<AudioBuffer | null>) => {
+          setAudioBuffer(buffer as AudioBuffer);
+          audioElement.current!.src = URL.createObjectURL(file);
+        }
+      );
+    };
+    fileReader.readAsArrayBuffer(file);
+  };
+
+  // const ticksOnAxis = document.querySelectorAll(
+  //   "g:nth-child(1) > g.Axis-Group.inner > g.Axis > g.domainAndTicks > g.tick > text.tickLabel"
+  // ); //select all text elements
+  // ticksOnAxis.forEach((tick) => {
+  //   if (Number(tick.textContent) % frameRate === 0) {
+  //     tick.style.fill = "#f8f9fa";
+  //   } else {
+  //     tick.style.fill = "#adb5bd";
+  //   }
+  // });
+
   const primaryAxis = React.useMemo<
     AxisOptions<typeof data[number]["data"][number]>
   >(
     () => ({
-      getValue: (datum) => datum.primary,
+      getValue: (datum) => Number(datum.primary),
+      axisType: "ordinal",
+      primaryAxisId: "primary",
+      dataType: "band",
       show: showAxes,
-      dataType: "linear",
       primary: true,
+      scaleType: "band",
+      formatters: {
+        scale: (value) =>
+          (value / frameRate) % (rhythmRate / tempo) === 0 ? `${value}` : value,
+      },
     }),
-    [showAxes]
+    [showAxes, rhythmRate, tempo, frameRate, data]
   );
 
   const secondaryAxes = React.useMemo<
@@ -168,20 +220,6 @@ export default function StressTest() {
     );
   }
 
-  React.useEffect(() => {
-    let interval: ReturnType<typeof setTimeout>;
-
-    if (liveData) {
-      interval = setInterval(() => {
-        randomizeData();
-      }, liveDataInterval);
-    }
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [liveData, liveDataInterval, randomizeData]);
-
   const yArray = data[0].data.map((datum, i) => {
     return `${Number(datum.primary) % frameRate === 0 ? "\r\n" : ""}${
       datum.primary <= 9 ? "  " : ""
@@ -200,8 +238,9 @@ export default function StressTest() {
 
   const yArraySum = yArrayRaw.reduce(
     (accumulator, currentValue) =>
-      (accumulator as number) + Math.abs(currentValue!)
+      (accumulator as number) + Math.abs(currentValue as number)
   );
+
   const yArrayAvg = (yArraySum as number) / yArrayRaw.length;
   const yArrayMin = Math.min(...(yArrayRaw as number[]));
   const yArrayMax = Math.max(...(yArrayRaw as number[]));
@@ -232,12 +271,9 @@ export default function StressTest() {
 
   const currentFormulaMod = `(${modAmp} * ${
     modToggleSinCos === "cos" ? "cos" : "sin"
-  }((${modTempo} / ${modRhythmRate} * 3.141 * t / ${modFrameRate} + ${modMoveLeftRight}))**${waveType != "bumpdup" ? modBend : modBend+0 } + ${modMoveUpDown})`;
-
-
-  // console log the current select datum value
-
-  // update secondary value on click
+  }((${modTempo} / ${modRhythmRate} * 3.141 * t / ${modFrameRate} + ${modMoveLeftRight}))**${
+    waveType != "bumpdup" ? modBend : modBend + 0
+  } + ${modMoveUpDown})`;
 
   return (
     <>
@@ -255,6 +291,17 @@ export default function StressTest() {
               memoizeSeries,
               dark: true,
               tooltip: true,
+
+              getDatumStyle: (datum, _status) => ({
+                color: "#F97316",
+                stroke: "#F97316",
+                opacity:
+                  activeSeriesIndex > -1
+                    ? datum.seriesIndex === activeSeriesIndex
+                      ? 1
+                      : 0.1
+                    : 1,
+              }),
 
               getSeriesStyle: (series, _status) => ({
                 color: "#F97316",
@@ -322,12 +369,23 @@ export default function StressTest() {
           </select>
         </label>
       </div>
-
       {/* Control Panel */}
       <div className="flex flex-row justify-center justify-items-start space-x-4 font-mono">
         {/* Wave Settings */}
         <fieldset className=" bg-darkest-blue p-4 space-x-2 font-mono">
-          <legend>Select Wave </legend>
+          <legend className="flex flex-row">
+            Select Wave or{" "}
+            <span className="pl-2">
+              <input
+              className="text-orange-500" 
+              type="file" 
+              ref={fileInput} 
+              onChange={handleFileUpload} 
+            
+              />
+            </span>{" "}
+          </legend>
+          <div></div>
           <div className="flex flex-col">
             {/* Primary Wave Settings */}
             <fieldset className="border-2 border-dark-blue pl-2 pr-2 pb-2 mb-2">
@@ -360,7 +418,7 @@ export default function StressTest() {
                   value="sinusoid"
                 />
                 <label
-                  className={`p-4 border-2 bg-darker-blue mr-2 ${
+                  className={`p-1 border-2 bg-darker-blue mr-2 ${
                     waveType === "sinusoid"
                       ? "border-orange-500"
                       : "border-dark-blue"
@@ -372,7 +430,7 @@ export default function StressTest() {
                   <img
                     src={sinusoid}
                     alt="sinusoid"
-                    className={"aspect-square w-20"}
+                    className={"aspect-square w-16"}
                   />
                   {/* Sinusoid */}
                 </label>
@@ -385,7 +443,7 @@ export default function StressTest() {
                   value="saw"
                 />
                 <label
-                  className={`p-4 border-2 bg-darker-blue mr-2 ${
+                  className={`p-1 border-2 bg-darker-blue mr-2 ${
                     waveType === "saw"
                       ? "border-orange-500"
                       : "border-dark-blue"
@@ -394,7 +452,7 @@ export default function StressTest() {
                   onClick={() => {
                     setState((old) => ({ ...old, waveType: "saw" }));
                   }}>
-                  <img src={saw} alt="saw" className={"aspect-square w-20"} />
+                  <img src={saw} alt="saw" className={"aspect-square w-16"} />
                   {/* Saw */}
                 </label>
 
@@ -406,7 +464,7 @@ export default function StressTest() {
                   value="triangle"
                 />
                 <label
-                  className={`p-4 border-2 bg-darker-blue mr-2 ${
+                  className={`p-1 border-2 bg-darker-blue mr-2 ${
                     waveType === "triangle"
                       ? "border-orange-500"
                       : "border-dark-blue"
@@ -418,7 +476,7 @@ export default function StressTest() {
                   <img
                     src={triangle}
                     alt="triangle"
-                    className={"aspect-square w-20"}
+                    className={"aspect-square w-16"}
                   />
 
                   {/* Triangle */}
@@ -432,7 +490,7 @@ export default function StressTest() {
                   value="square"
                 />
                 <label
-                  className={`p-4 border-2 mr-2 bg-darker-blue ${
+                  className={`p-1 border-2 mr-2 bg-darker-blue ${
                     waveType === "square"
                       ? "border-orange-500"
                       : "border-dark-blue"
@@ -444,7 +502,7 @@ export default function StressTest() {
                   <img
                     src={square}
                     alt="square"
-                    className={"aspect-square w-20"}
+                    className={"aspect-square w-16"}
                   />
 
                   {/* Square */}
@@ -457,7 +515,7 @@ export default function StressTest() {
                   value="bumpdip"
                 />
                 <label
-                  className={`p-4 border-2 bg-darker-blue ${
+                  className={`p-1 border-2 mr-2 bg-darker-blue ${
                     waveType === "bumpdip"
                       ? "border-orange-500"
                       : "border-dark-blue"
@@ -469,10 +527,36 @@ export default function StressTest() {
                   <img
                     src={bumpdip}
                     alt="bumpdip"
-                    className={"aspect-square w-20"}
+                    className={"aspect-square w-16"}
                   />
 
                   {/* Bumpdip */}
+                </label>
+                <input
+                  className="appearance-none radio"
+                  type="radio"
+                  id="audio"
+                  name="audio"
+                  value="audio"
+                  //check if audio file is loaded
+                />
+                <label
+                  className={`p-1 border-2 bg-darker-blue ${
+                    waveType === "audio"
+                      ? "border-orange-500"
+                      : "border-dark-blue"
+                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                  htmlFor="audio"
+                  onClick={() => {
+                    setState((old) => ({ ...old, waveType: "audio" }));
+                  }}>
+                  <img
+                    src={audiofile}
+                    alt="audio"
+                    className={"aspect-square w-16"}
+                  />
+
+                  {/* Audio */}
                 </label>
               </div>
               {/* Primary Wave Settings */}
@@ -547,10 +631,10 @@ export default function StressTest() {
             {/* Modulator Settings */}
             <fieldset className="border-2 border-dark-blue pl-2 pr-2 pb-2 ">
               <legend className="flex flex-row space-x-2 mb-2">
-              <label className="flex flex-row items-center ml-2">
+                <label className="flex flex-row items-center ml-2">
                   <input
                     type="checkbox"
-                    className="form-checkbox h-5 w-5 text-orange-500"
+                    className="form-checkbox h-5 w-5 text-orange-500 cursor-pointer"
                     checked={modEnabled}
                     onChange={(e) => {
                       e.persist();
@@ -560,10 +644,10 @@ export default function StressTest() {
                       }));
                     }}
                   />
-                </label>
-                {" "} Enable Modulator
+                </label>{" "}
+                Enable Modulator
                 {/* checkbox for modEnabled */}
-                 {/* Sin/Cos */}
+                {/* Sin/Cos */}
                 <label>
                   {" "}
                   <select
@@ -580,12 +664,10 @@ export default function StressTest() {
                     <option value="sin">Sine</option>
                   </select>
                 </label>
-              
               </legend>
               {/* Secondary Wave Settings */}
               <div className="flex flex-col flex-wrap grow">
                 <div className="flex flex-row mb-2">
-                   
                   {/* Mod Amplitude */}
                   <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
                     MOD AMPLITUDE{" "}
@@ -700,7 +782,7 @@ export default function StressTest() {
                     />
                   </label>
                   {/* Move Left/Right */}
-                  <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                  {/* <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
                     MOD SHIFT LEFT/RIGHT{" "}
                     <NumberInput
                       value={modMoveLeftRight}
@@ -715,7 +797,7 @@ export default function StressTest() {
                         }))
                       }
                     />
-                  </label>
+                  </label> */}
                 </div>
               </div>
             </fieldset>
@@ -1319,6 +1401,7 @@ export default function StressTest() {
           </div>
         </div>
       </div>
+      {/* Outputs */}
       <div className="flex flex-row grow justify-center items-center mt-1">
         {/* a button to copy keyframeOutput to the clipboard */}
 
@@ -1337,22 +1420,31 @@ export default function StressTest() {
             <button
               className="bg-green-700 text-white font-mono p-2 hover:bg-green-500 active:bg-green-600 transition-all ease-out duration-150"
               onClick={() => {
-                navigator.clipboard.writeText(`(${currentFormula}${modEnabled ? "*" : ""}${modEnabled ? currentFormulaMod : ""})`);
+                navigator.clipboard.writeText(
+                  `(${currentFormula}${modEnabled ? "*" : ""}${
+                    modEnabled ? currentFormulaMod : ""
+                  })`
+                );
               }}>
               <CopyToast>Copy Formula</CopyToast>
             </button>
             <div className="font-mono inline-flex bg-darkest-blue p-3">
-              {`${
-                linkFrameOffset == true ? leftRightOffset : 0
-              }: (${currentFormula}${modEnabled ? "*" : ""}${modEnabled ? currentFormulaMod : ""})`}
+              {waveType != "audio"
+                ? `${
+                    linkFrameOffset == true ? leftRightOffset : 0
+                  }: (${currentFormula}${modEnabled ? "*" : ""}${
+                    modEnabled ? currentFormulaMod : ""
+                  })`
+                : "N/A"}
             </div>
           </label>
           <label>
             <textarea
-              className="flex flex-row justify-center items-center h-96 w-2/3 min-w-980px w-980px resize font-mono bg-darkest-blue border-2 border-dark-blue "
+              className="flex flex-row justify-center items-center h-96 w-2/3 min-w-980px w-980px resize font-mono bg-darkest-blue border-2 border-dark-blue mb-20"
               id="keyframeOutput"
               onSelect={handleTextChange}
               onCopy={copyHighlightedTextHandler}
+              cols={frameRate}
               wrap="off"
               value={yArray}
               onChange={(e) => {
@@ -1364,13 +1456,16 @@ export default function StressTest() {
               }}
               style={{
                 width: "980px",
-              }}
-            />
+              }}></textarea>
           </label>
         </div>
       </div>
 
-      <div className="flex flex-row justify-center justify-items-center mt-10 text-3xl"></div>
+      <div className="flex flex-col justify-center items-cenbter mt-1"></div>
+
+      {/* <div className="flex flex-row justify-center justify-items-center mt-10 text-3xl">
+        <KeyframeTable keyframes={keyframes} frameRate={frameRate} />
+      </div> */}
     </>
   );
 }
