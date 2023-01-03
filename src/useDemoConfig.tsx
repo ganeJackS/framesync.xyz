@@ -382,9 +382,12 @@ function makeSeries(
 ) {
   
  
-  
-  let length = datums;
-  waveType === "audio" ? (length = keyframes.length as number) : (length = datums);
+    let audioKeyframeLength = keyframes?.length;
+    let datumLength = datums;
+    let length;
+
+    waveType === "audio" ? (length = audioKeyframeLength) : (length = datumLength);
+    length === undefined ? (length = 1) : (length = length);
 
   return {
     label: `${waveType} ${1}`,
