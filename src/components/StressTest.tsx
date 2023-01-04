@@ -134,7 +134,7 @@ export default function StressTest() {
   const [secondaryCursorValue, setSecondaryCursorValue] = React.useState();
 
   const fileInput = useRef<HTMLInputElement>(null);
-  const audioElement = useRef<HTMLAudioElement>(null);
+  //const audioElement = useRef<HTMLAudioElement>(null);
   const [audioBuffer, setAudioBuffer] = useAudioBufferStore((state) => [
     state.audioBuffer,
     state.setAudioBuffer,
@@ -150,7 +150,7 @@ export default function StressTest() {
         arrayBuffer,
         (buffer: React.SetStateAction<AudioBuffer | null>) => {
           setAudioBuffer(buffer as AudioBuffer);
-          audioElement.current!.src = URL.createObjectURL(file);
+          //audioElement.current!.src = URL.createObjectURL(file);
         }
       );
     };
