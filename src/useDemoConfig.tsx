@@ -392,7 +392,7 @@ function makeSeries(
   return {
     label: `${waveType} ${1}`,
     data: [...new Array(length >= 1 ? length : (length = 1))].map((_, i) => {
-      let t = i + leftRightOffset;
+      let t:number = i + leftRightOffset;
       let y;
       let ak = keyframes as number[];
 
@@ -501,7 +501,7 @@ function makeSeries(
       }
 
       return {
-        primary: linkFrameOffset === true ? t : t - leftRightOffset,
+        primary: linkFrameOffset === true ? t.toString() : t - leftRightOffset,
         secondary: y,
       };
     }),

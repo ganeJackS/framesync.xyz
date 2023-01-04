@@ -11,17 +11,12 @@
   "dependencies": {
     "@types/react-resizable": "^3.0.3",
     "@vercel/analytics": "^0.1.5",
-    "cubic-spline": "^3.0.3",
-    "d3-scale": "^4.0.2",
-    "mathjs": "^11.5.0",
-    "numeric": "^1.2.6",
     "react": "^18.2.0",
     "react-charts": "^3.0.0-beta.38",
     "react-dom": "^18.2.0",
     "react-json-tree": "^0.17.0",
     "react-resizable": "^3.0.4",
     "react-router-dom": "^6.4.5",
-    "typescript-cubic-spline": "^1.0.1",
     "zustand": "^4.2.0"
   },
   "devDependencies": {
