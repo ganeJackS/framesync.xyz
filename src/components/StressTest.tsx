@@ -179,10 +179,10 @@ export default function StressTest() {
       show: showAxes,
       primary: true,
       scaleType: "band",
-      formatters: {
-        scale: (value) =>
-          (value / frameRate) % (rhythmRate / tempo) === 0 ? `${value}` : value,
-      },
+      // formatters: {
+      //   scale: (value) =>
+      //     (value / frameRate) % (rhythmRate / tempo) === 0 ? `${value}` : value,
+      // },
     }),
     [showAxes, rhythmRate, tempo, frameRate, data]
   );
