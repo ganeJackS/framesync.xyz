@@ -13,7 +13,6 @@ import audiofile from "../assets/audiofile.svg";
 import ShowHideToggle from "./ShowHideToggle";
 import CopyToast from "./CopyToast";
 
-import KeyframeGenerator from "./KeyframeGenerator";
 import { useAudioBufferStore } from "../audioBufferStore";
 
 export default function StressTest() {
