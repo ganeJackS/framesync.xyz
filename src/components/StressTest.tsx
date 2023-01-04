@@ -3,7 +3,6 @@ import useDemoConfig from "../useDemoConfig";
 import React, { useRef, useState } from "react";
 import { AxisOptions, Chart, ChartOptions, Datum } from "react-charts";
 import NumberInput from "./NumberInput";
-import { curveMonotoneX } from "d3-shape";
 import sinusoid from "../assets/sinusoid.svg";
 import saw from "../assets/saw.svg";
 import square from "../assets/square.svg";
@@ -157,16 +156,16 @@ export default function StressTest() {
     fileReader.readAsArrayBuffer(file);
   };
 
-  // const ticksOnAxis = document.querySelectorAll(
-  //   "g:nth-child(1) > g.Axis-Group.inner > g.Axis > g.domainAndTicks > g.tick > text.tickLabel"
-  // ); //select all text elements
-  // ticksOnAxis.forEach((tick) => {
-  //   if (Number(tick.textContent) % frameRate === 0) {
-  //     tick.style.fill = "#f8f9fa";
-  //   } else {
-  //     tick.style.fill = "#adb5bd";
-  //   }
-  // });
+  const ticksOnAxis = document.querySelectorAll(
+    "g:nth-child(1) > g.Axis-Group.inner > g.Axis > g.domainAndTicks > g.tick > text.tickLabel"
+  ); 
+  ticksOnAxis.forEach((tick) => {
+    if (Number(tick.textContent) % frameRate === 0) {
+      tick.style.fill = "#f8f9fa";
+    } else {
+      tick.style.fill = "#adb5bd";
+    }
+  });
 
   const primaryAxis = React.useMemo<
     AxisOptions<typeof data[number]["data"][number]>
@@ -179,10 +178,6 @@ export default function StressTest() {
       show: showAxes,
       primary: true,
       scaleType: "band",
-      // formatters: {
-      //   scale: (value) =>
-      //     (value / frameRate) % (rhythmRate / tempo) === 0 ? `${value}` : value,
-      // },
     }),
     [showAxes, rhythmRate, tempo, frameRate, data]
   );
@@ -197,7 +192,6 @@ export default function StressTest() {
         show: showAxes,
         dataType: "linear",
         elementType: chartType === "bar" ? "bar" : "line",
-        curve: curveMonotoneX,
       },
     ],
     [showAxes, showPoints, chartType]
