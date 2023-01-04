@@ -382,24 +382,22 @@ function makeSeries(
 ) {
   
  
-    let audioKeyframeLength = keyframes?.length;
-    let datumLength = datums;
-    let length;
 
-    waveType === "audio" ? (length = audioKeyframeLength) : (length = datumLength);
-    length === undefined ? (length = 1) : (length = length);
+    let length:number = datums;
+    let audioKeyframesLength:number = keyframes?.length as number;
+
+    waveType === "audio" ? (length = audioKeyframesLength - 1) : (length = datums);
 
   return {
     label: `${waveType} ${1}`,
     data: [...new Array(length >= 1 ? length : (length = 1))].map((_, i) => {
       let t:number = i + leftRightOffset;
-      let y;
       let ak = keyframes as number[];
+      let y;
 
-      waveType === "audio" ? (y = ak[i]) : (y = 0);
-      
+       waveType === "audio" ? (y = ak[i]) : (y = 0);
 
-
+  
       if (waveType === "sinusoid") {
         toggleSinCos === "cos"
           ? (y =
@@ -500,8 +498,10 @@ function makeSeries(
                 Number(modMoveUpDown)));
       }
 
+      Number.isNaN(y) ? (y = 1) : (y = y);
+
       return {
-        primary: linkFrameOffset === true ? t.toString() : t - leftRightOffset,
+        primary: linkFrameOffset === true ? t : t - leftRightOffset,
         secondary: y,
       };
     }),
