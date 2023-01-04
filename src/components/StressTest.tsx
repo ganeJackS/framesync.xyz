@@ -156,16 +156,16 @@ export default function StressTest() {
     fileReader.readAsArrayBuffer(file);
   };
 
-  const ticksOnAxis = document.querySelectorAll(
-    "g:nth-child(1) > g.Axis-Group.inner > g.Axis > g.domainAndTicks > g.tick > text.tickLabel"
-  ); 
-  ticksOnAxis.forEach((tick) => {
-    if (Number(tick.textContent) % frameRate === 0) {
-      tick.style.fill = "#f8f9fa";
-    } else {
-      tick.style.fill = "#adb5bd";
-    }
-  });
+  // const ticksOnAxis = document.querySelector(
+  //   "g:nth-child(1) > g.Axis-Group.inner > g.Axis > g.domainAndTicks > g.tick > text.tickLabel"
+  // ); 
+  // ticksOnAxis.forEach((tick) => {
+  //   if (Number(tick.textContent) % frameRate === 0) {
+  //     tick.style.fill = "#f8f9fa";
+  //   } else {
+  //     tick.style.fill = "#adb5bd";
+  //   }
+  // });
 
   const primaryAxis = React.useMemo<
     AxisOptions<typeof data[number]["data"][number]>
