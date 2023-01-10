@@ -17,7 +17,7 @@ function ResizableBox({
 
 
   return (
-    <div style={{ minWidth: "100vw", paddingRight: "100px"}}>
+    <div style={{ minWidth: "100vw"}}>
       <div
         style={{
           display: "block",
@@ -39,8 +39,8 @@ function ResizableBox({
                 width: width,
                 minWidth: "99vw",
                 height: "100%",
-                padding: ".5rem",
-                marginBottom: "1rem",
+                //padding: ".5rem",
+                //marginBottom: "1rem",
               }}
               className={className}
             >

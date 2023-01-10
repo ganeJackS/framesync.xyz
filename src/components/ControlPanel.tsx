@@ -1,6 +1,6 @@
 import ResizableBox from "../ResizableBox";
-import useDemoConfig from "../useDemoConfig";
-import React, { useRef, useState } from "react";
+import useChart from "../hooks/useChart";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { AxisOptions, Chart, ChartOptions, Datum } from "react-charts";
 import NumberInput from "./NumberInput";
 import sinusoid from "../assets/sinusoid.svg";
@@ -11,126 +11,109 @@ import bumpdip from "../assets/bumpdip.svg";
 import audiofile from "../assets/audiofile.svg";
 import ShowHideToggle from "./ShowHideToggle";
 import CopyToast from "./CopyToast";
+import shallow from "zustand/shallow";
 
-import { useAudioBufferStore } from "../audioBufferStore";
+import useAudioBufferStore from "../stores/audioBufferStore";
+import { useSettingsStore } from "../stores/settingsStore";
+import useData from "../hooks/useData";
+import SelectToggle from "./SelectToggle";
+import KeyframeTable from "./KeyframeTable";
 
-export default function StressTest() {
+export default function ControlPanel() {
+  const [settings, updateSetting] = useSettingsStore((state) => [
+    state.settingsState,
+    state.updateSetting,
+  ] as const);
+
+  const {
+    saveName,
+    saveId,
+    datums,
+    tempo,
+    frameRate,
+    amplitude,
+    upDownOffset,
+    leftRightOffset,
+    rhythmRate,
+    waveType,
+    bend,
+    toggleSinCos,
+    linkFrameOffset,
+    noiseAmount,
+    modEnabled,
+    modAmp,
+    modToggleSinCos,
+    modTempo,
+    modRhythmRate,
+    modFrameRate,
+    modBend,
+    modMoveLeftRight,
+    modMoveUpDown,
+    keyframes,
+  } = settings;
+
+  
+
   const [
     {
       chartCount,
-      seriesCount,
-      datumCount,
       activeSeriesIndex,
-      liveData,
-      liveDataInterval,
       showPoints,
       memoizeSeries,
-      contentEditable,
-      brush,
-      height,
       showAxes,
-      tempo,
-      frameRate,
-      amplitude,
-      upDownOffset,
-      leftRightOffset,
-      rhythmRate,
-      waveType,
-      bend,
-      toggleSinCos,
-      linkFrameOffset,
-      noiseAmount,
       boxWidth,
-      modEnabled,
-      modAmp,
-      modToggleSinCos,
-      modTempo,
-      modRhythmRate,
-      modRate,
-      modFrameRate,
-      modBend,
-      modMoveUpDown,
-      modMoveLeftRight,
     },
     setState,
   ] = React.useState({
     activeSeriesIndex: -1,
     chartCount: 1,
-    seriesCount: 1,
-    datumCount: 120,
-    liveData: false,
-    liveDataInterval: 1000,
     showPoints: true,
     memoizeSeries: true,
     height: 400,
     showAxes: true,
-    contentEditable: true,
-    brush: true,
-
-    tempo: 120,
-    frameRate: 24,
-    amplitude: 2.0,
-    upDownOffset: 0,
-    leftRightOffset: 0,
-    rhythmRate: 60,
-    waveType: "sinusoid",
-    bend: 1,
-    toggleSinCos: "cos",
-    linkFrameOffset: false,
-    noiseAmount: 0,
     boxWidth: 0,
-
-    modEnabled: false,
-    modAmp: 1,
-    modToggleSinCos: "cos",
-    modTempo: 120,
-    modRhythmRate: 1920,
-    modRate: 1,
-    modFrameRate: 24,
-    modBend: 1,
-    modMoveUpDown: 0,
-    modMoveLeftRight: 0,
   });
 
-  const { data } = useDemoConfig({
-    series: seriesCount,
-    datums: datumCount,
-    dataType: "time",
-
-    tempo: tempo,
-    frameRate: frameRate,
-    amplitude: amplitude,
-    upDownOffset: upDownOffset,
-    leftRightOffset: leftRightOffset,
-    rhythmRate: rhythmRate,
-    waveType: waveType,
-    bend: bend,
-    toggleSinCos: toggleSinCos,
-    linkFrameOffset: linkFrameOffset,
-    noiseAmount: noiseAmount,
-    modEnabled: modEnabled,
-    modAmp: modAmp,
-    modToggleSinCos: modToggleSinCos,
-    modTempo: modTempo,
-    modRhythmRate: modRhythmRate,
-    modFrameRate: modFrameRate,
-    modRate: modRate,
-    modBend: modBend,
-    modMoveLeftRight: modMoveLeftRight,
-    modMoveUpDown: modMoveUpDown,
-
-    tooltipAlign: "auto",
-    tooltipAnchor: "closest",
-    snapCursor: true,
-    interactionMode: "primary",
-    tooltipGroupingMode: "primary",
-    show: ["elementType", "interactionMode"],
+  const data = useData({
+    datums,
+    tempo,
+    frameRate,
+    amplitude,
+    upDownOffset,
+    leftRightOffset,
+    rhythmRate,
+    waveType,
+    bend,
+    toggleSinCos,
+    linkFrameOffset,
+    noiseAmount,
+    modEnabled,
+    modAmp,
+    modToggleSinCos,
+    modTempo,
+    modRhythmRate,
+    modFrameRate,
+    modBend,
+    modMoveLeftRight,
+    modMoveUpDown,
+    keyframes,
   });
+
+
 
   const [chartType, setChartType] = React.useState("line");
   const [highlightedText, setHighlightedText] = React.useState("");
-  const [primaryCursorValue, setPrimaryCursorValue] = React.useState();
-  const [secondaryCursorValue, setSecondaryCursorValue] = React.useState();
+  // const [primaryCursorValue, setPrimaryCursorValue] = React.useState();
+  // const [secondaryCursorValue, setSecondaryCursorValue] = React.useState();
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //console.log("event.currentTarget.value", event?.currentTarget?.value);
+    updateSetting(event?.currentTarget?.name, event?.currentTarget?.value);
+  };
+
+  const handleChangeSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    updateSetting(event?.currentTarget?.name, event?.currentTarget?.value);
+  };
 
   const fileInput = useRef<HTMLInputElement>(null);
   //const audioElement = useRef<HTMLAudioElement>(null);
@@ -155,31 +138,59 @@ export default function StressTest() {
     };
     fileReader.readAsArrayBuffer(file);
   };
+  const handleSave = () => {
+    // Get the previously saved state from local storage
+    let previousState = localStorage.getItem("data");
+    // If there is a previously saved state, parse it into a JavaScript object
+    if (previousState) {
+      previousState = JSON.parse(previousState);
+    }
+    // Assign a unique key to the current state
+    const key = Date.now().toString();
+    // Add the key-value pair to the previous state
 
-  // const ticksOnAxis = document.querySelector(
-  //   "g:nth-child(1) > g.Axis-Group.inner > g.Axis > g.domainAndTicks > g.tick > text.tickLabel"
-  // ); 
-  // ticksOnAxis.forEach((tick) => {
-  //   if (Number(tick.textContent) % frameRate === 0) {
-  //     tick.style.fill = "#f8f9fa";
-  //   } else {
-  //     tick.style.fill = "#adb5bd";
-  //   }
-  // });
+    const mergedState = {
+      ...(previousState as unknown as object),
+      [key]: { ...settings },
+    };
+    // Convert the merged state to a JSON string
+    const stateJson = JSON.stringify(mergedState);
+    // Save the merged state to local storage
+    localStorage.setItem("data", stateJson);
+  };
+
+  const ticksOnXAxis = document.querySelectorAll(
+    "#root > div:nth-child(2) > div > div > div > div > div > svg > g.axes > g:nth-child(1) > g.Axis-Group.inner > g > g.domainAndTicks > g > text"
+  );
+
+  // const linesOnXAxis = document.querySelectorAll(
+  // "#root > div:nth-child(2) > div > div > div > div > div > svg > g.axes > g:nth-child(1) > g.Axis-Group.inner > g > g.grid > g:nth-child(6)"
+  // );
+
+  ticksOnXAxis.forEach((tick) => {
+    if (Number(tick.textContent) % frameRate === 0) {
+      tick.classList.add('tick-highlight');
+      tick.classList.remove('tick-hide');
+    } else {
+      tick.classList.add('tick-hide');
+      tick.classList.remove('tick-highlight');
+
+    }
+  });
 
   const primaryAxis = React.useMemo<
     AxisOptions<typeof data[number]["data"][number]>
   >(
     () => ({
       getValue: (datum) => Number(datum.primary),
-      axisType: "ordinal",
       primaryAxisId: "primary",
-      dataType: "band",
       show: showAxes,
       primary: true,
-      scaleType: "band",
+      dataType: "linear",
+      scaleType: datums > 200 ? "linear" : "band",
+      tickRotation: datums < 100 ? 0 : 45,
     }),
-    [showAxes, rhythmRate, tempo, frameRate, data]
+    [showAxes]
   );
 
   const secondaryAxes = React.useMemo<
@@ -215,30 +226,26 @@ export default function StressTest() {
 
   const yArray = data[0].data.map((datum, i) => {
     return `${Number(datum.primary) % frameRate === 0 ? "\r\n" : ""}${
-      datum.primary <= 9 ? "  " : ""
-    }${datum.primary >= 10 ? "  " : ""}${datum.primary <= 99 ? " " : ""}${
-      linkFrameOffset == true ? i + leftRightOffset : i
-    }:${Math.sign(Number(datum.secondary)) === 1 || -1 ? " " : ""}${
+      Number(datum.primary) <= 9 ? "  " : ""
+    }${Number(datum.secondary) < 0 ? "" : " "}${Number(datum.secondary).toFixed(2) === "-0.00" ? " " : ""}${datum.primary >= 10 ? " " : ""}${datum.primary <= 99 ? " " : ""}${
+      linkFrameOffset == true ? i + Number(leftRightOffset) : i
+    }:${Math.sign(Number(datum.secondary)) === 1 || -1 ? "" : ""}${
       Math.sign(Number(datum.secondary)) === -1 ? "" : ""
-    }(${datum.secondary?.toFixed(2).replace("-0.00", "0.00")})`;
+    }(${Number(datum.secondary).toFixed(2).replace("-0.00", "0.00")})`;
   });
 
-  const yArrayRaw = data[0].data.map((datum) => {
-    return datum.secondary;
+  const yArrayRaw = data[0].data.map((datum: { secondary: any }) => {
+    return datum.secondary?.toFixed(2);
   });
-
-  //console.log(yArray);
 
   const yArraySum = yArrayRaw.reduce(
-    (accumulator, currentValue) =>
-      (accumulator as number) + Math.abs(currentValue as number)
+    (accumulator: number, currentValue: number) =>
+      Number(accumulator as number) + Math.abs(Number(currentValue as number))
   );
 
   const yArrayAvg = (yArraySum as number) / yArrayRaw.length;
   const yArrayMin = Math.min(...(yArrayRaw as number[]));
   const yArrayMax = Math.max(...(yArrayRaw as number[]));
-
-  // console.log(yArraySum);
 
   let currentFormula = `(${amplitude} * ${
     toggleSinCos === "cos" ? "cos" : "sin"
@@ -268,14 +275,22 @@ export default function StressTest() {
     waveType != "bumpdup" ? modBend : modBend + 0
   } + ${modMoveUpDown})`;
 
+  const calculateColor = (value: number, minValue: number, maxValue: number) => {
+    const percentage = 1 * (value - minValue) / (maxValue - minValue);
+    //console.log("percentage", percentage)
+    return percentage;
+  };
+
+ 
+  
+  const opacity = yArrayRaw.map((value, i) => {
+    return calculateColor(value[i], yArrayMin, yArrayMax);
+  });
+
   return (
     <>
-      <br />
-      {[...new Array(chartCount)].map((_d, i) => (
-        <ResizableBox
-          key={i}
-          height={240}
-          width={boxWidth * datumCount * 3 + 1440}>
+      {[...new Array(chartCount)].map((d, i) => (
+        <ResizableBox key={i} height={240} width={boxWidth * datums * 3 + 1440}>
           <Chart
             options={{
               data,
@@ -284,46 +299,55 @@ export default function StressTest() {
               memoizeSeries,
               dark: true,
               tooltip: true,
-
-              getDatumStyle: (datum, _status) => ({
+              
+              getDatumStyle: (d, _status) => ({
+                
                 color: "#F97316",
-                stroke: "#F97316",
-                opacity:
-                  activeSeriesIndex > -1
-                    ? datum.seriesIndex === activeSeriesIndex
-                      ? 1
-                      : 0.1
-                    : 1,
+                //stroke: "#F97316",
+                
+                
+                // opacity:
+                //   activeSeriesIndex > -1
+                //     ? datum.seriesIndex === activeSeriesIndex
+                //       ? 1
+                //       : 0.1
+                //     : 1,
               }),
 
               getSeriesStyle: (series, _status) => ({
-                color: "#F97316",
-                opacity:
-                  activeSeriesIndex > -1
-                    ? series.index === activeSeriesIndex
-                      ? 1
-                      : 0.1
-                    : 1,
+                stroke: "#F97316",
+                // opacity: `rgba(249, 115, 22, })`,
+                // stroke: `rgba(249, 115, 22, ${opacity[i]})`,
+                color: `rgba(255, 255, 255, )`,
+                //backgroundColor: "white",
+                //color: "white",
+                //stroke: "white",
+                // opacity:
+                //   activeSeriesIndex > -1
+                //     ? series.index === activeSeriesIndex
+                //       ? 1
+                //       : 0.1
+                //     : 1,
               }),
 
-              primaryCursor: {
-                value: primaryCursorValue,
-                onChange: (value) => {
-                  setPrimaryCursorValue(value);
-                },
-              },
-              secondaryCursor: {
-                value: secondaryCursorValue,
-                onChange: (value) => {
-                  setSecondaryCursorValue(value);
-                },
-              },
-              onFocusDatum: (datum) => {
-                setState((old) => ({
-                  ...old,
-                  activeSeriesIndex: datum ? datum.seriesIndex : -1,
-                }));
-              },
+              // primaryCursor: {
+              //   value: primaryCursorValue,
+              //   onChange: (value) => {
+              //     setPrimaryCursorValue(value);
+              //   },
+              // },
+              // secondaryCursor: {
+              //   value: secondaryCursorValue,
+              //   onChange: (value) => {
+              //     setSecondaryCursorValue(value);
+              //   },
+              // },
+              // onFocusDatum: (datum) => {
+              //   setState((old) => ({
+              //     ...old,
+              //     activeSeriesIndex: datum ? datum.seriesIndex : -1,
+              //   }));
+              // },
             }}
           />
         </ResizableBox>
@@ -349,8 +373,8 @@ export default function StressTest() {
       {/* Stats */}
       <div className="flex flex-row justify-center shrink text-gray-400 bg-darkest-blue space-x-2 mb-4 font-mono">
         Min: {yArrayMin?.toFixed(2)} | Max: {yArrayMax?.toFixed(2)} | Average:{" "}
-        {yArrayAvg?.toFixed(2)} | Absolute Sum: {yArraySum?.toFixed(2)} |
-        Duration: {(datumCount / frameRate).toFixed(2)}s{/* Chart Type */}
+        {yArrayAvg?.toFixed(2)} | Absolute Sum: {Number(datums) > 1 ? yArraySum.toFixed(2) : yArraySum} |
+        Duration: {(yArrayRaw.length / frameRate).toFixed(2)}s
         <label>
           | Chart{" "}
           <select
@@ -362,19 +386,19 @@ export default function StressTest() {
           </select>
         </label>
       </div>
+
       {/* Control Panel */}
-      <div className="flex flex-row justify-center justify-items-start space-x-4 font-mono">
+      <div className="flex flex-row justify-center shrink justify-items-start max-w-720px w-720px space-x-4 font-mono">
         {/* Wave Settings */}
         <fieldset className=" bg-darkest-blue p-4 space-x-2 font-mono">
           <legend className="flex flex-row">
-            Select Wave or{" "}
+            Select Wave or upload{" "}
             <span className="pl-2">
               <input
-              className="text-orange-500" 
-              type="file" 
-              ref={fileInput} 
-              onChange={handleFileUpload} 
-            
+                className="text-orange-500"
+                type="file"
+                ref={fileInput}
+                onChange={handleFileUpload}
               />
             </span>{" "}
           </legend>
@@ -392,10 +416,7 @@ export default function StressTest() {
                     value={toggleSinCos}
                     onChange={(e) => {
                       e.persist();
-                      setState((old) => ({
-                        ...old,
-                        toggleSinCos: e.target.value,
-                      }));
+                      updateSetting("toggleSinCos", e.target.value);
                     }}>
                     <option value="cos">Cosine</option>
                     <option value="sin">Sine</option>
@@ -403,12 +424,14 @@ export default function StressTest() {
                 </label>
               </legend>
               <div className="flex flex-row justify-start justify-items-start text-center text-xs mb-2">
+                {/* Sinusoid */}
                 <input
                   className="appearance-none radio"
                   type="radio"
                   id="sinusoid"
-                  name="wave"
+                  name="waveType"
                   value="sinusoid"
+                  onChange={handleChange}
                 />
                 <label
                   className={`p-1 border-2 bg-darker-blue mr-2 ${
@@ -416,24 +439,21 @@ export default function StressTest() {
                       ? "border-orange-500"
                       : "border-dark-blue"
                   } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="sinusoid"
-                  onClick={() => {
-                    setState((old) => ({ ...old, waveType: "sinusoid" }));
-                  }}>
+                  htmlFor="sinusoid">
                   <img
                     src={sinusoid}
                     alt="sinusoid"
                     className={"aspect-square w-16"}
                   />
-                  {/* Sinusoid */}
                 </label>
-
+                {/* Saw */}
                 <input
                   className="appearance-none radio"
                   type="radio"
                   id="saw"
-                  name="wave"
+                  name="waveType"
                   value="saw"
+                  onChange={handleChange}
                 />
                 <label
                   className={`p-1 border-2 bg-darker-blue mr-2 ${
@@ -441,20 +461,18 @@ export default function StressTest() {
                       ? "border-orange-500"
                       : "border-dark-blue"
                   } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="saw"
-                  onClick={() => {
-                    setState((old) => ({ ...old, waveType: "saw" }));
-                  }}>
+                  htmlFor="saw">
                   <img src={saw} alt="saw" className={"aspect-square w-16"} />
-                  {/* Saw */}
                 </label>
+                {/* Triangle */}
 
                 <input
                   className="appearance-none radio"
                   type="radio"
                   id="triangle"
-                  name="wave"
+                  name="waveType"
                   value="triangle"
+                  onChange={handleChange}
                 />
                 <label
                   className={`p-1 border-2 bg-darker-blue mr-2 ${
@@ -462,25 +480,21 @@ export default function StressTest() {
                       ? "border-orange-500"
                       : "border-dark-blue"
                   } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="triangle"
-                  onClick={() => {
-                    setState((old) => ({ ...old, waveType: "triangle" }));
-                  }}>
+                  htmlFor="triangle">
                   <img
                     src={triangle}
                     alt="triangle"
                     className={"aspect-square w-16"}
                   />
-
-                  {/* Triangle */}
                 </label>
-
+                {/* Square */}
                 <input
                   className="appearance-none radio"
                   type="radio"
                   id="square"
-                  name="wave"
+                  name="waveType"
                   value="square"
+                  onChange={handleChange}
                 />
                 <label
                   className={`p-1 border-2 mr-2 bg-darker-blue ${
@@ -488,24 +502,21 @@ export default function StressTest() {
                       ? "border-orange-500"
                       : "border-dark-blue"
                   } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="square"
-                  onClick={() => {
-                    setState((old) => ({ ...old, waveType: "square" }));
-                  }}>
+                  htmlFor="square">
                   <img
                     src={square}
                     alt="square"
                     className={"aspect-square w-16"}
                   />
-
-                  {/* Square */}
                 </label>
+                {/* Bumpdip */}
                 <input
                   className="appearance-none radio"
                   type="radio"
                   id="bumpdip"
-                  name="wave"
+                  name="waveType"
                   value="bumpdip"
+                  onChange={handleChange}
                 />
                 <label
                   className={`p-1 border-2 mr-2 bg-darker-blue ${
@@ -513,25 +524,27 @@ export default function StressTest() {
                       ? "border-orange-500"
                       : "border-dark-blue"
                   } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="bumpdip"
-                  onClick={() => {
-                    setState((old) => ({ ...old, waveType: "bumpdip" }));
-                  }}>
+                  htmlFor="bumpdip">
                   <img
                     src={bumpdip}
                     alt="bumpdip"
                     className={"aspect-square w-16"}
                   />
-
-                  {/* Bumpdip */}
                 </label>
+                {/* Audio */}
                 <input
                   className="appearance-none radio"
                   type="radio"
                   id="audio"
                   name="audio"
                   value="audio"
-                  //check if audio file is loaded
+                  checked={waveType === "audio"}
+                  onChange={
+                    (e) => {
+                      e.persist();
+                      updateSetting("waveType", e.target.value);
+                    }
+                  }
                 />
                 <label
                   className={`p-1 border-2 bg-darker-blue ${
@@ -539,84 +552,66 @@ export default function StressTest() {
                       ? "border-orange-500"
                       : "border-dark-blue"
                   } hover:border-orange-600 cursor-pointer ease-out duration-300`}
-                  htmlFor="audio"
-                  onClick={() => {
-                    setState((old) => ({ ...old, waveType: "audio" }));
-                  }}>
+                  htmlFor="audio">
                   <img
                     src={audiofile}
                     alt="audio"
                     className={"aspect-square w-16"}
                   />
-
-                  {/* Audio */}
                 </label>
               </div>
               {/* Primary Wave Settings */}
-              <div className="flex flex-row grow">
+              <div className="flex flex-row">
                 {/* Amplitude */}
-                <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
                   AMPLITUDE{" "}
                   <NumberInput
+                    name="amplitude"
                     value={amplitude}
                     min={-100}
                     max={100}
                     step={0.01}
-                    onChange={(value) =>
-                      setState((old) => ({
-                        ...old,
-                        amplitude: value as number,
-                      }))
-                    }
+                    onChange={handleChange}
                   />
                 </label>
                 {/* Up/Down Offset*/}
-                <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
                   SHIFT UP/DOWN{" "}
                   <NumberInput
+                    name="upDownOffset"
                     value={upDownOffset}
                     min={-100}
                     max={100}
                     step={0.1}
                     isInt={false}
-                    onChange={(value) =>
-                      setState((old) => ({
-                        ...old,
-                        upDownOffset: parseFloat(value as string),
-                      }))
-                    }
+                    onChange={handleChange}
                   />
                 </label>
                 {/* Bend*/}
-                <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
                   BEND{" "}
                   <NumberInput
+                    name="bend"
                     value={bend === 0 && waveType != "saw" ? 1 : bend}
                     min={1}
                     max={waveType === "saw" ? 100 : 200}
                     step={waveType === "saw" ? 1 : 2}
                     isInt={true}
-                    onChange={(value) =>
-                      setState((old) => ({ ...old, bend: value as number }))
-                    }
+                    onChange={handleChange}
                   />
                 </label>
 
                 {/* Noise*/}
-                <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
+                <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
                   NOISE{" "}
                   <NumberInput
+                    name="noiseAmount"
                     value={noiseAmount}
                     min={0}
                     max={100}
                     step={0.01}
                     isInt={false}
-                    onChange={(value) =>
-                      setState((old) => ({
-                        ...old,
-                        noiseAmount: parseFloat(value as unknown as string),
-                      }))
-                    }
+                    onChange={handleChange}
                   />
                 </label>
               </div>
@@ -626,17 +621,15 @@ export default function StressTest() {
               <legend className="flex flex-row space-x-2 mb-2">
                 <label className="flex flex-row items-center ml-2">
                   <input
+                    name="modEnabled"
                     type="checkbox"
                     className="form-checkbox h-5 w-5 text-orange-500 cursor-pointer"
                     checked={modEnabled}
                     onChange={(e) => {
                       e.persist();
-                      setState((old) => ({
-                        ...old,
-                        modEnabled: e.target.checked,
-                      }));
-                    }}
-                  />
+                      updateSetting("modEnabled", e.target.checked);
+                    }}/>
+                  
                 </label>{" "}
                 Enable Modulator
                 {/* checkbox for modEnabled */}
@@ -644,14 +637,12 @@ export default function StressTest() {
                 <label>
                   {" "}
                   <select
+                    name="modToggleSinCos"
                     className="bg-darker-blue border-2 border-dark-blue"
                     value={modToggleSinCos}
                     onChange={(e) => {
                       e.persist();
-                      setState((old) => ({
-                        ...old,
-                        modToggleSinCos: e.target.value,
-                      }));
+                      updateSetting("modToggleSinCos", e.target.value);
                     }}>
                     <option value="cos">Cosine</option>
                     <option value="sin">Sine</option>
@@ -659,87 +650,69 @@ export default function StressTest() {
                 </label>
               </legend>
               {/* Secondary Wave Settings */}
-              <div className="flex flex-col flex-wrap grow">
+              <div className="flex flex-col flex-wrap ">
                 <div className="flex flex-row mb-2">
                   {/* Mod Amplitude */}
-                  <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                  <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
                     MOD AMPLITUDE{" "}
                     <NumberInput
+                      name="modAmp"
                       value={modAmp}
                       min={-100}
                       max={100}
                       step={0.01}
-                      onChange={(value) =>
-                        setState((old) => ({ ...old, modAmp: value as number }))
-                      }
+                      onChange={handleChange}
                     />
                   </label>
                   {/* Mod Up/Down Offset*/}
-                  <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                  <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
                     MOD SHIFT UP/DOWN{" "}
                     <NumberInput
+                      name="modMoveUpDown"
                       value={modMoveUpDown}
                       min={-100}
                       max={100}
                       step={0.1}
                       isInt={false}
-                      onChange={(value) =>
-                        setState((old) => ({
-                          ...old,
-                          modMoveUpDown: parseFloat(value as string),
-                        }))
-                      }
+                      onChange={handleChange}
                     />
                   </label>
                   {/* Mod Bend*/}
-                  <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                  <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
                     MOD BEND{" "}
                     <NumberInput
+                      name="modBend"
                       value={modBend}
                       min={1}
                       max={1000}
                       step={2}
                       isInt={true}
-                      onChange={(value) =>
-                        setState((old) => ({
-                          ...old,
-                          modBend: value as number,
-                        }))
-                      }
+                      onChange={handleChange}
                     />
                   </label>
                 </div>
                 <div className="flex flex-row">
                   {/* Mod Tempo*/}
-                  <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                  <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
                     MOD TEMPO{" "}
                     <NumberInput
+                      name="modTempo"
                       value={modTempo}
                       min={1}
                       max={1000}
                       step={1}
                       isInt={true}
-                      onChange={(value) =>
-                        setState((old) => ({
-                          ...old,
-                          modTempo: parseInt(value as string),
-                        }))
-                      }
+                      onChange={handleChange}
                     />
                   </label>
                   {/* Mod Rhythm Rate*/}
-                  <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                  <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
                     MOD RHYTHM RATE {/* option selector for rhythmRates */}
                     <select
+                      name="modRhythmRate"
                       className="bg-darker-blue border-2 border-dark-blue"
                       value={modRhythmRate}
-                      onChange={(e) => {
-                        e.persist();
-                        setState((old) => ({
-                          ...old,
-                          modRhythmRate: parseInt(e.target.value),
-                        }));
-                      }}>
+                      onChange={handleChangeSelect}>
                       <option value="3840">16</option>
                       <option value="1920">8</option>
                       <option value="960">4</option>
@@ -758,24 +731,20 @@ export default function StressTest() {
                     </select>
                   </label>
                   {/* Mod Frame Rate*/}
-                  <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                  <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
                     MOD FRAME RATE{" "}
                     <NumberInput
+                      name="modFrameRate"
                       value={modFrameRate}
                       min={1}
                       max={1000}
                       step={1}
                       isInt={true}
-                      onChange={(value) =>
-                        setState((old) => ({
-                          ...old,
-                          modFrameRate: parseInt(value as string),
-                        }))
-                      }
+                      onChange={handleChange}
                     />
                   </label>
                   {/* Move Left/Right */}
-                  {/* <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                  {/* <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
                     MOD SHIFT LEFT/RIGHT{" "}
                     <NumberInput
                       value={modMoveLeftRight}
@@ -797,97 +766,79 @@ export default function StressTest() {
           </div>
         </fieldset>
         {/* Framesync Settings */}
-        <div className="grid grid-cols-1 font-mono">
+        <div className="flex flex-col font-mono">
           {/* Frame Settings */}
           <fieldset className="bg-darkest-blue flex flex-row justify-start pl-3 pr-3 pb-3 font-mono">
             <legend>Frame Settings</legend>
             <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 mr-2 border-2 border-dark-blue z-index-100 text-sm">
               FRAME RATE (FPS)
               <NumberInput
+                name="frameRate"
                 value={frameRate}
                 min={1}
                 max={240}
                 step={1}
                 isInt={true}
-                onChange={(value) =>
-                  setState((old) => ({
-                    ...old,
-                    frameRate: parseInt(value as string),
-                  }))
-                }
+                onChange={handleChange}
               />
             </label>
             <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
               FRAME COUNT
               <NumberInput
-                value={datumCount}
+                name="datums"
+                value={datums}
                 min={1}
                 max={10000}
                 step={1}
                 isInt={true}
-                onChange={(value) =>
-                  setState((old) => ({
-                    ...old,
-                    datumCount: parseInt(value as string),
-                  }))
-                }
+                onChange={handleChange}
               />
             </label>
           </fieldset>
 
           {/* Sync Settings */}
-          <fieldset className="bg-darkest-blue flex-row-auto justify-start  pl-3 pr-3 pb-3 font-mono">
+          <fieldset className="bg-darkest-blue flex-row-auto justify-start pl-3 pr-3 pb-3 font-mono">
             <legend>Sync Settings</legend>
             {/* Tempo and Shift Left/Right */}
-            <div className="flex flex-row grow space-x-2 mb-2">
+            <div className="flex flex-row  space-x-2 mb-2">
               {/* Tempo */}
-              <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
+              <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
                 TEMPO (BPM)
                 <NumberInput
+                  name="tempo"
                   value={tempo}
                   min={1}
                   max={10000}
                   step={1}
                   isInt={true}
-                  onChange={(value) =>
-                    setState((old) => ({
-                      ...old,
-                      tempo: parseInt(value as string),
-                    }))
-                  }
+                  onChange={handleChange}
                 />
               </label>
               {/* Shift Left/Right */}
 
-              <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
+              <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
                 SHIFT LEFT/RIGHT
                 {/* Link Horizonal Offset & Starting Frame */}
                 <label className="text-xs">
                   START FRAME{" "}
                   <input
+                    name="linkFrameOffset"
                     type="checkbox"
                     checked={linkFrameOffset}
                     onChange={(e) => {
                       e.persist();
-                      setState((old) => ({
-                        ...old,
-                        linkFrameOffset: e.target.checked,
-                      }));
+                      updateSetting("linkFrameOffset", e.target.checked);
                     }}
                   />
                 </label>
                 <NumberInput
+                  name="leftRightOffset"
                   value={leftRightOffset}
                   min={0}
                   max={10000}
                   step={1}
                   isInt={true}
-                  onChange={(value) =>
-                    setState((old) => ({
-                      ...old,
-                      leftRightOffset: parseInt(value as string),
-                    }))
-                  }
+                  onChange={handleChange}
                 />
               </label>
             </div>
@@ -907,17 +858,11 @@ export default function StressTest() {
                       name="rhythmRate"
                       value="40"
                       checked={rhythmRate === 40}
-                      onChange={(e) => {
-                        e.persist();
-                        setState((old) => ({
-                          ...old,
-                          rhythmRate: parseFloat(e.target.value),
-                        }));
-                      }}
+                      onChange={handleChange}
                     />
                     <label
                       className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
-                        rhythmRate === 40
+                        rhythmRate == 40
                           ? "border-orange-500"
                           : "border-dark-blue"
                       } hover:border-orange-600 cursor-pointer ease-out duration-300`}
@@ -931,17 +876,11 @@ export default function StressTest() {
                       name="rhythmRate"
                       value="20"
                       checked={rhythmRate === 20}
-                      onChange={(e) => {
-                        e.persist();
-                        setState((old) => ({
-                          ...old,
-                          rhythmRate: parseFloat(e.target.value),
-                        }));
-                      }}
+                      onChange={handleChange}
                     />
                     <label
                       className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
-                        rhythmRate === 20
+                        rhythmRate == 20
                           ? "border-orange-500"
                           : "border-dark-blue"
                       } hover:border-orange-600 cursor-pointer ease-out duration-300`}
@@ -955,17 +894,11 @@ export default function StressTest() {
                       name="rhythmRate"
                       value="10"
                       checked={rhythmRate === 10}
-                      onChange={(e) => {
-                        e.persist();
-                        setState((old) => ({
-                          ...old,
-                          rhythmRate: parseFloat(e.target.value),
-                        }));
-                      }}
+                      onChange={handleChange}
                     />
                     <label
                       className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
-                        rhythmRate === 10
+                        rhythmRate == 10
                           ? "border-orange-500"
                           : "border-dark-blue"
                       } hover:border-orange-600 cursor-pointer ease-out duration-300`}
@@ -979,17 +912,11 @@ export default function StressTest() {
                       name="rhythmRate"
                       value="5"
                       checked={rhythmRate === 5}
-                      onChange={(e) => {
-                        e.persist();
-                        setState((old) => ({
-                          ...old,
-                          rhythmRate: parseFloat(e.target.value),
-                        }));
-                      }}
+                      onChange={handleChange}
                     />
                     <label
                       className={`p-2 border-2 grow mr-2 bg-darker-blue ${
-                        rhythmRate === 5
+                        rhythmRate == 5
                           ? "border-orange-500"
                           : "border-dark-blue"
                       } hover:border-orange-600 cursor-pointer ease-out duration-300`}
@@ -1003,17 +930,11 @@ export default function StressTest() {
                       name="rhythmRate"
                       value="2.5"
                       checked={rhythmRate === 2.5}
-                      onChange={(e) => {
-                        e.persist();
-                        setState((old) => ({
-                          ...old,
-                          rhythmRate: parseFloat(e.target.value),
-                        }));
-                      }}
+                      onChange={handleChange}
                     />
                     <label
                       className={`p-2 border-2 grow bg-darker-blue  ${
-                        rhythmRate === 2.5
+                        rhythmRate == 2.5
                           ? "border-orange-500"
                           : "border-dark-blue"
                       } hover:border-orange-600 cursor-pointer ease-out duration-300`}
@@ -1031,17 +952,11 @@ export default function StressTest() {
                       name="rhythmRate"
                       value="120"
                       checked={rhythmRate === 120}
-                      onChange={(e) => {
-                        e.persist();
-                        setState((old) => ({
-                          ...old,
-                          rhythmRate: parseFloat(e.target.value),
-                        }));
-                      }}
+                      onChange={handleChange}
                     />
                     <label
                       className={`p-2 border-2 grow mr-2 bg-darker-blue ${
-                        rhythmRate === 120
+                        rhythmRate == 120
                           ? "border-orange-500"
                           : "border-dark-blue"
                       } hover:border-orange-600 cursor-pointer ease-out duration-300`}
@@ -1055,17 +970,11 @@ export default function StressTest() {
                       name="rhythmRate"
                       value="60"
                       checked={rhythmRate === 60}
-                      onChange={(e) => {
-                        e.persist();
-                        setState((old) => ({
-                          ...old,
-                          rhythmRate: parseFloat(e.target.value),
-                        }));
-                      }}
+                      onChange={handleChange}
                     />
                     <label
                       className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
-                        rhythmRate === 60
+                        rhythmRate == 60
                           ? "border-orange-500"
                           : "border-dark-blue"
                       } hover:border-orange-600 cursor-pointer ease-out duration-300`}
@@ -1080,17 +989,11 @@ export default function StressTest() {
                       name="rhythmRate"
                       value="30"
                       checked={rhythmRate === 30}
-                      onChange={(e) => {
-                        e.persist();
-                        setState((old) => ({
-                          ...old,
-                          rhythmRate: parseFloat(e.target.value),
-                        }));
-                      }}
+                      onChange={handleChange}
                     />
                     <label
                       className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
-                        rhythmRate === 30
+                        rhythmRate == 30
                           ? "border-orange-500"
                           : "border-dark-blue"
                       } hover:border-orange-600 cursor-pointer ease-out duration-300`}
@@ -1105,17 +1008,11 @@ export default function StressTest() {
                       name="rhythmRate"
                       value="15"
                       checked={rhythmRate === 15}
-                      onChange={(e) => {
-                        e.persist();
-                        setState((old) => ({
-                          ...old,
-                          rhythmRate: parseFloat(e.target.value),
-                        }));
-                      }}
+                      onChange={handleChange}
                     />
                     <label
                       className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
-                        rhythmRate === 15
+                        rhythmRate == 15
                           ? "border-orange-500"
                           : "border-dark-blue"
                       } hover:border-orange-600 cursor-pointer ease-out duration-300`}
@@ -1130,17 +1027,11 @@ export default function StressTest() {
                       name="rhythmRate"
                       value="7.5"
                       checked={rhythmRate === 7.5}
-                      onChange={(e) => {
-                        e.persist();
-                        setState((old) => ({
-                          ...old,
-                          rhythmRate: parseFloat(e.target.value),
-                        }));
-                      }}
+                      onChange={handleChange}
                     />
                     <label
                       className={`p-2 border-2 grow bg-darker-blue  ${
-                        rhythmRate === 7.5
+                        rhythmRate == 7.5
                           ? "border-orange-500"
                           : "border-dark-blue"
                       } hover:border-orange-600 cursor-pointer ease-out duration-300`}
@@ -1157,17 +1048,11 @@ export default function StressTest() {
                       name="rhythmRate"
                       value="7680"
                       checked={rhythmRate === 7680}
-                      onChange={(e) => {
-                        e.persist();
-                        setState((old) => ({
-                          ...old,
-                          rhythmRate: parseFloat(e.target.value),
-                        }));
-                      }}
+                      onChange={handleChange}
                     />
                     <label
                       className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
-                        rhythmRate === 7680
+                        rhythmRate == 7680
                           ? "border-orange-500"
                           : "border-dark-blue"
                       } hover:border-orange-600 cursor-pointer ease-out duration-300`}
@@ -1181,17 +1066,11 @@ export default function StressTest() {
                       name="rhythmRate"
                       value="3840"
                       checked={rhythmRate === 3840}
-                      onChange={(e) => {
-                        e.persist();
-                        setState((old) => ({
-                          ...old,
-                          rhythmRate: parseFloat(e.target.value),
-                        }));
-                      }}
+                      onChange={handleChange}
                     />
                     <label
                       className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
-                        rhythmRate === 3840
+                        rhythmRate == 3840
                           ? "border-orange-500"
                           : "border-dark-blue"
                       } hover:border-orange-600 cursor-pointer ease-out duration-300`}
@@ -1205,17 +1084,11 @@ export default function StressTest() {
                       name="rhythmRate"
                       value="1920"
                       checked={rhythmRate === 1920}
-                      onChange={(e) => {
-                        e.persist();
-                        setState((old) => ({
-                          ...old,
-                          rhythmRate: parseFloat(e.target.value),
-                        }));
-                      }}
+                      onChange={handleChange}
                     />
                     <label
                       className={`p-2 border-2 grow mr-2 bg-darker-blue ${
-                        rhythmRate === 1920
+                        rhythmRate == 1920
                           ? "border-orange-500"
                           : "border-dark-blue"
                       } hover:border-orange-600 cursor-pointer ease-out duration-300`}
@@ -1229,17 +1102,11 @@ export default function StressTest() {
                       name="rhythmRate"
                       value="960"
                       checked={rhythmRate === 960}
-                      onChange={(e) => {
-                        e.persist();
-                        setState((old) => ({
-                          ...old,
-                          rhythmRate: parseFloat(e.target.value),
-                        }));
-                      }}
+                      onChange={handleChange}
                     />
                     <label
                       className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
-                        rhythmRate === 960
+                        rhythmRate == 960
                           ? "border-orange-500"
                           : "border-dark-blue"
                       } hover:border-orange-600 cursor-pointer ease-out duration-300`}
@@ -1253,17 +1120,11 @@ export default function StressTest() {
                       name="rhythmRate"
                       value="480"
                       checked={rhythmRate === 480}
-                      onChange={(e) => {
-                        e.persist();
-                        setState((old) => ({
-                          ...old,
-                          rhythmRate: parseFloat(e.target.value),
-                        }));
-                      }}
+                      onChange={handleChange}
                     />
                     <label
                       className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
-                        rhythmRate === 480
+                        rhythmRate == 480
                           ? "border-orange-500"
                           : "border-dark-blue"
                       } hover:border-orange-600 cursor-pointer ease-out duration-300`}
@@ -1277,17 +1138,11 @@ export default function StressTest() {
                       name="rhythmRate"
                       value="240"
                       checked={rhythmRate === 240}
-                      onChange={(e) => {
-                        e.persist();
-                        setState((old) => ({
-                          ...old,
-                          rhythmRate: parseFloat(e.target.value),
-                        }));
-                      }}
+                      onChange={handleChange}
                     />
                     <label
                       className={`p-2 border-2 grow  bg-darker-blue  ${
-                        rhythmRate === 240
+                        rhythmRate == 240
                           ? "border-orange-500"
                           : "border-dark-blue"
                       } hover:border-orange-600 cursor-pointer ease-out duration-300`}
@@ -1424,7 +1279,7 @@ export default function StressTest() {
             <div className="font-mono inline-flex bg-darkest-blue p-3">
               {waveType != "audio"
                 ? `${
-                    linkFrameOffset == true ? leftRightOffset : 0
+                    linkFrameOffset == true ? Number(leftRightOffset) : 0
                   }: (${currentFormula}${modEnabled ? "*" : ""}${
                     modEnabled ? currentFormulaMod : ""
                   })`
@@ -1456,9 +1311,9 @@ export default function StressTest() {
 
       <div className="flex flex-col justify-center items-cenbter mt-1"></div>
 
-      {/* <div className="flex flex-row justify-center justify-items-center mt-10 text-3xl">
-        <KeyframeTable keyframes={keyframes} frameRate={frameRate} />
-      </div> */}
+      <div className="flex flex-row justify-center justify-items-center mt-10 text-3xl">
+        <KeyframeTable keyframes={yArrayRaw} frameRate={frameRate}  />
+      </div>
     </>
   );
 }

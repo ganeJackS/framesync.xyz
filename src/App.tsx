@@ -1,9 +1,8 @@
-import StressTest from "./components/StressTest";
+import StressTest from "./components/ControlPanel";
 import NavBar from "./components/NavBar";
 import "./index.css";
 
-//import Provider from 'zustand';
-//import { useAudioBufferStore } from './audioBufferStore';
+
 
 export default function App() {
   return (

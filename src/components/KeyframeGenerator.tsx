@@ -1,7 +1,7 @@
 import React, { useRef} from "react";
 
-import { useAudioBufferStore } from "../audioBufferStore";
-import useAudio2Keyframes from "../useAudio2Keyframes";
+import  useAudioBufferStore from "../stores/audioBufferStore";
+import useAudio2Keyframes from "../hooks/useAudio2Keyframes";
 
 
 function KeyframeGenerator() {

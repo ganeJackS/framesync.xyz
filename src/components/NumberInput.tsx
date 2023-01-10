@@ -1,23 +1,29 @@
 import React, { useState, useEffect } from "react";
+import { useSettingsStore } from "../stores/settingsStore";
+import shallow from "zustand/shallow";
 
 type NumberInputProps = {
+  name: string;
   value: number | string;
-  onChange: (value: number | string) => void;
+  onChange: (event: any) => void;
   min?: number;
   max?: number;
   step: number;
   isInt?: boolean;
-  waveType?: string;
 };
 
 const NumberInput: React.FC<NumberInputProps> = ({
+  name,
   value,
   onChange,
   min = Number.MIN_SAFE_INTEGER,
   max = Number.MAX_SAFE_INTEGER,
   step,
-  waveType,
 }) => {
+
+  const [settings, updateSetting] = useSettingsStore(state => [state.settingsState, state.updateSetting]);
+
+ 
   const [inputValue, setInputValue] = useState(value);
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
@@ -49,6 +55,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
     const handleMouseUp = (event: MouseEvent) => {
       setIsDragging(false);
       setPrevDelta(0);
+      updateSetting(name, inputValue)
       onChange(inputValue);
     };
 
@@ -66,12 +73,17 @@ const NumberInput: React.FC<NumberInputProps> = ({
     setStartY(event.clientY);
   };
 
+  // const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   updateSetting(name, event.target.value)
+  // }
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value === "" ? "" : event.target.value;
     setInputValue(newValue);
+    updateSetting(name, newValue)
     onChange(newValue);
   };
-
+  //console.log(name, inputValue)
+  //console.log(name ,"settings", settings[name as keyof typeof settings])
   return (
     <input
       type="number"

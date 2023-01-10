@@ -246,3 +246,11 @@ body {
     background: #011624;
   }
   
+
+  .tick-highlight {
+    fill: #fff !important;
+  }
+
+  .tick-hide {
+    fill: #001b2e !important;
+  }
