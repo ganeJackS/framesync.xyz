@@ -29,13 +29,13 @@ const NumberInput: React.FC<NumberInputProps> = ({
 
   const handleMouseMove = useCallback(
     (event: MouseEvent) => {
-      if (!isDragging || event.target == window) {
+      if (!isDragging) {
         return;
       }
 
       const delta = (event.clientY - startY) / 20;
       const tempVal =
-        (settings[name] as number) - delta * step * (event.shiftKey ? 10 : 1);
+        (inputValue) - delta * step * (event.shiftKey ? 10 : 1);
       const newValue = Math.max(min, Math.min(max, tempVal));
       setPrevDelta(delta);
 
@@ -46,11 +46,14 @@ const NumberInput: React.FC<NumberInputProps> = ({
       ) {
         return prevDelta;
       }
+      
       Number.isInteger(step)
         ? updateSetting(name, newValue.toFixed(0))
         : updateSetting(name, newValue.toFixed(2));
     },
-    [startY, settings, step, min, max, updateSetting, name]
+  
+
+    [isDragging, startY, settings, step, min, max, updateSetting, name]
   );
 
   const handleMouseUp = useCallback(
@@ -80,7 +83,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value === "" ? "" : event.target.value;
     onChange(newValue);
-    updateSetting(name, Number(newValue));
+    updateSetting(name, newValue);
   };
   return (
     <input
@@ -91,9 +94,9 @@ const NumberInput: React.FC<NumberInputProps> = ({
       min={min}
       max={max}
       step={step}
-      className="w-100px border-1 block border-dark-blue bg-darker-blue px-2 py-2 pt-1 text-xl text-orange-400 focus:outline-none"
+      className="border-1 min-w-1 w-5/6 border-dark-blue bg-darker-blue px-2 py-2 pt-1 text-xl text-orange-400 focus:outline-none"
     />
   );
 };
 
-export default React.memo(NumberInput);
+export default NumberInput;

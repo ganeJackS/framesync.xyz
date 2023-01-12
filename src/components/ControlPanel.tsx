@@ -222,7 +222,7 @@ export default function ControlPanel() {
 
   const yArraySum = yArrayRaw.reduce(
     (accumulator: number, currentValue: number) =>
-      Number(accumulator as number) + Math.abs(Number(currentValue as number))
+      Number(accumulator as number) + Number(currentValue as number)
   );
 
   const yArrayAvg = (yArraySum as number) / yArrayRaw.length;
@@ -269,6 +269,7 @@ export default function ControlPanel() {
 
   return (
     <>
+      <div className="flex flex-col justify-center">
       {[...new Array(chartCount)].map((d, i) => (
         <ResizableBox key={i} height={240} width={boxWidth * datums * 3 + 1440}>
           <Chart
@@ -367,7 +368,7 @@ export default function ControlPanel() {
       </div>
 
       {/* Control Panel */}
-      <div className="flex shrink flex-row justify-center justify-items-start space-x-4 font-mono">
+      <div className="flex grow flex-row justify-center space-x-4 font-mono ml-6">
         {/* Save Settings */}
         <div className="flex flex-col justify-start  overflow-y-auto bg-darkest-blue">
           <SaveSettings />
@@ -375,7 +376,7 @@ export default function ControlPanel() {
         </div>
         {/* Wave Settings */}
 
-        <fieldset className="max-w-screen-sm space-x-2 bg-darkest-blue p-4 font-mono">
+        <fieldset className="space-x-2 bg-darkest-blue p-4 font-mono">
           <legend className="flex flex-row">
             Select Wave or upload{" "}
             <span className="pl-2">
@@ -546,7 +547,7 @@ export default function ControlPanel() {
               {/* Primary Wave Settings */}
               <div className="flex flex-auto">
                 {/* Amplitude */}
-                <label className="w-100px z-index-100 mr-2 block border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                <label className="z-index-100 mr-2 flex shrink flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                   AMPLITUDE{" "}
                   <NumberInput
                     name="amplitude"
@@ -563,7 +564,7 @@ export default function ControlPanel() {
                     name="upDownOffset"
                     min={-100}
                     max={100}
-                    step={0.1}
+                    step={0.01}
                     onChange={handleChange}
                   />
                 </label>
@@ -1210,7 +1211,7 @@ export default function ControlPanel() {
         </div>
       </div>
       {/* Outputs */}
-      <div className="mt-1 flex grow flex-row items-center justify-center">
+      <div className="mt-1 flex grow flex-row items-center justify-start">
         {/* a button to copy keyframeOutput to the clipboard */}
 
         <div>
@@ -1274,6 +1275,7 @@ export default function ControlPanel() {
       <div className="mt-10 flex flex-row justify-center justify-items-center text-3xl">
         {/* <KeyframeTable keyframes={yArrayRaw} frameRate={frameRate}  /> */}
       </div>
+    </div>
     </>
   );
 }
