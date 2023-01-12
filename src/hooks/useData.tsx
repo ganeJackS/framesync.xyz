@@ -53,7 +53,7 @@ export default function useData({
 }) {
   
   const [settings, updateSetting] = useSettingsStore(
-    (state) => [state.settingsState, state.updateSetting],
+    (state) => [state.settings, state.updateSetting],
   );
 
   const {

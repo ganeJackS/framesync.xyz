@@ -1,6 +1,6 @@
 import ResizableBox from "../ResizableBox";
 import useChart from "../hooks/useChart";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AxisOptions, Chart, ChartOptions, Datum } from "react-charts";
 import NumberInput from "./NumberInput";
 import sinusoid from "../assets/sinusoid.svg";
@@ -18,11 +18,15 @@ import { useSettingsStore } from "../stores/settingsStore";
 import useData from "../hooks/useData";
 import SelectToggle from "./SelectToggle";
 import KeyframeTable from "./KeyframeTable";
+import { SaveSettings } from "./SaveSettings";
+import SettingsSelector from "./SettingsSelector";
+
 
 export default function ControlPanel() {
   const [settings, updateSetting] = useSettingsStore((state) => [
-    state.settingsState,
+    state.settings,
     state.updateSetting,
+    
   ] as const);
 
   const {
@@ -51,8 +55,6 @@ export default function ControlPanel() {
     modMoveUpDown,
     keyframes,
   } = settings;
-
-  
 
   const [
     {
@@ -100,20 +102,20 @@ export default function ControlPanel() {
   });
 
 
-
   const [chartType, setChartType] = React.useState("line");
   const [highlightedText, setHighlightedText] = React.useState("");
   // const [primaryCursorValue, setPrimaryCursorValue] = React.useState();
   // const [secondaryCursorValue, setSecondaryCursorValue] = React.useState();
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //console.log("event.currentTarget.value", event?.currentTarget?.value);
+  function handleChange (event: React.ChangeEvent<HTMLInputElement>) {
+   // console.log(event?.currentTarget?.name, event?.currentTarget?.value);
     updateSetting(event?.currentTarget?.name, event?.currentTarget?.value);
   };
 
-  const handleChangeSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  function handleChangeSelect (event: React.ChangeEvent<HTMLSelectElement>) {
     updateSetting(event?.currentTarget?.name, event?.currentTarget?.value);
   };
+
 
   const fileInput = useRef<HTMLInputElement>(null);
   //const audioElement = useRef<HTMLAudioElement>(null);
@@ -138,45 +140,25 @@ export default function ControlPanel() {
     };
     fileReader.readAsArrayBuffer(file);
   };
-  const handleSave = () => {
-    // Get the previously saved state from local storage
-    let previousState = localStorage.getItem("data");
-    // If there is a previously saved state, parse it into a JavaScript object
-    if (previousState) {
-      previousState = JSON.parse(previousState);
-    }
-    // Assign a unique key to the current state
-    const key = Date.now().toString();
-    // Add the key-value pair to the previous state
 
-    const mergedState = {
-      ...(previousState as unknown as object),
-      [key]: { ...settings },
-    };
-    // Convert the merged state to a JSON string
-    const stateJson = JSON.stringify(mergedState);
-    // Save the merged state to local storage
-    localStorage.setItem("data", stateJson);
-  };
-
-  const ticksOnXAxis = document.querySelectorAll(
-    "#root > div:nth-child(2) > div > div > div > div > div > svg > g.axes > g:nth-child(1) > g.Axis-Group.inner > g > g.domainAndTicks > g > text"
-  );
+  // const ticksOnXAxis = document.querySelectorAll(
+  //   "#root > div:nth-child(2) > div > div > div > div > div > svg > g.axes > g:nth-child(1) > g.Axis-Group.inner > g > g.domainAndTicks > g > text"
+  // );
 
   // const linesOnXAxis = document.querySelectorAll(
   // "#root > div:nth-child(2) > div > div > div > div > div > svg > g.axes > g:nth-child(1) > g.Axis-Group.inner > g > g.grid > g:nth-child(6)"
   // );
 
-  ticksOnXAxis.forEach((tick) => {
-    if (Number(tick.textContent) % frameRate === 0) {
-      tick.classList.add('tick-highlight');
-      tick.classList.remove('tick-hide');
-    } else {
-      tick.classList.add('tick-hide');
-      tick.classList.remove('tick-highlight');
+  // ticksOnXAxis.forEach((tick) => {
+  //   if (Number(tick.textContent) % frameRate === 0) {
+  //     tick.classList.add('tick-highlight');
+  //     tick.classList.remove('tick-hide');
+  //   } else {
+  //     tick.classList.add('tick-hide');
+  //     tick.classList.remove('tick-highlight');
 
-    }
-  });
+  //   }
+  // });
 
   const primaryAxis = React.useMemo<
     AxisOptions<typeof data[number]["data"][number]>
@@ -187,8 +169,8 @@ export default function ControlPanel() {
       show: showAxes,
       primary: true,
       dataType: "linear",
-      scaleType: datums > 200 ? "linear" : "band",
-      tickRotation: datums < 100 ? 0 : 45,
+      scaleType: "linear",
+     // tickRotation: datums < 100 ? 0 : 45,
     }),
     [showAxes]
   );
@@ -275,17 +257,17 @@ export default function ControlPanel() {
     waveType != "bumpdup" ? modBend : modBend + 0
   } + ${modMoveUpDown})`;
 
-  const calculateColor = (value: number, minValue: number, maxValue: number) => {
-    const percentage = 1 * (value - minValue) / (maxValue - minValue);
-    //console.log("percentage", percentage)
-    return percentage;
-  };
+  // const calculateColor = (value: number, minValue: number, maxValue: number) => {
+  //   const percentage = 1 * (value - minValue) / (maxValue - minValue);
+  //   //console.log("percentage", percentage)
+  //   return percentage;
+  // };
 
  
   
-  const opacity = yArrayRaw.map((value, i) => {
-    return calculateColor(value[i], yArrayMin, yArrayMax);
-  });
+  // const opacity = yArrayRaw.map((value, i) => {
+  //   return calculateColor(value[i], yArrayMin, yArrayMax);
+  // });
 
   return (
     <>
@@ -299,6 +281,7 @@ export default function ControlPanel() {
               memoizeSeries,
               dark: true,
               tooltip: true,
+              
               
               getDatumStyle: (d, _status) => ({
                 
@@ -386,10 +369,16 @@ export default function ControlPanel() {
           </select>
         </label>
       </div>
-
+    {/* Save Settings */}
+    <div className="flex flex-col justify-center justify-items-center">
+       <SaveSettings />
+        <SettingsSelector />
+        </div>
       {/* Control Panel */}
       <div className="flex flex-row justify-center shrink justify-items-start max-w-720px w-720px space-x-4 font-mono">
+   
         {/* Wave Settings */}
+ 
         <fieldset className=" bg-darkest-blue p-4 space-x-2 font-mono">
           <legend className="flex flex-row">
             Select Wave or upload{" "}
@@ -567,7 +556,6 @@ export default function ControlPanel() {
                   AMPLITUDE{" "}
                   <NumberInput
                     name="amplitude"
-                    value={amplitude}
                     min={-100}
                     max={100}
                     step={0.01}
@@ -579,11 +567,9 @@ export default function ControlPanel() {
                   SHIFT UP/DOWN{" "}
                   <NumberInput
                     name="upDownOffset"
-                    value={upDownOffset}
                     min={-100}
                     max={100}
                     step={0.1}
-                    isInt={false}
                     onChange={handleChange}
                   />
                 </label>
@@ -592,11 +578,10 @@ export default function ControlPanel() {
                   BEND{" "}
                   <NumberInput
                     name="bend"
-                    value={bend === 0 && waveType != "saw" ? 1 : bend}
+                    // value={bend === 0 && waveType != "saw" ? 1 : bend}
                     min={1}
                     max={waveType === "saw" ? 100 : 200}
-                    step={waveType === "saw" ? 1 : 2}
-                    isInt={true}
+                    step={waveType === "saw" ? .1 : 2}
                     onChange={handleChange}
                   />
                 </label>
@@ -606,11 +591,9 @@ export default function ControlPanel() {
                   NOISE{" "}
                   <NumberInput
                     name="noiseAmount"
-                    value={noiseAmount}
                     min={0}
                     max={100}
                     step={0.01}
-                    isInt={false}
                     onChange={handleChange}
                   />
                 </label>
@@ -657,7 +640,6 @@ export default function ControlPanel() {
                     MOD AMPLITUDE{" "}
                     <NumberInput
                       name="modAmp"
-                      value={modAmp}
                       min={-100}
                       max={100}
                       step={0.01}
@@ -669,11 +651,9 @@ export default function ControlPanel() {
                     MOD SHIFT UP/DOWN{" "}
                     <NumberInput
                       name="modMoveUpDown"
-                      value={modMoveUpDown}
                       min={-100}
                       max={100}
                       step={0.1}
-                      isInt={false}
                       onChange={handleChange}
                     />
                   </label>
@@ -682,11 +662,9 @@ export default function ControlPanel() {
                     MOD BEND{" "}
                     <NumberInput
                       name="modBend"
-                      value={modBend}
                       min={1}
                       max={1000}
                       step={2}
-                      isInt={true}
                       onChange={handleChange}
                     />
                   </label>
@@ -697,11 +675,9 @@ export default function ControlPanel() {
                     MOD TEMPO{" "}
                     <NumberInput
                       name="modTempo"
-                      value={modTempo}
                       min={1}
                       max={1000}
                       step={1}
-                      isInt={true}
                       onChange={handleChange}
                     />
                   </label>
@@ -735,11 +711,9 @@ export default function ControlPanel() {
                     MOD FRAME RATE{" "}
                     <NumberInput
                       name="modFrameRate"
-                      value={modFrameRate}
                       min={1}
                       max={1000}
                       step={1}
-                      isInt={true}
                       onChange={handleChange}
                     />
                   </label>
@@ -772,13 +746,12 @@ export default function ControlPanel() {
             <legend>Frame Settings</legend>
             <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 mr-2 border-2 border-dark-blue z-index-100 text-sm">
               FRAME RATE (FPS)
+      
               <NumberInput
                 name="frameRate"
-                value={frameRate}
                 min={1}
                 max={240}
                 step={1}
-                isInt={true}
                 onChange={handleChange}
               />
             </label>
@@ -786,11 +759,9 @@ export default function ControlPanel() {
               FRAME COUNT
               <NumberInput
                 name="datums"
-                value={datums}
                 min={1}
                 max={10000}
                 step={1}
-                isInt={true}
                 onChange={handleChange}
               />
             </label>
@@ -806,11 +777,9 @@ export default function ControlPanel() {
                 TEMPO (BPM)
                 <NumberInput
                   name="tempo"
-                  value={tempo}
                   min={1}
                   max={10000}
                   step={1}
-                  isInt={true}
                   onChange={handleChange}
                 />
               </label>
@@ -833,11 +802,9 @@ export default function ControlPanel() {
                 </label>
                 <NumberInput
                   name="leftRightOffset"
-                  value={leftRightOffset}
                   min={0}
                   max={10000}
                   step={1}
-                  isInt={true}
                   onChange={handleChange}
                 />
               </label>
@@ -1312,7 +1279,7 @@ export default function ControlPanel() {
       <div className="flex flex-col justify-center items-cenbter mt-1"></div>
 
       <div className="flex flex-row justify-center justify-items-center mt-10 text-3xl">
-        <KeyframeTable keyframes={yArrayRaw} frameRate={frameRate}  />
+        {/* <KeyframeTable keyframes={yArrayRaw} frameRate={frameRate}  /> */}
       </div>
     </>
   );

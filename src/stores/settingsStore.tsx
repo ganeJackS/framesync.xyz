@@ -4,8 +4,9 @@ import { immer } from "zustand/middleware/immer";
 
 export interface Settings {
   state: {
-    saveName?: string;
-    saveId?: number;
+    [key: string]: any,
+    saveName: string;
+    saveId: number | string;
     datums: number;
     tempo: number;
     rhythmRate: number;
@@ -32,18 +33,20 @@ export interface Settings {
   };
 }
 
-
 export type State = {
-  settingsState: Settings["state"];
+  settingsList: Settings["state"][];
+  settings: Settings["state"];
 };
 
 export type Actions = {
-  updateSetting: (name: string, value: any) => void;
+  updateSetting: (name: keyof Settings["state"], value: any) => void;
+  saveSetting: () => void;
+  updateSettingFromList: (id: number | string) => void;
 };
 
 export const useSettingsStore = create(
   immer<State & Actions>((set, get) => ({
-    settingsState: {
+    settings: {
       saveName: "default",
       saveId: 0,
       datums: 120,
@@ -70,17 +73,43 @@ export const useSettingsStore = create(
       modMoveUpDown: 0,
       keyframes: [],
     },
-    updateSetting: (name, value) => {
+    settingsList: [],
+    updateSetting: (name: keyof Settings["state"], value: any) => {
       set(
         produce((draft) => {
-          draft.settingsState[name] = value;
-        }),
+          draft.settings[name] = value;
+        })
       );
+    },
+    saveSetting: () => {
+      const id = Date.now().toString();
+      set(
+        produce((draft) => {
+          draft.settings.saveId = id;
+          draft.settingsList.push(draft.settings);
+        })
+      );
+      get().settings.saveId;
+      localStorage.setItem(
+        `settings_fs_list`,
+        JSON.stringify(get().settingsList)
+      );
+    },
+    updateSettingFromList: (id: number | string) => {
+      const settings = get().settingsList.find(
+        (setting) => setting.saveId === id
+      );
+      if (settings) {
+        Object.keys(settings).forEach(key => {
+          if (get().settings[key] !== settings[key]) {
+            set(
+              produce((draft) => {
+                draft.settings[key] = settings[key];
+              })
+            );
+          }
+        });
+      }
     },
   }))
 );
-
-
-
-
-

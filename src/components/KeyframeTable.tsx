@@ -11,7 +11,7 @@ type Props = {
 
 const KeyframeTable: React.FC<Props> = ({ keyframes }) => {
   
-  const { frameRate } = useSettingsStore(state => state.settingsState);
+  const { frameRate } = useSettingsStore(state => state.settings);
   
   const rows: number[] = [];
   for (let i = 0; i < Object.keys(keyframes).length; i++) {
@@ -38,7 +38,7 @@ const KeyframeTable: React.FC<Props> = ({ keyframes }) => {
               //console.log("color", color)
               return (
                 <td key={index} style={{
-                  opacity: calculateColor(value, minValue, maxValue),
+                  //opacity: calculateColor(value, minValue, maxValue),
                   backgroundColor: "white",
                 }}>{`${value}`}</td>
               );
