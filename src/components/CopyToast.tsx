@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 type CopyToastProps = {
-    children: React.ReactNode;
-}
+  children: React.ReactNode;
+};
 
 const CopyToast = ({ children }: CopyToastProps) => {
   const [showCopied, setShowCopied] = useState(false);
@@ -10,7 +10,7 @@ const CopyToast = ({ children }: CopyToastProps) => {
   const handleCopy = () => {
     setShowCopied(true);
     setTimeout(() => setShowCopied(false), 2000);
-  }
+  };
 
   return (
     <div onClick={handleCopy}>
@@ -18,6 +18,6 @@ const CopyToast = ({ children }: CopyToastProps) => {
       {showCopied ? " 🗸" : null}
     </div>
   );
-}
+};
 
 export default CopyToast;

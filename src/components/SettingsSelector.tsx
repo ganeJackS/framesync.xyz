@@ -2,37 +2,34 @@ import React, { useState } from "react";
 import { useSettingsStore } from "../stores/settingsStore";
 
 const SettingsSelector = () => {
-  const [selectedSettingId, setSelectedSettingId] = useState<string | number>();
-  const [ settingsList, updateSetting, updateSettingFromList] = useSettingsStore(
-    (state) => [ state.settingsList, state.updateSetting, state.updateSettingFromList]
-  );
+  const [settings, settingsList, updateSetting, updateSettingFromList] =
+    useSettingsStore((state) => [
+      state.settings,
+      state.settingsList,
+      state.updateSetting,
+      state.updateSettingFromList,
+    ]);
 
-  //const settingsList = Object.values(settings);
-
-
-  const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedSettingId(event.target.value);
-  };
-
-  const handleApplyClick = () => {
-    if (selectedSettingId) {
-      updateSettingFromList(selectedSettingId);
-  }
+  const handleSettingClick = (settingId: string | number) => {
+    updateSettingFromList(settingId);
   };
 
   return (
-    <div>
-      <select 
-      className="bg-darkest-blue text-white"
-      onChange={handleSelectChange}>
-        {settingsList.map((setting) => (
-          <option key={setting.saveId} value={setting.saveId}>
-            {setting.saveName}
-          </option>
-        ))}
-      </select>
-      <button onClick={handleApplyClick}>Apply</button>
-    </div>
+    <>
+      <div className="pl-2">
+        <h2>Presets</h2>
+        <ul>
+          {settingsList.map((setting) => (
+            <li
+              className="cursor-pointer bg-darker-blue pl-2 hover:bg-slate-600"
+              key={setting.saveId}
+              onClick={() => handleSettingClick(setting.saveId)}>
+              {setting.saveName}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
   );
 };
 

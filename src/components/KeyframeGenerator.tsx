@@ -1,16 +1,15 @@
-import React, { useRef} from "react";
+import React, { useRef } from "react";
 
-import  useAudioBufferStore from "../stores/audioBufferStore";
+import useAudioBufferStore from "../stores/audioBufferStore";
 import useAudio2Keyframes from "../hooks/useAudio2Keyframes";
 
-
 function KeyframeGenerator() {
-  
-
   const fileInput = useRef<HTMLInputElement>(null);
   const audioElement = useRef<HTMLAudioElement>(null);
-  const [audioBuffer, setAudioBuffer] = useAudioBufferStore(state => [state.audioBuffer, state.setAudioBuffer]);
-
+  const [audioBuffer, setAudioBuffer] = useAudioBufferStore((state) => [
+    state.audioBuffer,
+    state.setAudioBuffer,
+  ]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files![0];
@@ -18,23 +17,23 @@ function KeyframeGenerator() {
     fileReader.onload = () => {
       const arrayBuffer = fileReader.result as ArrayBuffer;
       const audioContext = new AudioContext();
-      audioContext.decodeAudioData(arrayBuffer, (buffer: React.SetStateAction<AudioBuffer | null>) => {
-        setAudioBuffer(buffer as AudioBuffer);
-        audioElement.current!.src = URL.createObjectURL(file);
-      });
+      audioContext.decodeAudioData(
+        arrayBuffer,
+        (buffer: React.SetStateAction<AudioBuffer | null>) => {
+          setAudioBuffer(buffer as AudioBuffer);
+          audioElement.current!.src = URL.createObjectURL(file);
+        }
+      );
     };
     fileReader.readAsArrayBuffer(file);
   };
 
- //const keyframesString = keyframes.map((value, index) => ` ${index}: (${value.toFixed(2)})`);
+  //const keyframesString = keyframes.map((value, index) => ` ${index}: (${value.toFixed(2)})`);
 
   return (
     <div>
-      <input type="file" ref={fileInput} onChange={handleFileUpload}  />
+      <input type="file" ref={fileInput} onChange={handleFileUpload} />
       {/* <audio ref={audioElement} controls /> */}
-      
-
-    
     </div>
   );
 }

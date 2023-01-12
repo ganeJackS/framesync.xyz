@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useSettingsStore } from "../stores/settingsStore";
 
 type NumberInputProps = {
@@ -16,40 +16,53 @@ const NumberInput: React.FC<NumberInputProps> = ({
   max = Number.MAX_SAFE_INTEGER,
   step,
 }) => {
-
-  const [settings, updateSetting] = useSettingsStore(state => [state.settings, state.updateSetting]);
+  const [settings, updateSetting] = useSettingsStore((state) => [
+    state.settings,
+    state.updateSetting,
+  ]);
 
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
   const [prevDelta, setPrevDelta] = useState(0);
 
-  useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      if (!isDragging || event.target === window) {
+  const inputValue = settings[name as keyof typeof settings];
+
+  const handleMouseMove = useCallback(
+    (event: MouseEvent) => {
+      if (!isDragging || event.target == window) {
         return;
       }
 
-      const delta = (event.clientY - startY) / 50 ;
-      const newValue = Math.max(
-        min,
-        Math.min(max, (settings[name] as number) - (delta * step) * (event.shiftKey ? 10 : 1))
-        // Math.min(max, (settings[name] as number) - (delta * step))
-      );
-
+      const delta = (event.clientY - startY) / 20;
+      const tempVal =
+        (settings[name] as number) - delta * step * (event.shiftKey ? 10 : 1);
+      const newValue = Math.max(min, Math.min(max, tempVal));
       setPrevDelta(delta);
-      
-      if (step != 1 && newValue % step +- 1 != 0 && Number.isInteger(step) === true) {
-        return prevDelta
+
+      if (
+        step != 1 &&
+        (newValue % step) + -1 != 0 &&
+        Number.isInteger(step) === true
+      ) {
+        return prevDelta;
       }
-      Number.isInteger(step) ? updateSetting(name, newValue.toFixed(0)) : updateSetting(name, newValue.toFixed(2));
-    };
+      Number.isInteger(step)
+        ? updateSetting(name, newValue.toFixed(0))
+        : updateSetting(name, newValue.toFixed(2));
+    },
+    [startY, settings, step, min, max, updateSetting, name]
+  );
 
-    const handleMouseUp = (event: MouseEvent) => {
+  const handleMouseUp = useCallback(
+    (event: MouseEvent) => {
       setIsDragging(false);
-      setPrevDelta(0);
-      onChange(settings[name as keyof typeof settings]);
-    };
+      setPrevDelta(startY);
+      onChange(inputValue);
+    },
+    [isDragging, prevDelta, startY, settings, onChange, name]
+  );
 
+  useEffect(() => {
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
 
@@ -57,7 +70,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging, prevDelta, startY, settings]);
+  }, [handleMouseMove, handleMouseUp]);
 
   const handleMouseDown = (event: React.MouseEvent<HTMLInputElement>) => {
     setIsDragging(true);
@@ -66,22 +79,21 @@ const NumberInput: React.FC<NumberInputProps> = ({
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value === "" ? "" : event.target.value;
-    updateSetting(name, Number(newValue))
-    onChange(settings[name as keyof typeof settings]);
+    onChange(newValue);
+    updateSetting(name, Number(newValue));
   };
   return (
     <input
       type="number"
-      value={settings[name as keyof typeof settings]}
+      value={inputValue}
       onChange={handleChange}
       onMouseDown={handleMouseDown}
       min={min}
       max={max}
       step={step}
-      className="bg-darker-blue text-orange-400 px-2 py-2 text-xl pt-1 border-1 border-dark-blue focus:outline-none"
-      />
-    );
-  };
-  
-  export default NumberInput;
-  
+      className="w-100px border-1 block border-dark-blue bg-darker-blue px-2 py-2 pt-1 text-xl text-orange-400 focus:outline-none"
+    />
+  );
+};
+
+export default React.memo(NumberInput);

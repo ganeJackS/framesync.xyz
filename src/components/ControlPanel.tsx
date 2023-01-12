@@ -1,6 +1,12 @@
 import ResizableBox from "../ResizableBox";
 import useChart from "../hooks/useChart";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { AxisOptions, Chart, ChartOptions, Datum } from "react-charts";
 import NumberInput from "./NumberInput";
 import sinusoid from "../assets/sinusoid.svg";
@@ -21,13 +27,10 @@ import KeyframeTable from "./KeyframeTable";
 import { SaveSettings } from "./SaveSettings";
 import SettingsSelector from "./SettingsSelector";
 
-
 export default function ControlPanel() {
-  const [settings, updateSetting] = useSettingsStore((state) => [
-    state.settings,
-    state.updateSetting,
-    
-  ] as const);
+  const [settings, updateSetting] = useSettingsStore(
+    (state) => [state.settings, state.updateSetting] as const
+  );
 
   const {
     saveName,
@@ -101,21 +104,16 @@ export default function ControlPanel() {
     keyframes,
   });
 
-
   const [chartType, setChartType] = React.useState("line");
   const [highlightedText, setHighlightedText] = React.useState("");
-  // const [primaryCursorValue, setPrimaryCursorValue] = React.useState();
-  // const [secondaryCursorValue, setSecondaryCursorValue] = React.useState();
 
-  function handleChange (event: React.ChangeEvent<HTMLInputElement>) {
-   // console.log(event?.currentTarget?.name, event?.currentTarget?.value);
+  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     updateSetting(event?.currentTarget?.name, event?.currentTarget?.value);
-  };
+  }
 
-  function handleChangeSelect (event: React.ChangeEvent<HTMLSelectElement>) {
+  function handleChangeSelect(event: React.ChangeEvent<HTMLSelectElement>) {
     updateSetting(event?.currentTarget?.name, event?.currentTarget?.value);
-  };
-
+  }
 
   const fileInput = useRef<HTMLInputElement>(null);
   //const audioElement = useRef<HTMLAudioElement>(null);
@@ -161,7 +159,7 @@ export default function ControlPanel() {
   // });
 
   const primaryAxis = React.useMemo<
-    AxisOptions<typeof data[number]["data"][number]>
+    AxisOptions<(typeof data)[number]["data"][number]>
   >(
     () => ({
       getValue: (datum) => Number(datum.primary),
@@ -170,13 +168,13 @@ export default function ControlPanel() {
       primary: true,
       dataType: "linear",
       scaleType: "linear",
-     // tickRotation: datums < 100 ? 0 : 45,
+      // tickRotation: datums < 100 ? 0 : 45,
     }),
     [showAxes]
   );
 
   const secondaryAxes = React.useMemo<
-    AxisOptions<typeof data[number]["data"][number]>[]
+    AxisOptions<(typeof data)[number]["data"][number]>[]
   >(
     () => [
       {
@@ -209,7 +207,9 @@ export default function ControlPanel() {
   const yArray = data[0].data.map((datum, i) => {
     return `${Number(datum.primary) % frameRate === 0 ? "\r\n" : ""}${
       Number(datum.primary) <= 9 ? "  " : ""
-    }${Number(datum.secondary) < 0 ? "" : " "}${Number(datum.secondary).toFixed(2) === "-0.00" ? " " : ""}${datum.primary >= 10 ? " " : ""}${datum.primary <= 99 ? " " : ""}${
+    }${Number(datum.secondary) < 0 ? "" : " "}${
+      Number(datum.secondary).toFixed(2) === "-0.00" ? " " : ""
+    }${datum.primary >= 10 ? " " : ""}${datum.primary <= 99 ? " " : ""}${
       linkFrameOffset == true ? i + Number(leftRightOffset) : i
     }:${Math.sign(Number(datum.secondary)) === 1 || -1 ? "" : ""}${
       Math.sign(Number(datum.secondary)) === -1 ? "" : ""
@@ -263,8 +263,6 @@ export default function ControlPanel() {
   //   return percentage;
   // };
 
- 
-  
   // const opacity = yArrayRaw.map((value, i) => {
   //   return calculateColor(value[i], yArrayMin, yArrayMax);
   // });
@@ -281,14 +279,11 @@ export default function ControlPanel() {
               memoizeSeries,
               dark: true,
               tooltip: true,
-              
-              
+
               getDatumStyle: (d, _status) => ({
-                
                 color: "#F97316",
                 //stroke: "#F97316",
-                
-                
+
                 // opacity:
                 //   activeSeriesIndex > -1
                 //     ? datum.seriesIndex === activeSeriesIndex
@@ -354,14 +349,15 @@ export default function ControlPanel() {
         />
       </label>
       {/* Stats */}
-      <div className="flex flex-row justify-center shrink text-gray-400 bg-darkest-blue space-x-2 mb-4 font-mono">
+      <div className="mb-4 flex shrink flex-row justify-center space-x-2 bg-darkest-blue font-mono text-gray-400">
         Min: {yArrayMin?.toFixed(2)} | Max: {yArrayMax?.toFixed(2)} | Average:{" "}
-        {yArrayAvg?.toFixed(2)} | Absolute Sum: {Number(datums) > 1 ? yArraySum.toFixed(2) : yArraySum} |
-        Duration: {(yArrayRaw.length / frameRate).toFixed(2)}s
+        {yArrayAvg?.toFixed(2)} | Absolute Sum:{" "}
+        {Number(datums) > 1 ? yArraySum.toFixed(2) : yArraySum} | Duration:{" "}
+        {(yArrayRaw.length / frameRate).toFixed(2)}s
         <label>
           | Chart{" "}
           <select
-            className="bg-darker-blue border-2 border-dark-blue"
+            className="border-2 border-dark-blue bg-darker-blue"
             value={chartType}
             onChange={setChartTypeHandler}>
             <option value="line">Line</option>
@@ -369,17 +365,17 @@ export default function ControlPanel() {
           </select>
         </label>
       </div>
-    {/* Save Settings */}
-    <div className="flex flex-col justify-center justify-items-center">
-       <SaveSettings />
-        <SettingsSelector />
-        </div>
+
       {/* Control Panel */}
-      <div className="flex flex-row justify-center shrink justify-items-start max-w-720px w-720px space-x-4 font-mono">
-   
+      <div className="flex shrink flex-row justify-center justify-items-start space-x-4 font-mono">
+        {/* Save Settings */}
+        <div className="flex flex-col justify-start  overflow-y-auto bg-darkest-blue">
+          <SaveSettings />
+          <SettingsSelector />
+        </div>
         {/* Wave Settings */}
- 
-        <fieldset className=" bg-darkest-blue p-4 space-x-2 font-mono">
+
+        <fieldset className="max-w-screen-sm space-x-2 bg-darkest-blue p-4 font-mono">
           <legend className="flex flex-row">
             Select Wave or upload{" "}
             <span className="pl-2">
@@ -391,17 +387,17 @@ export default function ControlPanel() {
               />
             </span>{" "}
           </legend>
-          <div></div>
+
           <div className="flex flex-col">
             {/* Primary Wave Settings */}
-            <fieldset className="border-2 border-dark-blue pl-2 pr-2 pb-2 mb-2">
+            <fieldset className="mb-2 shrink border-2 border-dark-blue pl-2 pr-2 pb-2">
               <legend className="mb-2">
                 Primary Wave
                 {/* Sin/Cos */}
                 <label>
                   {" "}
                   <select
-                    className="bg-darker-blue border-2 border-dark-blue"
+                    className="border-2 border-dark-blue bg-darker-blue"
                     value={toggleSinCos}
                     onChange={(e) => {
                       e.persist();
@@ -412,10 +408,10 @@ export default function ControlPanel() {
                   </select>
                 </label>
               </legend>
-              <div className="flex flex-row justify-start justify-items-start text-center text-xs mb-2">
+              <div className="mb-2 flex shrink flex-row justify-start text-center text-xs">
                 {/* Sinusoid */}
                 <input
-                  className="appearance-none radio"
+                  className="radio appearance-none"
                   type="radio"
                   id="sinusoid"
                   name="waveType"
@@ -423,11 +419,11 @@ export default function ControlPanel() {
                   onChange={handleChange}
                 />
                 <label
-                  className={`p-1 border-2 bg-darker-blue mr-2 ${
+                  className={`mr-2 border-2 bg-darker-blue p-1 ${
                     waveType === "sinusoid"
                       ? "border-orange-500"
                       : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                  } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                   htmlFor="sinusoid">
                   <img
                     src={sinusoid}
@@ -437,7 +433,7 @@ export default function ControlPanel() {
                 </label>
                 {/* Saw */}
                 <input
-                  className="appearance-none radio"
+                  className="radio appearance-none"
                   type="radio"
                   id="saw"
                   name="waveType"
@@ -445,18 +441,18 @@ export default function ControlPanel() {
                   onChange={handleChange}
                 />
                 <label
-                  className={`p-1 border-2 bg-darker-blue mr-2 ${
+                  className={`mr-2 border-2 bg-darker-blue p-1 ${
                     waveType === "saw"
                       ? "border-orange-500"
                       : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                  } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                   htmlFor="saw">
                   <img src={saw} alt="saw" className={"aspect-square w-16"} />
                 </label>
                 {/* Triangle */}
 
                 <input
-                  className="appearance-none radio"
+                  className="radio appearance-none"
                   type="radio"
                   id="triangle"
                   name="waveType"
@@ -464,11 +460,11 @@ export default function ControlPanel() {
                   onChange={handleChange}
                 />
                 <label
-                  className={`p-1 border-2 bg-darker-blue mr-2 ${
+                  className={`mr-2 border-2 bg-darker-blue p-1 ${
                     waveType === "triangle"
                       ? "border-orange-500"
                       : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                  } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                   htmlFor="triangle">
                   <img
                     src={triangle}
@@ -478,7 +474,7 @@ export default function ControlPanel() {
                 </label>
                 {/* Square */}
                 <input
-                  className="appearance-none radio"
+                  className="radio appearance-none"
                   type="radio"
                   id="square"
                   name="waveType"
@@ -486,11 +482,11 @@ export default function ControlPanel() {
                   onChange={handleChange}
                 />
                 <label
-                  className={`p-1 border-2 mr-2 bg-darker-blue ${
+                  className={`mr-2 border-2 bg-darker-blue p-1 ${
                     waveType === "square"
                       ? "border-orange-500"
                       : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                  } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                   htmlFor="square">
                   <img
                     src={square}
@@ -500,7 +496,7 @@ export default function ControlPanel() {
                 </label>
                 {/* Bumpdip */}
                 <input
-                  className="appearance-none radio"
+                  className="radio appearance-none"
                   type="radio"
                   id="bumpdip"
                   name="waveType"
@@ -508,11 +504,11 @@ export default function ControlPanel() {
                   onChange={handleChange}
                 />
                 <label
-                  className={`p-1 border-2 mr-2 bg-darker-blue ${
+                  className={`mr-2 border-2 bg-darker-blue p-1 ${
                     waveType === "bumpdip"
                       ? "border-orange-500"
                       : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                  } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                   htmlFor="bumpdip">
                   <img
                     src={bumpdip}
@@ -522,25 +518,23 @@ export default function ControlPanel() {
                 </label>
                 {/* Audio */}
                 <input
-                  className="appearance-none radio"
+                  className="radio appearance-none"
                   type="radio"
                   id="audio"
                   name="audio"
                   value="audio"
                   checked={waveType === "audio"}
-                  onChange={
-                    (e) => {
-                      e.persist();
-                      updateSetting("waveType", e.target.value);
-                    }
-                  }
+                  onChange={(e) => {
+                    e.persist();
+                    updateSetting("waveType", e.target.value);
+                  }}
                 />
                 <label
-                  className={`p-1 border-2 bg-darker-blue ${
+                  className={`border-2 bg-darker-blue p-1 ${
                     waveType === "audio"
                       ? "border-orange-500"
                       : "border-dark-blue"
-                  } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                  } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                   htmlFor="audio">
                   <img
                     src={audiofile}
@@ -550,9 +544,9 @@ export default function ControlPanel() {
                 </label>
               </div>
               {/* Primary Wave Settings */}
-              <div className="flex flex-row">
+              <div className="flex flex-auto">
                 {/* Amplitude */}
-                <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                <label className="w-100px z-index-100 mr-2 block border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                   AMPLITUDE{" "}
                   <NumberInput
                     name="amplitude"
@@ -563,7 +557,7 @@ export default function ControlPanel() {
                   />
                 </label>
                 {/* Up/Down Offset*/}
-                <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                <label className="z-index-100 mr-2 flex shrink flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                   SHIFT UP/DOWN{" "}
                   <NumberInput
                     name="upDownOffset"
@@ -574,20 +568,20 @@ export default function ControlPanel() {
                   />
                 </label>
                 {/* Bend*/}
-                <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                <label className="z-index-100 mr-2 flex shrink flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                   BEND{" "}
                   <NumberInput
                     name="bend"
                     // value={bend === 0 && waveType != "saw" ? 1 : bend}
                     min={1}
                     max={waveType === "saw" ? 100 : 200}
-                    step={waveType === "saw" ? .1 : 2}
+                    step={waveType === "saw" ? 0.1 : 2}
                     onChange={handleChange}
                   />
                 </label>
 
                 {/* Noise*/}
-                <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
+                <label className="z-index-100 flex shrink flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                   NOISE{" "}
                   <NumberInput
                     name="noiseAmount"
@@ -601,18 +595,18 @@ export default function ControlPanel() {
             </fieldset>
             {/* Modulator Settings */}
             <fieldset className="border-2 border-dark-blue pl-2 pr-2 pb-2 ">
-              <legend className="flex flex-row space-x-2 mb-2">
-                <label className="flex flex-row items-center ml-2">
+              <legend className="mb-2 flex flex-row space-x-2">
+                <label className="ml-2 flex flex-row items-center">
                   <input
                     name="modEnabled"
                     type="checkbox"
-                    className="form-checkbox h-5 w-5 text-orange-500 cursor-pointer"
+                    className="form-checkbox h-5 w-5 cursor-pointer text-orange-500"
                     checked={modEnabled}
                     onChange={(e) => {
                       e.persist();
                       updateSetting("modEnabled", e.target.checked);
-                    }}/>
-                  
+                    }}
+                  />
                 </label>{" "}
                 Enable Modulator
                 {/* checkbox for modEnabled */}
@@ -621,7 +615,7 @@ export default function ControlPanel() {
                   {" "}
                   <select
                     name="modToggleSinCos"
-                    className="bg-darker-blue border-2 border-dark-blue"
+                    className="border-2 border-dark-blue bg-darker-blue"
                     value={modToggleSinCos}
                     onChange={(e) => {
                       e.persist();
@@ -634,9 +628,9 @@ export default function ControlPanel() {
               </legend>
               {/* Secondary Wave Settings */}
               <div className="flex flex-col flex-wrap ">
-                <div className="flex flex-row mb-2">
+                <div className="mb-2 flex flex-row">
                   {/* Mod Amplitude */}
-                  <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                  <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                     MOD AMPLITUDE{" "}
                     <NumberInput
                       name="modAmp"
@@ -647,7 +641,7 @@ export default function ControlPanel() {
                     />
                   </label>
                   {/* Mod Up/Down Offset*/}
-                  <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                  <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                     MOD SHIFT UP/DOWN{" "}
                     <NumberInput
                       name="modMoveUpDown"
@@ -658,7 +652,7 @@ export default function ControlPanel() {
                     />
                   </label>
                   {/* Mod Bend*/}
-                  <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                  <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                     MOD BEND{" "}
                     <NumberInput
                       name="modBend"
@@ -671,7 +665,7 @@ export default function ControlPanel() {
                 </div>
                 <div className="flex flex-row">
                   {/* Mod Tempo*/}
-                  <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                  <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                     MOD TEMPO{" "}
                     <NumberInput
                       name="modTempo"
@@ -682,11 +676,11 @@ export default function ControlPanel() {
                     />
                   </label>
                   {/* Mod Rhythm Rate*/}
-                  <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                  <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                     MOD RHYTHM RATE {/* option selector for rhythmRates */}
                     <select
                       name="modRhythmRate"
-                      className="bg-darker-blue border-2 border-dark-blue"
+                      className="border-2 border-dark-blue bg-darker-blue"
                       value={modRhythmRate}
                       onChange={handleChangeSelect}>
                       <option value="3840">16</option>
@@ -707,7 +701,7 @@ export default function ControlPanel() {
                     </select>
                   </label>
                   {/* Mod Frame Rate*/}
-                  <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
+                  <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                     MOD FRAME RATE{" "}
                     <NumberInput
                       name="modFrameRate"
@@ -742,11 +736,10 @@ export default function ControlPanel() {
         {/* Framesync Settings */}
         <div className="flex flex-col font-mono">
           {/* Frame Settings */}
-          <fieldset className="bg-darkest-blue flex flex-row justify-start pl-3 pr-3 pb-3 font-mono">
+          <fieldset className="flex flex-row justify-start bg-darkest-blue pl-3 pr-3 pb-3 font-mono">
             <legend>Frame Settings</legend>
-            <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 mr-2 border-2 border-dark-blue z-index-100 text-sm">
+            <label className="z-index-100 mr-2 flex grow flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
               FRAME RATE (FPS)
-      
               <NumberInput
                 name="frameRate"
                 min={1}
@@ -755,7 +748,7 @@ export default function ControlPanel() {
                 onChange={handleChange}
               />
             </label>
-            <label className="flex flex-col grow bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
+            <label className="z-index-100 flex grow flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
               FRAME COUNT
               <NumberInput
                 name="datums"
@@ -768,12 +761,12 @@ export default function ControlPanel() {
           </fieldset>
 
           {/* Sync Settings */}
-          <fieldset className="bg-darkest-blue flex-row-auto justify-start pl-3 pr-3 pb-3 font-mono">
+          <fieldset className="flex-row-auto justify-start bg-darkest-blue pl-3 pr-3 pb-3 font-mono">
             <legend>Sync Settings</legend>
             {/* Tempo and Shift Left/Right */}
-            <div className="flex flex-row  space-x-2 mb-2">
+            <div className="mb-2 flex  flex-row space-x-2">
               {/* Tempo */}
-              <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
+              <label className="z-index-100 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                 TEMPO (BPM)
                 <NumberInput
                   name="tempo"
@@ -785,7 +778,7 @@ export default function ControlPanel() {
               </label>
               {/* Shift Left/Right */}
 
-              <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm">
+              <label className="z-index-100 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                 SHIFT LEFT/RIGHT
                 {/* Link Horizonal Offset & Starting Frame */}
                 <label className="text-xs">
@@ -814,12 +807,12 @@ export default function ControlPanel() {
               <fieldset className="border-2 border-dark-blue pl-2 pr-2">
                 <legend className="text-sm">RHYTHM RATE</legend>
                 {/*New Rythm Rate*/}
-                <div className="flex flex-col-reverse flex-wrap justify-start text-center text-xs font-mono mb-2">
+                <div className="mb-2 flex flex-col-reverse flex-wrap justify-start text-center font-mono text-xs">
                   {/* Row 1 */}
 
-                  <div className="flex flex-row mt-2">
+                  <div className="mt-2 flex flex-row">
                     <input
-                      className="appearance-none radio"
+                      className="radio appearance-none"
                       type="radio"
                       id="halfbarTriplet"
                       name="rhythmRate"
@@ -828,16 +821,16 @@ export default function ControlPanel() {
                       onChange={handleChange}
                     />
                     <label
-                      className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                      className={`mr-2 grow border-2 bg-darker-blue p-2  ${
                         rhythmRate == 40
                           ? "border-orange-500"
                           : "border-dark-blue"
-                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                       htmlFor="halfbarTriplet">
                       1/2T
                     </label>
                     <input
-                      className="appearance-none radio"
+                      className="radio appearance-none"
                       type="radio"
                       id="quarterbarTriplet"
                       name="rhythmRate"
@@ -846,16 +839,16 @@ export default function ControlPanel() {
                       onChange={handleChange}
                     />
                     <label
-                      className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                      className={`mr-2 grow border-2 bg-darker-blue p-2  ${
                         rhythmRate == 20
                           ? "border-orange-500"
                           : "border-dark-blue"
-                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                       htmlFor="quarterbarTriplet">
                       1/4T
                     </label>
                     <input
-                      className="appearance-none radio"
+                      className="radio appearance-none"
                       type="radio"
                       id="eighthbarTriplet"
                       name="rhythmRate"
@@ -864,16 +857,16 @@ export default function ControlPanel() {
                       onChange={handleChange}
                     />
                     <label
-                      className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                      className={`mr-2 grow border-2 bg-darker-blue p-2  ${
                         rhythmRate == 10
                           ? "border-orange-500"
                           : "border-dark-blue"
-                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                       htmlFor="eighthbarTriplet">
                       1/8T
                     </label>
                     <input
-                      className="appearance-none radio"
+                      className="radio appearance-none"
                       type="radio"
                       id="sixteenthbarTriplet"
                       name="rhythmRate"
@@ -882,16 +875,16 @@ export default function ControlPanel() {
                       onChange={handleChange}
                     />
                     <label
-                      className={`p-2 border-2 grow mr-2 bg-darker-blue ${
+                      className={`mr-2 grow border-2 bg-darker-blue p-2 ${
                         rhythmRate == 5
                           ? "border-orange-500"
                           : "border-dark-blue"
-                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                       htmlFor="sixteenthbarTriplet">
                       1/16T
                     </label>
                     <input
-                      className="appearance-none radio"
+                      className="radio appearance-none"
                       type="radio"
                       id="thirtysecondbarTriplet"
                       name="rhythmRate"
@@ -900,20 +893,20 @@ export default function ControlPanel() {
                       onChange={handleChange}
                     />
                     <label
-                      className={`p-2 border-2 grow bg-darker-blue  ${
+                      className={`grow border-2 bg-darker-blue p-2  ${
                         rhythmRate == 2.5
                           ? "border-orange-500"
                           : "border-dark-blue"
-                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                       htmlFor="thirtysecondbarTriplet">
                       1/32T
                     </label>
                   </div>
 
                   {/* Row 2 */}
-                  <div className="flex flex-row mt-2">
+                  <div className="mt-2 flex flex-row">
                     <input
-                      className="appearance-none radio"
+                      className="radio appearance-none"
                       type="radio"
                       id="halfbar"
                       name="rhythmRate"
@@ -922,16 +915,16 @@ export default function ControlPanel() {
                       onChange={handleChange}
                     />
                     <label
-                      className={`p-2 border-2 grow mr-2 bg-darker-blue ${
+                      className={`mr-2 grow border-2 bg-darker-blue p-2 ${
                         rhythmRate == 120
                           ? "border-orange-500"
                           : "border-dark-blue"
-                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                       htmlFor="halfbar">
                       1/2
                     </label>
                     <input
-                      className="appearance-none radio"
+                      className="radio appearance-none"
                       type="radio"
                       id="quarterbar"
                       name="rhythmRate"
@@ -940,17 +933,17 @@ export default function ControlPanel() {
                       onChange={handleChange}
                     />
                     <label
-                      className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                      className={`mr-2 grow border-2 bg-darker-blue p-2  ${
                         rhythmRate == 60
                           ? "border-orange-500"
                           : "border-dark-blue"
-                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                       htmlFor="quarterbar">
                       1/4
                     </label>
 
                     <input
-                      className="appearance-none radio"
+                      className="radio appearance-none"
                       type="radio"
                       id="eighthbar"
                       name="rhythmRate"
@@ -959,17 +952,17 @@ export default function ControlPanel() {
                       onChange={handleChange}
                     />
                     <label
-                      className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                      className={`mr-2 grow border-2 bg-darker-blue p-2  ${
                         rhythmRate == 30
                           ? "border-orange-500"
                           : "border-dark-blue"
-                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                       htmlFor="eighthbar">
                       1/8
                     </label>
 
                     <input
-                      className="appearance-none radio"
+                      className="radio appearance-none"
                       type="radio"
                       id="sixteenthbar"
                       name="rhythmRate"
@@ -978,17 +971,17 @@ export default function ControlPanel() {
                       onChange={handleChange}
                     />
                     <label
-                      className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                      className={`mr-2 grow border-2 bg-darker-blue p-2  ${
                         rhythmRate == 15
                           ? "border-orange-500"
                           : "border-dark-blue"
-                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                       htmlFor="sixteenthbar">
                       1/16
                     </label>
 
                     <input
-                      className="appearance-none radio"
+                      className="radio appearance-none"
                       type="radio"
                       id="thirtysecondbar"
                       name="rhythmRate"
@@ -997,11 +990,11 @@ export default function ControlPanel() {
                       onChange={handleChange}
                     />
                     <label
-                      className={`p-2 border-2 grow bg-darker-blue  ${
+                      className={`grow border-2 bg-darker-blue p-2  ${
                         rhythmRate == 7.5
                           ? "border-orange-500"
                           : "border-dark-blue"
-                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                       htmlFor="thirtysecondbar">
                       1/32
                     </label>
@@ -1009,7 +1002,7 @@ export default function ControlPanel() {
                   {/* Row 3 */}
                   <div className="flex flex-row">
                     <input
-                      className="appearance-none radio"
+                      className="radio appearance-none"
                       type="radio"
                       id="thirtytwoBars"
                       name="rhythmRate"
@@ -1018,16 +1011,16 @@ export default function ControlPanel() {
                       onChange={handleChange}
                     />
                     <label
-                      className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                      className={`mr-2 grow border-2 bg-darker-blue p-2  ${
                         rhythmRate == 7680
                           ? "border-orange-500"
                           : "border-dark-blue"
-                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                       htmlFor="thirtytwoBars">
                       32
                     </label>
                     <input
-                      className="appearance-none radio"
+                      className="radio appearance-none"
                       type="radio"
                       id="16bars"
                       name="rhythmRate"
@@ -1036,16 +1029,16 @@ export default function ControlPanel() {
                       onChange={handleChange}
                     />
                     <label
-                      className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                      className={`mr-2 grow border-2 bg-darker-blue p-2  ${
                         rhythmRate == 3840
                           ? "border-orange-500"
                           : "border-dark-blue"
-                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                       htmlFor="16bars">
                       16
                     </label>
                     <input
-                      className="appearance-none radio"
+                      className="radio appearance-none"
                       type="radio"
                       id="8bars"
                       name="rhythmRate"
@@ -1054,16 +1047,16 @@ export default function ControlPanel() {
                       onChange={handleChange}
                     />
                     <label
-                      className={`p-2 border-2 grow mr-2 bg-darker-blue ${
+                      className={`mr-2 grow border-2 bg-darker-blue p-2 ${
                         rhythmRate == 1920
                           ? "border-orange-500"
                           : "border-dark-blue"
-                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                       htmlFor="8bars">
                       8
                     </label>
                     <input
-                      className="appearance-none radio"
+                      className="radio appearance-none"
                       type="radio"
                       id="4bars"
                       name="rhythmRate"
@@ -1072,16 +1065,16 @@ export default function ControlPanel() {
                       onChange={handleChange}
                     />
                     <label
-                      className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                      className={`mr-2 grow border-2 bg-darker-blue p-2  ${
                         rhythmRate == 960
                           ? "border-orange-500"
                           : "border-dark-blue"
-                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                       htmlFor="4bars">
                       4
                     </label>
                     <input
-                      className="appearance-none radio"
+                      className="radio appearance-none"
                       type="radio"
                       id="2bars"
                       name="rhythmRate"
@@ -1090,16 +1083,16 @@ export default function ControlPanel() {
                       onChange={handleChange}
                     />
                     <label
-                      className={`p-2 border-2 grow mr-2 bg-darker-blue  ${
+                      className={`mr-2 grow border-2 bg-darker-blue p-2  ${
                         rhythmRate == 480
                           ? "border-orange-500"
                           : "border-dark-blue"
-                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                       htmlFor="2bars">
                       2
                     </label>
                     <input
-                      className="appearance-none radio"
+                      className="radio appearance-none"
                       type="radio"
                       id="1bar"
                       name="rhythmRate"
@@ -1108,11 +1101,11 @@ export default function ControlPanel() {
                       onChange={handleChange}
                     />
                     <label
-                      className={`p-2 border-2 grow  bg-darker-blue  ${
+                      className={`grow border-2 bg-darker-blue  p-2  ${
                         rhythmRate == 240
                           ? "border-orange-500"
                           : "border-dark-blue"
-                      } hover:border-orange-600 cursor-pointer ease-out duration-300`}
+                      } cursor-pointer duration-300 ease-out hover:border-orange-600`}
                       htmlFor="1bar">
                       1
                     </label>
@@ -1217,13 +1210,13 @@ export default function ControlPanel() {
         </div>
       </div>
       {/* Outputs */}
-      <div className="flex flex-row grow justify-center items-center mt-1">
+      <div className="mt-1 flex grow flex-row items-center justify-center">
         {/* a button to copy keyframeOutput to the clipboard */}
 
         <div>
           <label>
             <button
-              className="bg-green-800 text-white font-mono p-2 hover:bg-green-600 active:bg-green-700 transition-all ease-out duration-150"
+              className="bg-green-800 p-2 font-mono text-white transition-all duration-150 ease-out hover:bg-green-600 active:bg-green-700"
               onCopy={copyHighlightedTextHandler}
               onClick={() => {
                 navigator.clipboard.writeText(yArray as unknown as string);
@@ -1233,7 +1226,7 @@ export default function ControlPanel() {
           </label>
           <label>
             <button
-              className="bg-green-700 text-white font-mono p-2 hover:bg-green-500 active:bg-green-600 transition-all ease-out duration-150"
+              className="bg-green-700 p-2 font-mono text-white transition-all duration-150 ease-out hover:bg-green-500 active:bg-green-600"
               onClick={() => {
                 navigator.clipboard.writeText(
                   `(${currentFormula}${modEnabled ? "*" : ""}${
@@ -1243,7 +1236,7 @@ export default function ControlPanel() {
               }}>
               <CopyToast>Copy Formula</CopyToast>
             </button>
-            <div className="font-mono inline-flex bg-darkest-blue p-3">
+            <div className="inline-flex bg-darkest-blue p-3 font-mono">
               {waveType != "audio"
                 ? `${
                     linkFrameOffset == true ? Number(leftRightOffset) : 0
@@ -1255,7 +1248,7 @@ export default function ControlPanel() {
           </label>
           <label>
             <textarea
-              className="flex flex-row justify-center items-center h-96 w-2/3 min-w-980px w-980px resize font-mono bg-darkest-blue border-2 border-dark-blue mb-20"
+              className="min-w-980px w-980px mb-20 flex h-96 w-2/3 resize flex-row items-center justify-center border-2 border-dark-blue bg-darkest-blue font-mono"
               id="keyframeOutput"
               onSelect={handleTextChange}
               onCopy={copyHighlightedTextHandler}
@@ -1276,9 +1269,9 @@ export default function ControlPanel() {
         </div>
       </div>
 
-      <div className="flex flex-col justify-center items-cenbter mt-1"></div>
+      <div className="items-cenbter mt-1 flex flex-col justify-center"></div>
 
-      <div className="flex flex-row justify-center justify-items-center mt-10 text-3xl">
+      <div className="mt-10 flex flex-row justify-center justify-items-center text-3xl">
         {/* <KeyframeTable keyframes={yArrayRaw} frameRate={frameRate}  /> */}
       </div>
     </>

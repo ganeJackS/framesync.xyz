@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 type Props = {
   onToggle: (value: boolean) => void;
@@ -14,7 +14,9 @@ const ToggleButton: React.FC<Props> = ({ onToggle }) => {
 
   return (
     <button
-      className={`focus:outline-none rounded-full h-10 w-10 transition-colors duration-200 ease-in-out ${isToggledOn ? 'bg-orange-500' : 'bg-gray-300'}`}
+      className={`h-10 w-10 rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${
+        isToggledOn ? "bg-orange-500" : "bg-gray-300"
+      }`}
       onClick={handleToggle}
     />
   );
