@@ -4,7 +4,7 @@ import { immer } from "zustand/middleware/immer";
 
 export interface Settings {
   state: {
-    [key: string]: any,
+    [key: string]: any;
     saveName: string;
     saveId: number | string;
     datums: number;
@@ -42,12 +42,14 @@ export type Actions = {
   updateSetting: (name: keyof Settings["state"], value: any) => void;
   saveSetting: () => void;
   updateSettingFromList: (id: number | string) => void;
+  refreshSettingsList: () => void;
+  deleteSetting: (id: number | string) => void;
 };
 
 export const useSettingsStore = create(
   immer<State & Actions>((set, get) => ({
     settings: {
-      saveName: "default",
+      saveName: "Cosine",
       saveId: 0,
       datums: 120,
       tempo: 120,
@@ -65,7 +67,7 @@ export const useSettingsStore = create(
       modAmp: 1,
       modToggleSinCos: "cos",
       modTempo: 120,
-      modRhythmRate: 60,
+      modRhythmRate: 1920,
       modFrameRate: 24,
       modRate: 60,
       modBend: 1,
@@ -82,6 +84,14 @@ export const useSettingsStore = create(
       );
     },
     saveSetting: () => {
+      const settingsList = JSON.parse(
+        localStorage.getItem(`settings_fs_list`) || "[]"
+      );
+      set(
+        produce((draft) => {
+          draft.settingsList = settingsList;
+        })
+      );  
       const id = Date.now().toString();
       set(
         produce((draft) => {
@@ -90,17 +100,20 @@ export const useSettingsStore = create(
         })
       );
       get().settings.saveId;
+      // get the settingsList from localStorage
+
       localStorage.setItem(
         `settings_fs_list`,
         JSON.stringify(get().settingsList)
       );
+    
     },
     updateSettingFromList: (id: number | string) => {
       const settings = get().settingsList.find(
         (setting) => setting.saveId === id
       );
       if (settings) {
-        Object.keys(settings).forEach(key => {
+        Object.keys(settings).forEach((key) => {
           if (get().settings[key] !== settings[key]) {
             set(
               produce((draft) => {
@@ -111,5 +124,31 @@ export const useSettingsStore = create(
         });
       }
     },
+    // refresh the settingsList from localStorage
+    refreshSettingsList: () => {
+      const settingsList = JSON.parse(
+        localStorage.getItem(`settings_fs_list`) || "[]"
+      );
+      set(
+        produce((draft) => {
+          draft.settingsList = settingsList;
+        })
+      );
+    },
+    // delete a setting from the settingsList
+    deleteSetting: (id: number | string) => {
+      const settingsList = get().settingsList.filter(
+        (setting) => setting.saveId !== id
+      );
+      set(
+        produce((draft) => {
+          draft.settingsList = settingsList;
+        })
+      );
+      localStorage.setItem(
+        `settings_fs_list`,
+        JSON.stringify(get().settingsList)
+      );
+    }
   }))
 );
