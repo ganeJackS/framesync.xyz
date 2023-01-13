@@ -20,12 +20,14 @@ const NumberInput: React.FC<NumberInputProps> = ({
     state.settings,
     state.updateSetting,
   ]);
+  const decimalPrecision = settings.decimalPrecision;
 
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
   const [prevDelta, setPrevDelta] = useState(0);
-
   const inputValue = settings[name as keyof typeof settings];
+
+
 
   const handleMouseMove = useCallback(
     (event: MouseEvent) => {
@@ -47,9 +49,10 @@ const NumberInput: React.FC<NumberInputProps> = ({
         return prevDelta;
       }
       
+      
       Number.isInteger(step)
         ? updateSetting(name, newValue.toFixed(0))
-        : updateSetting(name, newValue.toFixed(2));
+        : updateSetting(name, newValue.toFixed(decimalPrecision));
     },
   
 
@@ -94,7 +97,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
       min={min}
       max={max}
       step={step}
-      className="border-1 min-w-1 w-5/6 border-dark-blue bg-darker-blue px-2 py-2 pt-1 text-xl text-orange-400 focus:outline-none"
+      className="border-1 border-dark-blue bg-darker-blue px-2 py-2 pt-1 text-xl text-orange-400 focus:outline-none"
     />
   );
 };

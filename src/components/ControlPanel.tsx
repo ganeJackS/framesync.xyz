@@ -59,6 +59,7 @@ export default function ControlPanel() {
     modMoveLeftRight,
     modMoveUpDown,
     keyframes,
+    decimalPrecision,
   } = settings;
 
   const [
@@ -210,16 +211,20 @@ export default function ControlPanel() {
     return `${Number(datum.primary) % frameRate === 0 ? "\r\n" : ""}${
       Number(datum.primary) <= 9 ? "  " : ""
     }${Number(datum.secondary) < 0 ? "" : " "}${
-      Number(datum.secondary).toFixed(2) === "-0.00" ? " " : ""
+      Number(datum.secondary).toFixed(decimalPrecision) === "-0.00"
+        ? " "
+        : ""
     }${datum.primary >= 10 ? " " : ""}${datum.primary <= 99 ? " " : ""}${
       linkFrameOffset == true ? i + Number(leftRightOffset) : i
     }:${Math.sign(Number(datum.secondary)) === 1 || -1 ? "" : ""}${
       Math.sign(Number(datum.secondary)) === -1 ? "" : ""
-    }(${Number(datum.secondary).toFixed(2).replace("-0.00", "0.00")})`;
+    }(${Number(datum.secondary)
+      .toFixed(decimalPrecision)
+      .replace("-0.00", "0.00")})`;
   });
 
   const yArrayRaw = data[0].data.map((datum: { secondary: any }) => {
-    return datum.secondary?.toFixed(2);
+    return datum.secondary?.toFixed(decimalPrecision);
   });
 
   const yArraySum = yArrayRaw.reduce(
@@ -356,10 +361,12 @@ export default function ControlPanel() {
         </label>
         {/* Stats */}
         <div className="mb-4 flex shrink flex-row justify-center space-x-2 bg-darkest-blue font-mono text-gray-400">
-          Min: {yArrayMin?.toFixed(2)} | Max: {yArrayMax?.toFixed(2)} | Average:{" "}
-          {yArrayAvg?.toFixed(2)} | Absolute Sum:{" "}
-          {Number(datums) > 1 ? yArraySum.toFixed(2) : yArraySum} | Duration:{" "}
-          {(yArrayRaw.length / frameRate).toFixed(2)}s
+          Min: {yArrayMin?.toFixed(decimalPrecision)} | Max:{" "}
+          {yArrayMax?.toFixed(decimalPrecision)} | Average:{" "}
+          {yArrayAvg?.toFixed(decimalPrecision)} | Absolute Sum:{" "}
+          {Number(datums) > 1 ? yArraySum.toFixed(decimalPrecision) : yArraySum}{" "}
+          | Duration: {(yArrayRaw.length / frameRate).toFixed(decimalPrecision)}
+          s
           <label>
             | Chart{" "}
             <select
@@ -373,19 +380,19 @@ export default function ControlPanel() {
         </div>
 
         {/* Control Panel */}
-        <div className="ml-2 flex max-w-2xl grow lg:flex-row md:flex-col justify-start space-x-2 font-mono ">
+        <div className="ml-2 flex max-w-2xl grow justify-start space-x-2 font-mono md:flex-col lg:flex-row ">
           {/* Save Settings */}
 
           <fieldset className="min-w-fit space-x-2 bg-darkest-blue font-mono">
-            <legend className="border-1 flex flex-col ">Presets (experimental)</legend>
+            <legend className="border-1 flex flex-col ">
+              Presets (experimental)
+            </legend>
             <div className="mb-2 mt-2 flex flex-row justify-between">
               <ImportSettingsButton />
               <ExportSettingsButton />
             </div>
             <SettingsSelector />
             <SaveSettings />
-
-
           </fieldset>
 
           {/* Wave Settings */}
@@ -1143,80 +1150,110 @@ export default function ControlPanel() {
                   <tbody className="border-2 border-dark-blue text-right">
                     <tr>
                       <td>16 bars</td>
-                      <td>{(3840 / tempo).toFixed(2)}</td>
-                      <td>{((3840 / tempo) * frameRate).toFixed(2)}</td>
+                      <td>{(3840 / tempo).toFixed(decimalPrecision)}</td>
+                      <td>
+                        {((3840 / tempo) * frameRate).toFixed(decimalPrecision)}
+                      </td>
                     </tr>
                     <tr>
                       <td>8 bars</td>
-                      <td>{(1920 / tempo).toFixed(2)}</td>
-                      <td>{((1920 / tempo) * frameRate).toFixed(2)}</td>
+                      <td>{(1920 / tempo).toFixed(decimalPrecision)}</td>
+                      <td>
+                        {((1920 / tempo) * frameRate).toFixed(decimalPrecision)}
+                      </td>
                     </tr>
                     <tr>
                       <td>4 bars</td>
-                      <td>{(960 / tempo).toFixed(2)}</td>
-                      <td>{((960 / tempo) * frameRate).toFixed(2)}</td>
+                      <td>{(960 / tempo).toFixed(decimalPrecision)}</td>
+                      <td>
+                        {((960 / tempo) * frameRate).toFixed(decimalPrecision)}
+                      </td>
                     </tr>
                     <tr>
                       <td>2 bars</td>
-                      <td>{(480 / tempo).toFixed(2)}</td>
-                      <td>{((480 / tempo) * frameRate).toFixed(2)}</td>
+                      <td>{(480 / tempo).toFixed(decimalPrecision)}</td>
+                      <td>
+                        {((480 / tempo) * frameRate).toFixed(decimalPrecision)}
+                      </td>
                     </tr>
                     <tr>
                       <td>1 bar</td>
-                      <td>{(240 / tempo).toFixed(2)}</td>
-                      <td>{((240 / tempo) * frameRate).toFixed(2)}</td>
+                      <td>{(240 / tempo).toFixed(decimalPrecision)}</td>
+                      <td>
+                        {((240 / tempo) * frameRate).toFixed(decimalPrecision)}
+                      </td>
                     </tr>
                     <tr>
                       <td>1/2 </td>
-                      <td>{(120 / tempo).toFixed(2)}</td>
-                      <td>{((120 / tempo) * frameRate).toFixed(2)}</td>
+                      <td>{(120 / tempo).toFixed(decimalPrecision)}</td>
+                      <td>
+                        {((120 / tempo) * frameRate).toFixed(decimalPrecision)}
+                      </td>
                     </tr>
 
                     <tr>
                       <td>(beat) 1/4</td>
-                      <td>{(60 / tempo).toFixed(2)}</td>
-                      <td>{((60 / tempo) * frameRate).toFixed(2)}</td>
+                      <td>{(60 / tempo).toFixed(decimalPrecision)}</td>
+                      <td>
+                        {((60 / tempo) * frameRate).toFixed(decimalPrecision)}
+                      </td>
                     </tr>
                     <tr>
                       <td>1/2t</td>
-                      <td>{(40 / tempo).toFixed(2)}</td>
-                      <td>{((40 / tempo) * frameRate).toFixed(2)}</td>
+                      <td>{(40 / tempo).toFixed(decimalPrecision)}</td>
+                      <td>
+                        {((40 / tempo) * frameRate).toFixed(decimalPrecision)}
+                      </td>
                     </tr>
 
                     <tr>
                       <td>1/8</td>
-                      <td>{(30 / tempo).toFixed(2)}</td>
-                      <td>{((30 / tempo) * frameRate).toFixed(2)}</td>
+                      <td>{(30 / tempo).toFixed(decimalPrecision)}</td>
+                      <td>
+                        {((30 / tempo) * frameRate).toFixed(decimalPrecision)}
+                      </td>
                     </tr>
                     <tr>
                       <td>1/4t</td>
-                      <td>{(20 / tempo).toFixed(2)}</td>
-                      <td>{((20 / tempo) * frameRate).toFixed(2)}</td>
+                      <td>{(20 / tempo).toFixed(decimalPrecision)}</td>
+                      <td>
+                        {((20 / tempo) * frameRate).toFixed(decimalPrecision)}
+                      </td>
                     </tr>
                     <tr>
                       <td>1/16</td>
-                      <td>{(15 / tempo).toFixed(2)}</td>
-                      <td>{((15 / tempo) * frameRate).toFixed(2)}</td>
+                      <td>{(15 / tempo).toFixed(decimalPrecision)}</td>
+                      <td>
+                        {((15 / tempo) * frameRate).toFixed(decimalPrecision)}
+                      </td>
                     </tr>
                     <tr>
                       <td>1/8t</td>
-                      <td>{(10 / tempo).toFixed(2)}</td>
-                      <td>{((10 / tempo) * frameRate).toFixed(2)}</td>
+                      <td>{(10 / tempo).toFixed(decimalPrecision)}</td>
+                      <td>
+                        {((10 / tempo) * frameRate).toFixed(decimalPrecision)}
+                      </td>
                     </tr>
                     <tr>
                       <td>1/32</td>
-                      <td>{(7.5 / tempo).toFixed(2)}</td>
-                      <td>{((7.5 / tempo) * frameRate).toFixed(2)}</td>
+                      <td>{(7.5 / tempo).toFixed(decimalPrecision)}</td>
+                      <td>
+                        {((7.5 / tempo) * frameRate).toFixed(decimalPrecision)}
+                      </td>
                     </tr>
                     <tr>
                       <td>1/16t</td>
-                      <td>{(5 / tempo).toFixed(2)}</td>
-                      <td>{((5 / tempo) * frameRate).toFixed(2)}</td>
+                      <td>{(5 / tempo).toFixed(decimalPrecision)}</td>
+                      <td>
+                        {((5 / tempo) * frameRate).toFixed(decimalPrecision)}
+                      </td>
                     </tr>
                     <tr>
                       <td>1/32t</td>
-                      <td>{(2.5 / tempo).toFixed(2)}</td>
-                      <td>{((2.5 / tempo) * frameRate).toFixed(2)}</td>
+                      <td>{(2.5 / tempo).toFixed(decimalPrecision)}</td>
+                      <td>
+                        {((2.5 / tempo) * frameRate).toFixed(decimalPrecision)}
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -1224,6 +1261,7 @@ export default function ControlPanel() {
             </div>
           </div>
         </div>
+
         {/* Outputs */}
         <div className="mt-1 flex grow flex-row items-center justify-start">
           {/* a button to copy keyframeOutput to the clipboard */}
@@ -1263,7 +1301,7 @@ export default function ControlPanel() {
             </label>
             <label>
               <textarea
-                className="min-w-980px w-max mb-20 flex h-96 resize flex-row items-start justify-start border-2 border-dark-blue bg-darkest-blue font-mono"
+                className="min-w-980px mb-2 flex h-96 w-max resize flex-row items-start justify-start border-2 border-dark-blue bg-darkest-blue font-mono"
                 id="keyframeOutput"
                 onSelect={handleTextChange}
                 onCopy={copyHighlightedTextHandler}
@@ -1283,8 +1321,17 @@ export default function ControlPanel() {
             </label>
           </div>
         </div>
+        <div className="mt-1 flex flex-col justify-start max-w-xs">
+          Decimal Places<NumberInput
+            name={"decimalPrecision"}
+            min={0}
+            max={10}
+            step={1}
+            onChange={handleChange}
+          />
+        </div>
 
-        <div className="items-cenbter mt-1 flex flex-col justify-center"></div>
+   
 
         <div className="mt-10 flex flex-row justify-center justify-items-center text-3xl">
           {/* <KeyframeTable keyframes={yArrayRaw} frameRate={frameRate}  /> */}

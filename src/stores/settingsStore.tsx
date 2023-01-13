@@ -30,6 +30,7 @@ export interface Settings {
     modMoveLeftRight: number;
     modMoveUpDown: number;
     keyframes: any[];
+    decimalPrecision: number;
   };
 }
 
@@ -55,16 +56,16 @@ export const useSettingsStore = create(
       tempo: 120,
       rhythmRate: 60,
       frameRate: 24,
-      amplitude: 1,
-      upDownOffset: 0,
-      leftRightOffset: 0,
+      amplitude: 1.00,
+      upDownOffset: 0.00,
+      leftRightOffset: 0.00,
       waveType: "sinusoid",
       bend: 1,
       toggleSinCos: "cos",
       linkFrameOffset: false,
-      noiseAmount: 0,
+      noiseAmount: 0.00,
       modEnabled: false,
-      modAmp: 1,
+      modAmp: 1.00,
       modToggleSinCos: "cos",
       modTempo: 120,
       modRhythmRate: 1920,
@@ -72,8 +73,9 @@ export const useSettingsStore = create(
       modRate: 60,
       modBend: 1,
       modMoveLeftRight: 0,
-      modMoveUpDown: 0,
+      modMoveUpDown: 0.00,
       keyframes: [],
+      decimalPrecision: 2,
     },
     settingsList: [],
     updateSetting: (name: keyof Settings["state"], value: any) => {
