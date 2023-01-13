@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSettingsStore } from "../../stores/settingsStore";
+import redxdeletesvg from "../../assets/redxdelete.svg";
 
 const SettingsSelector = () => {
   const [
@@ -63,7 +64,7 @@ const SettingsSelector = () => {
                   className="border-dark-blue bg-red-500 px-2 hover:bg-red-900"
                   onClick={() => deleteSetting(setting.saveId)}>
                   <img
-                    src="/src/assets/redxdelete.svg"
+                    src={redxdeletesvg}
                     alt="delete"
                     width={24}
                   />
