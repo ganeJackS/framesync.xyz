@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useSettingsStore } from "../../stores/settingsStore";
 import redxdeletesvg from "../../assets/redxdelete.svg";
+import ShowHideToggle from "../ShowHideToggle";
+import basics from "../../presets/basics.json"
 
 const SettingsSelector = () => {
   const [
@@ -10,6 +12,8 @@ const SettingsSelector = () => {
     updateSettingFromList,
     refreshSettingsList,
     deleteSetting,
+    initializeSettings,
+
   ] = useSettingsStore((state) => [
     state.settings,
     state.settingsList,
@@ -17,16 +21,31 @@ const SettingsSelector = () => {
     state.updateSettingFromList,
     state.refreshSettingsList,
     state.deleteSetting,
+    state.initializeSettings,
+
   ]);
   const [selectedSettingId, setSelectedSettingId] = useState(settings.saveId);
   const [showDelete, setShowDelete] = useState(false);
-  const [showBuiltIn, setShowBuiltIn] = useState(false);
+
+  
+  const factoryPresets = [ ...basics ];
+
+  // userPresets is a list of all the user presets, excluding the factory presets
+  const userPresets = settingsList.filter(
+    (setting) => !factoryPresets.some((preset) => preset.saveId === setting.saveId)
+  );
+
+
+  if(settingsList.length === 0) {
+    initializeSettings();
+  }
 
   useEffect(() => {
     refreshSettingsList();
   }, []);
 
   const handleSettingClick = (settingId: string | number) => {
+    
     setSelectedSettingId(settingId);
     updateSettingFromList(settingId);
   };
@@ -48,8 +67,24 @@ const SettingsSelector = () => {
         </legend>
         <div className="h-450 pt-2">
           <div className="flex flex-auto justify-end"></div>
-          <ul className="flex h-full flex-col justify-between text-sm">
-            {settingsList.map((setting) => (
+          <ul className="pl-2 flex h-full flex-col justify-between text-md">
+            {/* Built-in Presets */}
+            <ShowHideToggle label="Built-in Presets">
+            {factoryPresets.map((preset) => (
+              <li
+                className={`flex flex-auto cursor-pointer justify-between  bg-darkest-blue pl-2 hover:bg-darker-blue ${
+                  preset.saveId === selectedSettingId
+                    ? "border-l-4 border-orange-500 bg-darker-blue text-orange-500"
+                    : "bg-darkest-blue text-orange-600"
+                }`}
+                key={preset.saveId}
+                onClick={() => handleSettingClick(preset.saveId)}>
+                <span className="pr-2">{preset.saveName}</span>
+              </li>
+            ))}
+            </ShowHideToggle>
+            {/* Custom Presets */}
+            {userPresets.map((setting) => (
               <li
                 className={`flex flex-auto cursor-pointer justify-between  bg-darkest-blue pl-2 hover:bg-darker-blue ${
                   setting.saveId === selectedSettingId

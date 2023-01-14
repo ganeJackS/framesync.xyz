@@ -211,9 +211,7 @@ export default function ControlPanel() {
     return `${Number(datum.primary) % frameRate === 0 ? "\r\n" : ""}${
       Number(datum.primary) <= 9 ? "  " : ""
     }${Number(datum.secondary) < 0 ? "" : " "}${
-      Number(datum.secondary).toFixed(decimalPrecision) === "-0.00"
-        ? " "
-        : ""
+      Number(datum.secondary).toFixed(decimalPrecision) === "-0.00" ? " " : ""
     }${datum.primary >= 10 ? " " : ""}${datum.primary <= 99 ? " " : ""}${
       linkFrameOffset == true ? i + Number(leftRightOffset) : i
     }:${Math.sign(Number(datum.secondary)) === 1 || -1 ? "" : ""}${
@@ -827,7 +825,7 @@ export default function ControlPanel() {
 
               <div className="flex flex-col">
                 <fieldset className="border-2 border-dark-blue pl-2 pr-2">
-                  <legend className="text-sm">RHYTHM RATE</legend>
+                  <legend className="text-sm">SYNC RATE</legend>
                   {/*New Rythm Rate*/}
                   <div className="mb-2 flex flex-col-reverse flex-wrap justify-start text-center font-mono text-xs">
                     {/* Row 1 */}
@@ -1135,131 +1133,144 @@ export default function ControlPanel() {
                   </div>
                 </fieldset>
               </div>
+              <div className="mt-1 flex max-w-xs flex-col justify-start">
+                Decimal Places
+                <NumberInput
+                  name={"decimalPrecision"}
+                  min={0}
+                  max={10}
+                  step={1}
+                  onChange={handleChange}
+                />
+              </div>
             </fieldset>
-
-            <div className="flex flex-col justify-center justify-items-center">
-              <ShowHideToggle label={"Timing Table"}>
-                <table className=" mt-4 border-2 border-dark-blue">
-                  <thead>
-                    <tr>
-                      <th>Divisions</th>
-                      <th>Seconds</th>
-                      <th>Frames</th>
-                    </tr>
-                  </thead>
-                  <tbody className="border-2 border-dark-blue text-right">
-                    <tr>
-                      <td>16 bars</td>
-                      <td>{(3840 / tempo).toFixed(decimalPrecision)}</td>
-                      <td>
-                        {((3840 / tempo) * frameRate).toFixed(decimalPrecision)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>8 bars</td>
-                      <td>{(1920 / tempo).toFixed(decimalPrecision)}</td>
-                      <td>
-                        {((1920 / tempo) * frameRate).toFixed(decimalPrecision)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>4 bars</td>
-                      <td>{(960 / tempo).toFixed(decimalPrecision)}</td>
-                      <td>
-                        {((960 / tempo) * frameRate).toFixed(decimalPrecision)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>2 bars</td>
-                      <td>{(480 / tempo).toFixed(decimalPrecision)}</td>
-                      <td>
-                        {((480 / tempo) * frameRate).toFixed(decimalPrecision)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>1 bar</td>
-                      <td>{(240 / tempo).toFixed(decimalPrecision)}</td>
-                      <td>
-                        {((240 / tempo) * frameRate).toFixed(decimalPrecision)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>1/2 </td>
-                      <td>{(120 / tempo).toFixed(decimalPrecision)}</td>
-                      <td>
-                        {((120 / tempo) * frameRate).toFixed(decimalPrecision)}
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td>(beat) 1/4</td>
-                      <td>{(60 / tempo).toFixed(decimalPrecision)}</td>
-                      <td>
-                        {((60 / tempo) * frameRate).toFixed(decimalPrecision)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>1/2t</td>
-                      <td>{(40 / tempo).toFixed(decimalPrecision)}</td>
-                      <td>
-                        {((40 / tempo) * frameRate).toFixed(decimalPrecision)}
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td>1/8</td>
-                      <td>{(30 / tempo).toFixed(decimalPrecision)}</td>
-                      <td>
-                        {((30 / tempo) * frameRate).toFixed(decimalPrecision)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>1/4t</td>
-                      <td>{(20 / tempo).toFixed(decimalPrecision)}</td>
-                      <td>
-                        {((20 / tempo) * frameRate).toFixed(decimalPrecision)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>1/16</td>
-                      <td>{(15 / tempo).toFixed(decimalPrecision)}</td>
-                      <td>
-                        {((15 / tempo) * frameRate).toFixed(decimalPrecision)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>1/8t</td>
-                      <td>{(10 / tempo).toFixed(decimalPrecision)}</td>
-                      <td>
-                        {((10 / tempo) * frameRate).toFixed(decimalPrecision)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>1/32</td>
-                      <td>{(7.5 / tempo).toFixed(decimalPrecision)}</td>
-                      <td>
-                        {((7.5 / tempo) * frameRate).toFixed(decimalPrecision)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>1/16t</td>
-                      <td>{(5 / tempo).toFixed(decimalPrecision)}</td>
-                      <td>
-                        {((5 / tempo) * frameRate).toFixed(decimalPrecision)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>1/32t</td>
-                      <td>{(2.5 / tempo).toFixed(decimalPrecision)}</td>
-                      <td>
-                        {((2.5 / tempo) * frameRate).toFixed(decimalPrecision)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </ShowHideToggle>
-            </div>
           </div>
+          <fieldset>
+            <legend className="text-white">Timing Table</legend>
+            <table className="bg-darkest-blue text-sm">
+              <thead className="text-left">
+                <tr>
+                  <th>Rate</th>
+                  <th>Time</th>
+                  <th>Frames</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y-2 divide-dark-blue text-left">
+                <tr>
+                  <td>32bars</td>
+                  <td>{(6960 / tempo).toFixed(decimalPrecision)}s</td>
+                  <td>
+                    {((6960 / tempo) * frameRate).toFixed(decimalPrecision)}
+                  </td>
+                </tr>
+                <tr>
+                  <td>16bars</td>
+                  <td>{(3840 / tempo).toFixed(decimalPrecision)}s</td>
+                  <td>
+                    {((3840 / tempo) * frameRate).toFixed(decimalPrecision)}
+                  </td>
+                </tr>
+                <tr>
+                  <td>8bars</td>
+                  <td>{(1920 / tempo).toFixed(decimalPrecision)}s</td>
+                  <td>
+                    {((1920 / tempo) * frameRate).toFixed(decimalPrecision)}
+                  </td>
+                </tr>
+                <tr>
+                  <td>4bars</td>
+                  <td>{(960 / tempo).toFixed(decimalPrecision)}s</td>
+                  <td>
+                    {((960 / tempo) * frameRate).toFixed(decimalPrecision)}
+                  </td>
+                </tr>
+                <tr>
+                  <td>2bars</td>
+                  <td>{(480 / tempo).toFixed(decimalPrecision)}s</td>
+                  <td>
+                    {((480 / tempo) * frameRate).toFixed(decimalPrecision)}
+                  </td>
+                </tr>
+                <tr>
+                  <td>1bar</td>
+                  <td>{(240 / tempo).toFixed(decimalPrecision)}s</td>
+                  <td>
+                    {((240 / tempo) * frameRate).toFixed(decimalPrecision)}
+                  </td>
+                </tr>
+                <tr>
+                  <td>1/2</td>
+                  <td>{(120 / tempo).toFixed(decimalPrecision)}s</td>
+                  <td>
+                    {((120 / tempo) * frameRate).toFixed(decimalPrecision)}
+                  </td>
+                </tr>
+
+                <tr>
+                  <td>1/4</td>
+                  <td>{(60 / tempo).toFixed(decimalPrecision)}s</td>
+                  <td>
+                    {((60 / tempo) * frameRate).toFixed(decimalPrecision)}
+                  </td>
+                </tr>
+                <tr>
+                  <td>1/2t</td>
+                  <td>{(40 / tempo).toFixed(decimalPrecision)}s</td>
+                  <td>
+                    {((40 / tempo) * frameRate).toFixed(decimalPrecision)}
+                  </td>
+                </tr>
+
+                <tr>
+                  <td>1/8</td>
+                  <td>{(30 / tempo).toFixed(decimalPrecision)}s</td>
+                  <td>
+                    {((30 / tempo) * frameRate).toFixed(decimalPrecision)}
+                  </td>
+                </tr>
+                <tr>
+                  <td>1/4t</td>
+                  <td>{(20 / tempo).toFixed(decimalPrecision)}s</td>
+                  <td>
+                    {((20 / tempo) * frameRate).toFixed(decimalPrecision)}
+                  </td>
+                </tr>
+                <tr>
+                  <td>1/16</td>
+                  <td>{(15 / tempo).toFixed(decimalPrecision)}s</td>
+                  <td>
+                    {((15 / tempo) * frameRate).toFixed(decimalPrecision)}
+                  </td>
+                </tr>
+                <tr>
+                  <td>1/8t</td>
+                  <td>{(10 / tempo).toFixed(decimalPrecision)}s</td>
+                  <td>
+                    {((10 / tempo) * frameRate).toFixed(decimalPrecision)}
+                  </td>
+                </tr>
+                <tr>
+                  <td>1/32</td>
+                  <td>{(7.5 / tempo).toFixed(decimalPrecision)}s</td>
+                  <td>
+                    {((7.5 / tempo) * frameRate).toFixed(decimalPrecision)}
+                  </td>
+                </tr>
+                <tr>
+                  <td>1/16t</td>
+                  <td>{(5 / tempo).toFixed(decimalPrecision)}s</td>
+                  <td>{((5 / tempo) * frameRate).toFixed(decimalPrecision)}</td>
+                </tr>
+                <tr>
+                  <td>1/32t</td>
+                  <td>{(2.5 / tempo).toFixed(decimalPrecision)}s</td>
+                  <td>
+                    {((2.5 / tempo) * frameRate).toFixed(decimalPrecision)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </fieldset>
         </div>
 
         {/* Outputs */}
@@ -1321,17 +1332,6 @@ export default function ControlPanel() {
             </label>
           </div>
         </div>
-        <div className="mt-1 flex flex-col justify-start max-w-xs">
-          Decimal Places<NumberInput
-            name={"decimalPrecision"}
-            min={0}
-            max={10}
-            step={1}
-            onChange={handleChange}
-          />
-        </div>
-
-   
 
         <div className="mt-10 flex flex-row justify-center justify-items-center text-3xl">
           {/* <KeyframeTable keyframes={yArrayRaw} frameRate={frameRate}  /> */}

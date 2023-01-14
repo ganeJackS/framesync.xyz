@@ -1,6 +1,9 @@
 import create from "zustand";
 import { produce } from "immer";
 import { immer } from "zustand/middleware/immer";
+import basics from "../presets/basics.json"
+
+
 
 export interface Settings {
   state: {
@@ -45,7 +48,9 @@ export type Actions = {
   updateSettingFromList: (id: number | string) => void;
   refreshSettingsList: () => void;
   deleteSetting: (id: number | string) => void;
+  initializeSettings: () => void;
 };
+
 
 export const useSettingsStore = create(
   immer<State & Actions>((set, get) => ({
@@ -56,14 +61,14 @@ export const useSettingsStore = create(
       tempo: 120,
       rhythmRate: 60,
       frameRate: 24,
-      amplitude: 1.00,
-      upDownOffset: 0.00,
-      leftRightOffset: 0.00,
+      amplitude: 1,
+      upDownOffset: 0,
+      leftRightOffset: 0,
       waveType: "sinusoid",
       bend: 1,
       toggleSinCos: "cos",
       linkFrameOffset: false,
-      noiseAmount: 0.00,
+      noiseAmount: 0,
       modEnabled: false,
       modAmp: 1.00,
       modToggleSinCos: "cos",
@@ -73,11 +78,35 @@ export const useSettingsStore = create(
       modRate: 60,
       modBend: 1,
       modMoveLeftRight: 0,
-      modMoveUpDown: 0.00,
+      modMoveUpDown: 0,
       keyframes: [],
       decimalPrecision: 2,
     },
-    settingsList: [],
+    settingsList: [JSON.parse(localStorage.getItem(`settings_fs_list`) || "[]")], 
+    // initialize settingsList from basics.json 
+    initializeSettings: () => {
+      const settingsList = JSON.parse(
+        localStorage.getItem(`settings_fs_list`) || "[]"
+      );
+      set(
+        produce((draft) => {
+          draft.settingsList = settingsList;
+        })
+      );
+      if (get().settingsList.length === 0) {
+        set(
+          produce((draft) => {
+            draft.settingsList = basics;
+          })
+        );
+        console.log(settingsList)
+        localStorage.setItem(
+          `settings_fs_list`,
+          JSON.stringify(get().settingsList)
+        );
+      }
+    },
+    // update settings from settingsList
     updateSetting: (name: keyof Settings["state"], value: any) => {
       set(
         produce((draft) => {
@@ -86,6 +115,7 @@ export const useSettingsStore = create(
       );
     },
     saveSetting: () => {
+      // start settingsList from basics.json      
       const settingsList = JSON.parse(
         localStorage.getItem(`settings_fs_list`) || "[]"
       );
@@ -103,13 +133,12 @@ export const useSettingsStore = create(
       );
       get().settings.saveId;
       // get the settingsList from localStorage
-
       localStorage.setItem(
         `settings_fs_list`,
         JSON.stringify(get().settingsList)
       );
-    
     },
+    // update the settings from the settingsList
     updateSettingFromList: (id: number | string) => {
       const settings = get().settingsList.find(
         (setting) => setting.saveId === id
@@ -127,7 +156,7 @@ export const useSettingsStore = create(
       }
     },
     // refresh the settingsList from localStorage
-    refreshSettingsList: () => {
+    refreshSettingsList: () => {  
       const settingsList = JSON.parse(
         localStorage.getItem(`settings_fs_list`) || "[]"
       );
@@ -151,6 +180,6 @@ export const useSettingsStore = create(
         `settings_fs_list`,
         JSON.stringify(get().settingsList)
       );
-    }
+    },
   }))
 );
