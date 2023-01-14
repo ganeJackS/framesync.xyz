@@ -35,19 +35,18 @@ const SettingsSelector = () => {
     (setting) => !factoryPresets.some((preset) => preset.saveId === setting.saveId)
   );
 
-
   if(settingsList.length === 0) {
     initializeSettings();
-  }
-
+  } 
   useEffect(() => {
     refreshSettingsList();
   }, []);
 
+
   const handleSettingClick = (settingId: string | number) => {
-    
     setSelectedSettingId(settingId);
     updateSettingFromList(settingId);
+    
   };
 
   useEffect(() => {

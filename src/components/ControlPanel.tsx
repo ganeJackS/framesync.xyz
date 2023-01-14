@@ -229,8 +229,13 @@ export default function ControlPanel() {
     (accumulator: number, currentValue: number) =>
       Number(accumulator as number) + Number(currentValue as number)
   );
+  const yArrayAbsSum = yArrayRaw.reduce(
+    (accumulator: number, currentValue: number) =>
+      Number(accumulator as number) + Number(Math.abs(currentValue as number))
+  );
 
   const yArrayAvg = (yArraySum as number) / yArrayRaw.length;
+  const yArrayAbsAvg = (yArrayAbsSum as number) / yArrayRaw.length;
   const yArrayMin = Math.min(...(yArrayRaw as number[]));
   const yArrayMax = Math.max(...(yArrayRaw as number[]));
 
@@ -359,12 +364,13 @@ export default function ControlPanel() {
         </label>
         {/* Stats */}
         <div className="mb-4 flex shrink flex-row justify-center space-x-2 bg-darkest-blue font-mono text-gray-400">
-          Min: {yArrayMin?.toFixed(decimalPrecision)} | Max:{" "}
-          {yArrayMax?.toFixed(decimalPrecision)} | Average:{" "}
-          {yArrayAvg?.toFixed(decimalPrecision)} | Absolute Sum:{" "}
-          {Number(datums) > 1 ? yArraySum.toFixed(decimalPrecision) : yArraySum}{" "}
-          | Duration: {(yArrayRaw.length / frameRate).toFixed(decimalPrecision)}
-          s
+          Min: {yArrayMin?.toFixed(decimalPrecision)} |
+          Max:{" "}{yArrayMax?.toFixed(decimalPrecision)} | 
+          Sum: {Number(datums) > 1 ? yArraySum?.toFixed(decimalPrecision) : yArraySum} | 
+          Average: {Number(datums) > 1 ? yArrayAvg?.toFixed(decimalPrecision) : yArrayAvg} | 
+          Absolute Sum: {Number(datums) > 1 ? yArraySum.toFixed(decimalPrecision) : yArraySum} |
+          Absolute Avg: {Number(datums) > 1 ? yArrayAbsAvg.toFixed(decimalPrecision) : yArrayAbsAvg} | 
+          Duration: {(yArrayRaw.length / frameRate).toFixed(decimalPrecision)}s{" "}
           <label>
             | Chart{" "}
             <select
