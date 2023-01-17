@@ -20,6 +20,9 @@ const NumberInput: React.FC<NumberInputProps> = ({
     state.settings,
     state.updateSetting,
   ]);
+
+  const { waveType } = settings;
+
   const decimalPrecision = settings.decimalPrecision;
 
   const [isDragging, setIsDragging] = useState(false);
@@ -34,7 +37,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
       }
 
       const delta = (event.clientY - startY) / 20;
-      const tempVal = inputValue - delta * step * (event.shiftKey ? 10 : 1);
+      const tempVal = inputValue as number - delta * step * (event.shiftKey ? 10 : 1);
       const newValue = Math.max(min, Math.min(max, tempVal));
       setPrevDelta(delta);
 
@@ -47,8 +50,8 @@ const NumberInput: React.FC<NumberInputProps> = ({
       }
 
       Number.isInteger(step)
-        ? updateSetting(name, newValue.toFixed(0))
-        : updateSetting(name, newValue.toFixed(decimalPrecision));
+        ? updateSetting(name as keyof typeof settings, newValue.toFixed(0))
+        : updateSetting(name as keyof typeof settings, newValue.toFixed(decimalPrecision));
     },
 
     [isDragging, startY, settings, step, min, max, updateSetting, name]
@@ -81,18 +84,21 @@ const NumberInput: React.FC<NumberInputProps> = ({
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value === "" ? "" : event.target.value;
     onChange(newValue);
-    updateSetting(name, newValue);
+    updateSetting(name as keyof typeof settings, newValue);
   };
+
+
   return (
     <input
       type="number"
-      value={inputValue}
+      value={inputValue as number}
       onChange={handleChange}
       onMouseDown={handleMouseDown}
       min={min}
       max={max}
       step={step}
-      className="border-1 flex border-dark-blue bg-darker-blue px-2 py-2 pt-1 text-xl text-orange-400 focus:outline-none"
+      disabled={waveType === "audio" && name === "tempo" ? true : false}
+      className={`border-1 flex border-dark-blue bg-darker-blue px-2 py-2 pt-1 text-xl text-orange-400 focus:outline-none ${waveType === "audio" && name === "tempo" ? "opacity-50" : ""}`}
     />
   );
 };

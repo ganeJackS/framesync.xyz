@@ -43,7 +43,7 @@ export const SaveSettings = () => {
     // save the current settings
     setSaveName("");
     updateSetting("saveName", saveName);
-    saveSetting();
+    saveSetting(saveName);
   };
 
   return (

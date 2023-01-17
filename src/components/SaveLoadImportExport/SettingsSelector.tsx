@@ -2,56 +2,45 @@ import React, { useState, useEffect } from "react";
 import { useSettingsStore } from "../../stores/settingsStore";
 import redxdeletesvg from "../../assets/redxdelete.svg";
 import ShowHideToggle from "../ShowHideToggle";
-import basics from "../../presets/basics.json"
 
 const SettingsSelector = () => {
   const [
     settings,
-    settingsList,
+    factoryPresets,
+    userPresets,
     updateSetting,
     updateSettingFromList,
-    refreshSettingsList,
     deleteSetting,
     initializeSettings,
-
   ] = useSettingsStore((state) => [
     state.settings,
-    state.settingsList,
+    state.factoryPresets,
+    state.userPresets,
     state.updateSetting,
     state.updateSettingFromList,
-    state.refreshSettingsList,
     state.deleteSetting,
     state.initializeSettings,
-
   ]);
   const [selectedSettingId, setSelectedSettingId] = useState(settings.saveId);
   const [showDelete, setShowDelete] = useState(false);
 
-  
-  const factoryPresets = [ ...basics ];
-
-  // userPresets is a list of all the user presets, excluding the factory presets
-  const userPresets = settingsList.filter(
-    (setting) => !factoryPresets.some((preset) => preset.saveId === setting.saveId)
-  );
-
-  if(settingsList.length === 0) {
-    initializeSettings();
-  } 
   useEffect(() => {
-    refreshSettingsList();
+    initializeSettings();
   }, []);
 
-
-  const handleSettingClick = (settingId: string | number) => {
-    setSelectedSettingId(settingId);
-    updateSettingFromList(settingId);
-    
+  const handleFactorySettingClick = (id: number | string) => {
+    setSelectedSettingId(id);
+    updateSettingFromList(id, true);
   };
 
-  useEffect(() => {
-    setSelectedSettingId(settings.saveId);
-  }, [settingsList]);
+  const handleUserSettingClick = (id: number | string) => {
+    setSelectedSettingId(id);
+    updateSettingFromList(id, false);
+  };
+
+  const handleDelete = (id: number | string) => {
+    deleteSetting(id);
+  };
 
   return (
     <>
@@ -59,49 +48,54 @@ const SettingsSelector = () => {
         <legend className="flex flex-row justify-between text-sm">
           Select Preset
           <button
-            className="ml-4 text-gray-500 hover:text-gray-800"
+            className={`ml-4 text-gray-500 ${showDelete ? "text-red-500" : ""}`}
             onClick={() => setShowDelete(!showDelete)}>
             Edit
           </button>
         </legend>
         <div className="h-450 pt-2">
           <div className="flex flex-auto justify-end"></div>
-          <ul className="pl-2 flex h-full flex-col justify-between text-md">
-            {/* Built-in Presets */}
-            <ShowHideToggle label="Built-in Presets">
-            {factoryPresets.map((preset) => (
-              <li
-                className={`flex flex-auto cursor-pointer justify-between  bg-darkest-blue pl-2 hover:bg-darker-blue ${
-                  preset.saveId === selectedSettingId
-                    ? "border-l-4 border-orange-500 bg-darker-blue text-orange-500"
-                    : "bg-darkest-blue text-orange-600"
-                }`}
-                key={preset.saveId}
-                onClick={() => handleSettingClick(preset.saveId)}>
-                <span className="pr-2">{preset.saveName}</span>
-              </li>
-            ))}
+          <ul className="text-md flex h-full flex-col justify-between">
+            {/* Factory Presets */}
+            <ShowHideToggle label="Factory Presets">
+              {factoryPresets.map((preset) => (
+                <li
+                  className={`flex flex-auto cursor-pointer justify-between  bg-darkest-blue pl-2 hover:bg-darker-blue ${
+                    preset.saveId === selectedSettingId
+                      ? "border-l-4 border-orange-500 bg-darker-blue text-orange-500"
+                      : "bg-darkest-blue text-orange-600"
+                  }`}
+                  key={preset.saveId}
+                  onClick={() => handleFactorySettingClick(preset.saveId)}>
+                  <span className="pr-2">{preset.saveName}</span>
+                </li>
+              ))}
             </ShowHideToggle>
             {/* Custom Presets */}
-            {userPresets.map((setting) => (
-              <li
-                className={`flex flex-auto cursor-pointer justify-between  bg-darkest-blue pl-2 hover:bg-darker-blue ${
-                  setting.saveId === selectedSettingId
-                    ? "border-l-4 border-orange-500 bg-darker-blue text-orange-500"
-                    : "bg-darkest-blue text-orange-600"
-                }`}
-                key={setting.saveId}
-                onClick={() => handleSettingClick(setting.saveId)}>
-                <span className="pr-2">{setting.saveName}</span>
-                {showDelete && (
-                  <button
-                    className="border-dark-blue bg-red-500 px-2 hover:bg-red-900"
-                    onClick={() => deleteSetting(setting.saveId)}>
-                    <img src={redxdeletesvg} alt="delete" width={20} />
-                  </button>
-                )}
-              </li>
-            ))}
+            <ShowHideToggle label="User Presets">
+              {userPresets.map((setting) => (
+                <div 
+                className="flex flex-row justify-between"
+                key={setting.saveId}>
+                  <li
+                    className={`flex flex-auto cursor-pointer justify-between  bg-darkest-blue pl-2 hover:bg-darker-blue ${
+                      setting.saveId === selectedSettingId
+                        ? "border-l-4 border-orange-500 bg-darker-blue text-orange-500"
+                        : "bg-darkest-blue text-orange-600"
+                    }`}
+                    onClick={() => handleUserSettingClick(setting.saveId)}>
+                    <span className="pr-2">{setting.saveName}</span>
+                  </li>
+                  {showDelete && (
+                    <button
+                      className="border-dark-blue bg-red-500 px-2 hover:bg-red-900"
+                      onClick={() => handleDelete(setting.saveId)}>
+                      <img src={redxdeletesvg} alt="delete" width={20} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </ShowHideToggle>
           </ul>
         </div>
       </fieldset>

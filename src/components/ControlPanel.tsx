@@ -20,7 +20,7 @@ import CopyToast from "./CopyToast";
 import shallow from "zustand/shallow";
 
 import useAudioBufferStore from "../stores/audioBufferStore";
-import { useSettingsStore } from "../stores/settingsStore";
+import { Settings, useSettingsStore } from "../stores/settingsStore";
 import useData from "../hooks/useData";
 import SelectToggle from "./SelectToggle";
 import KeyframeTable from "./KeyframeTable";
@@ -30,9 +30,13 @@ import ExportSettingsButton from "./SaveLoadImportExport/ExportSettingsButton";
 import ImportSettingsButton from "./SaveLoadImportExport/ImportSettingsButton";
 
 export default function ControlPanel() {
-  const [settings, updateSetting] = useSettingsStore(
-    (state) => [state.settings, state.updateSetting] as const
-  );
+  const [settings, factoryPresets, userPresets, updateSetting] =
+    useSettingsStore((state) => [
+      state.settings,
+      state.factoryPresets,
+      state.userPresets,
+      state.updateSetting,
+    ]);
 
   const {
     saveName,
@@ -109,13 +113,20 @@ export default function ControlPanel() {
 
   const [chartType, setChartType] = React.useState("line");
   const [highlightedText, setHighlightedText] = React.useState("");
+  const [primaryCursorValue, setPrimaryCursorValue] = React.useState();
+  const [secondaryCursorValue, setSecondaryCursorValue] = React.useState(0);
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-    updateSetting(event?.currentTarget?.name, event?.currentTarget?.value);
+    updateSetting(
+      event?.target?.name as keyof Settings["state"],
+      event?.target?.value
+    );
   }
-
   function handleChangeSelect(event: React.ChangeEvent<HTMLSelectElement>) {
-    updateSetting(event?.currentTarget?.name, event?.currentTarget?.value);
+    updateSetting(
+      event?.target?.name as keyof Settings["state"],
+      event?.target?.value
+    );
   }
 
   const fileInput = useRef<HTMLInputElement>(null);
@@ -241,29 +252,23 @@ export default function ControlPanel() {
 
   let currentFormula = `(${amplitude} * ${
     toggleSinCos === "cos" ? "cos" : "sin"
-  }((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate} + ${leftRightOffset}))**${bend} + ${upDownOffset})`;
+  }((${tempo} / ${rhythmRate} * 3.141 * (t + ${leftRightOffset}) / ${frameRate} ))**${bend} + ${upDownOffset})`;
 
   if (waveType === "sinusoid") {
-    currentFormula = `(${amplitude} * ${
-      toggleSinCos === "cos" ? "cos" : "sin"
-    }((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate} + ${leftRightOffset}))**${bend} + ${upDownOffset})`;
+    currentFormula = `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin" }((${tempo} / ${rhythmRate} * 3.141 * (t + ${leftRightOffset}) / ${frameRate}))**${bend} + ${upDownOffset})`;
   } else if (waveType === "saw") {
-    currentFormula = `(-(2 * ${amplitude} / 3.141) * arctan((1 * ${bend} + 1) / tan((t * 3.141 * ${tempo} / ${rhythmRate} / ${frameRate} + ${leftRightOffset}))) + ${upDownOffset})`;
+    currentFormula = `(-(2 * ${amplitude} / 3.141) * arctan((1 * ${bend} + 1) / tan(((t  + ${leftRightOffset}) * 3.141 * ${tempo} / ${rhythmRate} / ${frameRate}))) + ${upDownOffset})`;
   } else if (waveType === "triangle") {
-    currentFormula = `((2 * ${amplitude} / 3.141) * arcsin(${
-      toggleSinCos === "cos" ? "cos" : "sin"
-    }( ${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate})**${bend} + ${leftRightOffset}) + ${upDownOffset})`;
+    currentFormula = `((2 * ${amplitude} / 3.141) * arcsin(${ toggleSinCos === "cos" ? "cos" : "sin" }(${tempo} / ${rhythmRate} * 3.141 * (t + ${leftRightOffset}) / ${frameRate})**${bend}) + ${upDownOffset})`;
   } else if (waveType === "bumpdip") {
-    currentFormula = `(${amplitude} * ${
-      toggleSinCos === "cos" ? "cos" : "sin"
-    }((${tempo} / ${rhythmRate} * 3.141 * t / ${frameRate} + ${leftRightOffset}))**${bend}0 + ${upDownOffset})`;
+    currentFormula = `(${amplitude} * ${ toggleSinCos === "cos" ? "cos" : "sin" }((${tempo} / ${rhythmRate} * 3.141 * (t + ${leftRightOffset}) / ${frameRate}))**${bend}0 + ${upDownOffset})`;
   } else if (waveType === "square") {
-    currentFormula = ``;
+    currentFormula = `where((${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin" }((${tempo} / ${rhythmRate} * 3.141 * (t + ${leftRightOffset}) / ${frameRate}))**${bend} + ${upDownOffset})>=0, ${Number(amplitude) + Number(upDownOffset)}, ${(Number(amplitude) - Number(upDownOffset)).toFixed(decimalPrecision)} * -1)`;
   }
 
   const currentFormulaMod = `(${modAmp} * ${
     modToggleSinCos === "cos" ? "cos" : "sin"
-  }((${modTempo} / ${modRhythmRate} * 3.141 * t / ${modFrameRate} + ${modMoveLeftRight}))**${
+  }((${modTempo} / ${modRhythmRate} * 3.141 * (t + ${modMoveLeftRight}) / ${modFrameRate} ))**${
     waveType != "bumpdup" ? modBend : modBend + 0
   } + ${modMoveUpDown})`;
 
@@ -292,7 +297,7 @@ export default function ControlPanel() {
                 secondaryAxes,
                 memoizeSeries,
                 dark: true,
-                tooltip: true,
+                tooltip: false,
 
                 getDatumStyle: (d, _status) => ({
                   color: "#F97316",
@@ -322,18 +327,19 @@ export default function ControlPanel() {
                   //     : 1,
                 }),
 
-                // primaryCursor: {
-                //   value: primaryCursorValue,
-                //   onChange: (value) => {
-                //     setPrimaryCursorValue(value);
-                //   },
-                // },
-                // secondaryCursor: {
-                //   value: secondaryCursorValue,
-                //   onChange: (value) => {
-                //     setSecondaryCursorValue(value);
-                //   },
-                // },
+                primaryCursor: {
+                  value: primaryCursorValue,
+                  onChange: (value) => {
+                    setPrimaryCursorValue(value);
+
+                  },
+                },
+                secondaryCursor: {
+                  value: secondaryCursorValue,
+                  onChange: (value) => {
+                    setSecondaryCursorValue(value);
+                  },
+                },
                 // onFocusDatum: (datum) => {
                 //   setState((old) => ({
                 //     ...old,
@@ -362,15 +368,30 @@ export default function ControlPanel() {
             }}
           />
         </label>
+        {/* frame and value */}
+        <div className="flex flex-row justify-center space-x-2 bg-darkest-blue font-mono text-gray-400">
+          {primaryCursorValue}:({secondaryCursorValue?.toFixed(decimalPrecision)})
+        </div>
+
         {/* Stats */}
         <div className="mb-4 flex shrink flex-row justify-center space-x-2 bg-darkest-blue font-mono text-gray-400">
-          Min: {yArrayMin?.toFixed(decimalPrecision)} |
-          Max:{" "}{yArrayMax?.toFixed(decimalPrecision)} | 
-          Sum: {Number(datums) > 1 ? yArraySum?.toFixed(decimalPrecision) : yArraySum} | 
-          Average: {Number(datums) > 1 ? yArrayAvg?.toFixed(decimalPrecision) : yArrayAvg} | 
-          Absolute Sum: {Number(datums) > 1 ? yArraySum.toFixed(decimalPrecision) : yArraySum} |
-          Absolute Avg: {Number(datums) > 1 ? yArrayAbsAvg.toFixed(decimalPrecision) : yArrayAbsAvg} | 
-          Duration: {(yArrayRaw.length / frameRate).toFixed(decimalPrecision)}s{" "}
+          Min: {yArrayMin?.toFixed(decimalPrecision)} | Max:{" "}
+          {yArrayMax?.toFixed(decimalPrecision)} | Sum:{" "}
+          {Number(datums) > 1
+            ? yArraySum?.toFixed(decimalPrecision)
+            : yArraySum}{" "}
+          | Average:{" "}
+          {Number(datums) > 1
+            ? yArrayAvg?.toFixed(decimalPrecision)
+            : yArrayAvg}{" "}
+          | Absolute Sum:{" "}
+          {Number(datums) > 1 ? yArraySum.toFixed(decimalPrecision) : yArraySum}{" "}
+          | Absolute Avg:{" "}
+          {Number(datums) > 1
+            ? yArrayAbsAvg.toFixed(decimalPrecision)
+            : yArrayAbsAvg}{" "}
+          | Duration: {(yArrayRaw.length / frameRate).toFixed(decimalPrecision)}
+          s{" "}
           <label>
             | Chart{" "}
             <select
@@ -400,7 +421,6 @@ export default function ControlPanel() {
           </fieldset>
 
           {/* Wave Settings */}
-
           <fieldset className="min-w-fit space-x-2 bg-darkest-blue p-4 font-mono">
             <legend className="flex flex-row">
               Select Wave or upload{" "}
@@ -572,7 +592,7 @@ export default function ControlPanel() {
                 {/* Primary Wave Settings */}
                 <div className="flex flex-auto">
                   {/* Amplitude */}
-                  <label className="z-index-100 mr-2 flex shrink flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                  <label className="z-index-100 mr-2 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                     AMPLITUDE{" "}
                     <NumberInput
                       name="amplitude"
@@ -583,7 +603,7 @@ export default function ControlPanel() {
                     />
                   </label>
                   {/* Up/Down Offset*/}
-                  <label className="z-index-100 mr-2 flex shrink flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                  <label className="z-index-100 mr-2 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                     SHIFT UP/DOWN{" "}
                     <NumberInput
                       name="upDownOffset"
@@ -594,7 +614,7 @@ export default function ControlPanel() {
                     />
                   </label>
                   {/* Bend*/}
-                  <label className="z-index-100 mr-2 flex shrink flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                  <label className="z-index-100 mr-2 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                     BEND{" "}
                     <NumberInput
                       name="bend"
@@ -607,7 +627,7 @@ export default function ControlPanel() {
                   </label>
 
                   {/* Noise*/}
-                  <label className="z-index-100 flex shrink flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                  <label className="z-index-100 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                     NOISE{" "}
                     <NumberInput
                       name="noiseAmount"
@@ -619,6 +639,8 @@ export default function ControlPanel() {
                   </label>
                 </div>
               </fieldset>
+              {/* Secondary Wave Settings */}
+
               {/* Modulator Settings */}
               <fieldset className="border-2 border-dark-blue pl-2 pr-2 pb-2 ">
                 <legend className="mb-2 flex flex-row space-x-2">
@@ -709,6 +731,7 @@ export default function ControlPanel() {
                         className="border-2 border-dark-blue bg-darker-blue"
                         value={modRhythmRate}
                         onChange={handleChangeSelect}>
+                        <option value="7680">32</option>
                         <option value="3840">16</option>
                         <option value="1920">8</option>
                         <option value="960">4</option>
@@ -738,22 +761,16 @@ export default function ControlPanel() {
                       />
                     </label>
                     {/* Move Left/Right */}
-                    {/* <label className="flex flex-col  bg-darker-blue pl-1 pt-1 border-2 border-dark-blue z-index-100 text-sm mr-2">
-                    MOD SHIFT LEFT/RIGHT{" "}
-                    <NumberInput
-                      value={modMoveLeftRight}
-                      min={0}
-                      max={100000}
-                      step={1}
-                      isInt={true}
-                      onChange={(value) =>
-                        setState((old) => ({
-                          ...old,
-                          modMoveLeftRight: parseInt(value as string),
-                        }))
-                      }
-                    />
-                  </label> */}
+                    <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                      MOD SHIFT LEFT/RIGHT{" "}
+                      <NumberInput
+                        name="modMoveLeftRight"
+                        min={0}
+                        max={100000}
+                        step={1}
+                        onChange={handleChange}
+                      />
+                    </label>
                   </div>
                 </div>
               </fieldset>
@@ -764,7 +781,7 @@ export default function ControlPanel() {
             {/* Frame Settings */}
             <fieldset className="flex flex-row justify-start bg-darkest-blue pl-3 pr-3 pb-3 font-mono">
               <legend>Frame Settings</legend>
-              <label className="z-index-100 mr-2 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+              <label className="z-index-100 mr-2 flex grow  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                 FRAME RATE (FPS)
                 <NumberInput
                   name="frameRate"
@@ -774,7 +791,7 @@ export default function ControlPanel() {
                   onChange={handleChange}
                 />
               </label>
-              <label className="z-index-100 flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+              <label className="z-index-100 flex grow flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                 FRAME COUNT
                 <NumberInput
                   name="datums"
@@ -792,7 +809,7 @@ export default function ControlPanel() {
               {/* Tempo and Shift Left/Right */}
               <div className="mb-2 flex flex-row space-x-2">
                 {/* Tempo */}
-                <label className="z-index-100 flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                <label className={`z-index-100 flex grow flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm ${waveType === "audio" ? "opacity-50" : ""}`}>
                   TEMPO (BPM)
                   <NumberInput
                     name="tempo"
@@ -800,11 +817,11 @@ export default function ControlPanel() {
                     max={10000}
                     step={1}
                     onChange={handleChange}
-                  />
+                   />
                 </label>
                 {/* Shift Left/Right */}
 
-                <label className="z-index-100 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                <label className="z-index-100 flex grow flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                   SHIFT LEFT/RIGHT
                   {/* Link Horizonal Offset & Starting Frame */}
                   <label className="text-xs">
@@ -830,7 +847,9 @@ export default function ControlPanel() {
               </div>
 
               <div className="flex flex-col">
-                <fieldset className="border-2 border-dark-blue pl-2 pr-2">
+                <fieldset 
+                disabled={waveType === "audio" ? true : false}
+                className={`border-2 border-dark-blue pl-2 pr-2 ${waveType === "audio" ? "opacity-50" : ""}`} >
                   <legend className="text-sm">SYNC RATE</legend>
                   {/*New Rythm Rate*/}
                   <div className="mb-2 flex flex-col-reverse flex-wrap justify-start text-center font-mono text-xs">
@@ -1280,7 +1299,7 @@ export default function ControlPanel() {
         </div>
 
         {/* Outputs */}
-        <div className="mt-1 flex grow flex-row items-center justify-start">
+        <div className="mt-1 flex w-max min-w-full grow flex-row items-center justify-start">
           {/* a button to copy keyframeOutput to the clipboard */}
 
           <div>
@@ -1318,11 +1337,10 @@ export default function ControlPanel() {
             </label>
             <label>
               <textarea
-                className="min-w-980px mb-2 flex h-96 w-max resize flex-row items-start justify-start border-2 border-dark-blue bg-darkest-blue font-mono"
+                className=" mb-2 flex h-96 resize flex-row items-start justify-start border-2 border-dark-blue bg-darkest-blue font-mono"
                 id="keyframeOutput"
                 onSelect={handleTextChange}
                 onCopy={copyHighlightedTextHandler}
-                cols={frameRate}
                 wrap="off"
                 value={yArray}
                 onChange={(e) => {

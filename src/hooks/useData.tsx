@@ -206,6 +206,7 @@ const makeSeries = (
     label: `${waveType}`,
     data: [...new Array(datums >= 1 ? Number(datums) : Number(datums = 1))].map((_, i) => {
       let t: number = i + Number(leftRightOffset);
+      let modt: number = i + Number(modMoveLeftRight);
       let ak = keyframes as number[];
       let y;
 
@@ -295,9 +296,9 @@ const makeSeries = (
               (y as number) *
               (Number(modAmp) *
                 Math.cos(
-                  ((Number(modTempo) / Number(modRhythmRate)) * Math.PI * t) /
-                    Number(modFrameRate) +
-                    Number(modMoveLeftRight)
+                  ((Number(modTempo) / Number(modRhythmRate)) * Math.PI * modt) /
+                    Number(modFrameRate)
+
                 ) **
                   Number(
                     `${
@@ -309,9 +310,8 @@ const makeSeries = (
               (y as number) *
               (Number(modAmp) *
                 Math.sin(
-                  ((Number(modTempo) / Number(modRhythmRate)) * Math.PI * t) /
-                    Number(modFrameRate) +
-                    Number(modMoveLeftRight)
+                  ((Number(modTempo) / Number(modRhythmRate)) * Math.PI * modt) /
+                    Number(modFrameRate)
                 ) **
                   Number(
                     `${

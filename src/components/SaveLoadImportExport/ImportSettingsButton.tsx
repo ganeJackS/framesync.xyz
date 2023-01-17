@@ -5,7 +5,7 @@ const ImportSettingsButton: React.FC = () => {
   const [fileInputRef, setFileInputRef] = useState<HTMLInputElement | null>(
     null
   );
-  const { settingsList, updateSettingFromList, saveSetting } = useSettingsStore(
+  const { userPresets, updateSettingFromList, saveSetting } = useSettingsStore(
     (state) => state
   );
 
@@ -17,20 +17,20 @@ const ImportSettingsButton: React.FC = () => {
         reader.onload = (e) => {
           if (e.target?.result) {
             const newSettingsList = JSON.parse(e.target.result as string);
-            newSettingsList.forEach((setting: { saveId: string | number }) => {
-              updateSettingFromList(setting.saveId);
-              saveSetting();
+            newSettingsList.forEach((setting: { saveId: string | number; saveName: string; }) => {
+              updateSettingFromList(setting.saveId, false);
+              saveSetting(setting.saveName);
             });
             localStorage.setItem(
               "settings_fs_list",
-              JSON.stringify([...settingsList, ...newSettingsList])
+              JSON.stringify([...newSettingsList])
             );
           }
         };
         reader.readAsText(selectedFile);
       }
     },
-    [updateSettingFromList, saveSetting, settingsList]
+    [updateSettingFromList, saveSetting]
   );
 
   const handleButtonClick = useCallback(() => {
@@ -48,7 +48,7 @@ const ImportSettingsButton: React.FC = () => {
         style={{ display: "none" }}
       />
       <button
-        className="ml-0 bg-gray-500 py-1 px-4 text-xs font-bold text-white hover:bg-gray-700"
+        className="ml-0 bg-gray-800 py-1 px-4 text-xs font-bold text-white hover:bg-gray-700"
         onClick={handleButtonClick}>
         Import Presets
       </button>

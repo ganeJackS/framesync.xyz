@@ -1,13 +1,10 @@
 import create from "zustand";
 import { produce } from "immer";
 import { immer } from "zustand/middleware/immer";
-import basics from "../presets/basics.json"
-
-
+import factory from "../presets/factory.json";
 
 export interface Settings {
   state: {
-    [key: string]: any;
     saveName: string;
     saveId: number | string;
     datums: number;
@@ -38,19 +35,18 @@ export interface Settings {
 }
 
 export type State = {
-  settingsList: Settings["state"][];
+  factoryPresets: Settings["state"][];
+  userPresets: Settings["state"][];
   settings: Settings["state"];
 };
 
 export type Actions = {
   updateSetting: (name: keyof Settings["state"], value: any) => void;
-  saveSetting: () => void;
-  updateSettingFromList: (id: number | string) => void;
-  refreshSettingsList: () => void;
+  saveSetting: (saveName: string) => void;
+  updateSettingFromList: ( id: number | string, isFactoryPreset: boolean) => void;
   deleteSetting: (id: number | string) => void;
   initializeSettings: () => void;
 };
-
 
 export const useSettingsStore = create(
   immer<State & Actions>((set, get) => ({
@@ -70,7 +66,7 @@ export const useSettingsStore = create(
       linkFrameOffset: false,
       noiseAmount: 0,
       modEnabled: false,
-      modAmp: 1.00,
+      modAmp: 1.0,
       modToggleSinCos: "cos",
       modTempo: 120,
       modRhythmRate: 1920,
@@ -82,31 +78,20 @@ export const useSettingsStore = create(
       keyframes: [],
       decimalPrecision: 2,
     },
-    settingsList: [JSON.parse(localStorage.getItem(`settings_fs_list`) || "[]")], 
-    // initialize settingsList from basics.json 
+    factoryPresets: factory as Settings["state"][],
+    userPresets: JSON.parse(localStorage.getItem(`settings_fs_list`) || "[]"),
+    // initialize settings from factory.json and localStorage
     initializeSettings: () => {
-      const settingsList = JSON.parse(
-        localStorage.getItem(`settings_fs_list`) || "[]"
-      );
       set(
         produce((draft) => {
-          draft.settingsList = settingsList;
+          draft.userPresets = JSON.parse(
+            localStorage.getItem(`settings_fs_list`) || "[]"
+          );
+          draft.factoryPresets = factory as Settings["state"][];
         })
       );
-      if (get().settingsList.length === 0) {
-        set(
-          produce((draft) => {
-            draft.settingsList = basics;
-          })
-        );
-        console.log(settingsList)
-        localStorage.setItem(
-          `settings_fs_list`,
-          JSON.stringify(get().settingsList)
-        );
-      }
     },
-    // update settings from settingsList
+    // update current settings
     updateSetting: (name: keyof Settings["state"], value: any) => {
       set(
         produce((draft) => {
@@ -114,72 +99,56 @@ export const useSettingsStore = create(
         })
       );
     },
-    saveSetting: () => {
-      // start settingsList from basics.json      
-      const settingsList = JSON.parse(
-        localStorage.getItem(`settings_fs_list`) || "[]"
-      );
+    // save current settings as a new preset with a unique id and user inputted name
+    saveSetting: (saveName: string) => {
+      const newId = Date.now();
       set(
         produce((draft) => {
-          draft.settingsList = settingsList;
-        })
-      );  
-      const id = Date.now().toString();
-      set(
-        produce((draft) => {
-          draft.settings.saveId = id;
-          draft.settingsList.push(draft.settings);
+          draft.settings.saveName = saveName;
+          draft.settings.saveId = newId;
+          draft.userPresets.push({ ...draft.settings, saveId: newId });
         })
       );
-      get().settings.saveId;
-      // get the settingsList from localStorage
       localStorage.setItem(
         `settings_fs_list`,
-        JSON.stringify(get().settingsList)
+        JSON.stringify(get().userPresets)
       );
     },
-    // update the settings from the settingsList
-    updateSettingFromList: (id: number | string) => {
-      const settings = get().settingsList.find(
-        (setting) => setting.saveId === id
-      );
-      if (settings) {
-        Object.keys(settings).forEach((key) => {
-          if (get().settings[key] !== settings[key]) {
-            set(
-              produce((draft) => {
-                draft.settings[key] = settings[key];
-              })
-            );
-          }
-        });
+    // update current settings from factory or user presets
+    updateSettingFromList: (id: number | string, isFactoryPreset: boolean) => {
+      if (isFactoryPreset) {
+        const selectedPreset = get().factoryPresets.find(
+          (preset) => preset.saveId === id
+        );
+        set(
+          produce((draft) => {
+            draft.settings = selectedPreset;
+          })
+        );
+      } else {
+        const selectedPreset = get().userPresets.find(
+          (preset) => preset.saveId === id
+        );
+        set(
+          produce((draft) => {
+            draft.settings = selectedPreset;
+          })
+        );
       }
     },
-    // refresh the settingsList from localStorage
-    refreshSettingsList: () => {  
-      const settingsList = JSON.parse(
-        localStorage.getItem(`settings_fs_list`) || "[]"
-      );
-      set(
-        produce((draft) => {
-          draft.settingsList = settingsList;
-        })
-      );
-    },
-    // delete a setting from the settingsList
+    // delete user preset from userPresets and localStorage
     deleteSetting: (id: number | string) => {
-      const settingsList = get().settingsList.filter(
-        (setting) => setting.saveId !== id
-      );
       set(
         produce((draft) => {
-          draft.settingsList = settingsList;
+          const index = draft.userPresets.findIndex((setting: { saveId: string | number; }) => setting.saveId === id);
+          draft.userPresets.splice(index, 1);
+          if (draft.settings.saveId === id) {
+            draft.settings = draft.factoryPresets[0];
+          }
         })
       );
-      localStorage.setItem(
-        `settings_fs_list`,
-        JSON.stringify(get().settingsList)
-      );
+      // remove from local storage
+      localStorage.setItem(`settings_fs_list`, JSON.stringify(get().userPresets));
     },
   }))
 );
