@@ -235,6 +235,9 @@ export default function ControlPanel() {
   const yArrayRaw = data[0].data.map((datum: { secondary: any }) => {
     return datum.secondary?.toFixed(decimalPrecision);
   });
+  const primaryWaveArray = data[0].data.map((datum: {primaryWave: number}) => {
+    return datum.primaryWave?.toFixed(decimalPrecision);
+  });
 
   const yArraySum = yArrayRaw.reduce(
     (accumulator: number, currentValue: number) =>
@@ -250,6 +253,10 @@ export default function ControlPanel() {
   const yArrayMin = Math.min(...(yArrayRaw as number[]));
   const yArrayMax = Math.max(...(yArrayRaw as number[]));
 
+  const primaryWaveMax = Math.max(...(primaryWaveArray as unknown as number[]));
+  const primaryWaveMin = Math.min(...(primaryWaveArray as unknown as number[]));
+
+
   let currentFormula = `(${amplitude} * ${
     toggleSinCos === "cos" ? "cos" : "sin"
   }((${tempo} / ${rhythmRate} * 3.141 * (t + ${leftRightOffset}) / ${frameRate} ))**${bend} + ${upDownOffset})`;
@@ -263,8 +270,9 @@ export default function ControlPanel() {
   } else if (waveType === "bumpdip") {
     currentFormula = `(${amplitude} * ${ toggleSinCos === "cos" ? "cos" : "sin" }((${tempo} / ${rhythmRate} * 3.141 * (t + ${leftRightOffset}) / ${frameRate}))**${bend}0 + ${upDownOffset})`;
   } else if (waveType === "square") {
-    currentFormula = `where((${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin" }((${tempo} / ${rhythmRate} * 3.141 * (t + ${leftRightOffset}) / ${frameRate}))**${bend} + ${upDownOffset})>=0, ${Number(amplitude) + Number(upDownOffset)}, ${(Number(amplitude) - Number(upDownOffset)).toFixed(decimalPrecision)} * -1)`;
+    currentFormula = `where((${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin" }((${tempo} / ${rhythmRate} * 3.141 * (t + ${leftRightOffset}) / ${frameRate}))**${bend} + ${upDownOffset})>=${upDownOffset}, ${primaryWaveMax}, ${primaryWaveMin})`
   }
+
 
   const currentFormulaMod = `(${modAmp} * ${
     modToggleSinCos === "cos" ? "cos" : "sin"

@@ -282,6 +282,8 @@ const makeSeries = (
         y = Number(amplitude) * Number(ak[t]) ** Number(bend) + Number(upDownOffset);
       }
 
+      const primaryWaveY = y;
+
       if ((y as number) > 0) {
         y = (y as number) + Math.random() * Number(noiseAmount);
       } else if ((y as number) < 0) {
@@ -327,6 +329,7 @@ const makeSeries = (
       return {
         primary: linkFrameOffset === true ? t : t - Number(leftRightOffset),
         secondary: y,
+        primaryWave: Number(primaryWaveY),
       };
     }),
   };
