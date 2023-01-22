@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSettingsStore } from "../../stores/settingsStore";
-import redxdeletesvg from "../../assets/redxdelete.svg";
+import redxdelete from "../../assets/redxdelete.svg";
 import ShowHideToggle from "../ShowHideToggle";
 
 const SettingsSelector = () => {
@@ -23,6 +23,7 @@ const SettingsSelector = () => {
   ]);
   const [selectedSettingId, setSelectedSettingId] = useState(settings.saveId);
   const [showDelete, setShowDelete] = useState(false);
+  const [filterValue, setFilterValue] = useState("");
 
   useEffect(() => {
     initializeSettings();
@@ -42,9 +43,22 @@ const SettingsSelector = () => {
     deleteSetting(id);
   };
 
+  const handleFilterChange = (e: {
+    target: { value: React.SetStateAction<string> };
+  }) => {
+    setFilterValue(e.target.value);
+  };
+
+  const filteredFactoryPresets = factoryPresets.filter((preset) =>
+    preset.saveName.toLowerCase().includes(filterValue.toLowerCase())
+  );
+  const filteredUserPresets = userPresets.filter((preset) =>
+    preset.saveName.toLowerCase().includes(filterValue.toLowerCase())
+  );
+
   return (
     <>
-      <fieldset className="flex flex-col border border-dark-blue h-96">
+      <fieldset className="flex h-96 flex-col border border-dark-blue">
         <legend className="flex flex-row justify-between text-sm">
           Select Preset
           <button
@@ -53,12 +67,18 @@ const SettingsSelector = () => {
             Edit
           </button>
         </legend>
-        <div className="pt-2 overflow-y-auto">
+        <input
+          className="ml-1 w-10/12 border border-dark-blue bg-darkest-blue pl-1 pt-1 text-sm text-orange-600 outline-none"
+          type="text"
+          placeholder="Filter Presets"
+          onChange={handleFilterChange}
+        />
+        <div className="overflow-y-auto pt-2">
           <div className="flex flex-auto justify-end"></div>
           <ul className="text-md flex h-full flex-col justify-between">
             {/* Factory Presets */}
             <ShowHideToggle label="Factory Presets">
-              {factoryPresets.map((preset) => (
+              {filteredFactoryPresets.map((preset) => (
                 <li
                   className={`flex flex-auto cursor-pointer justify-between  bg-darkest-blue pl-2 hover:bg-darker-blue ${
                     preset.saveId === selectedSettingId
@@ -73,7 +93,7 @@ const SettingsSelector = () => {
             </ShowHideToggle>
             {/* Custom Presets */}
             <ShowHideToggle label="User Presets">
-              {userPresets.map((setting) => (
+              {filteredUserPresets.map((setting) => (
                 <div
                   className="flex flex-row justify-between"
                   key={setting.saveId}>
@@ -90,7 +110,7 @@ const SettingsSelector = () => {
                     <button
                       className="border-dark-blue bg-red-500 px-2 hover:bg-red-900"
                       onClick={() => handleDelete(setting.saveId)}>
-                      <img src={redxdeletesvg} alt="delete" width={20} />
+                      <img src={redxdelete} alt="delete" />
                     </button>
                   )}
                 </div>

@@ -305,11 +305,11 @@ const makeSeries = (
 
       Number.isNaN(y) ? (y = upDownOffset) : (y = y);
       
-      if ((y as number) > Number(hardMax)) {
-        y = Number(hardMax);
-      } else if ((y as number) < Number(hardMin)) {
-        y = Number(hardMin);
-      }
+      // if ((y as number) > Number(hardMax)) {
+      //   y = Number(hardMax);
+      // } else if ((y as number) < Number(hardMin)) {
+      //   y = Number(hardMin);
+      // }
 
       //y = y - 0;
 
