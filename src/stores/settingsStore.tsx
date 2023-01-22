@@ -31,6 +31,9 @@ export interface Settings {
     modMoveUpDown: number;
     keyframes: any[];
     decimalPrecision: number;
+    hardMax: number;
+    hardMin: number;
+    channelProcess: 'mono' | 'stereo' | 'stereoNegative';
   };
 }
 
@@ -38,6 +41,11 @@ export type State = {
   factoryPresets: Settings["state"][];
   userPresets: Settings["state"][];
   settings: Settings["state"];
+  locks: {
+    lockDatumCount: boolean;
+    lockTempo: boolean;
+    lockFrameRate: boolean;
+  };
 };
 
 export type Actions = {
@@ -46,6 +54,7 @@ export type Actions = {
   updateSettingFromList: ( id: number | string, isFactoryPreset: boolean) => void;
   deleteSetting: (id: number | string) => void;
   initializeSettings: () => void;
+  updateLock: (name: keyof State["locks"], value: boolean) => void;
 };
 
 export const useSettingsStore = create(
@@ -77,8 +86,16 @@ export const useSettingsStore = create(
       modMoveUpDown: 0,
       keyframes: [],
       decimalPrecision: 2,
+      hardMax: 100,
+      hardMin: -100,
+      channelProcess: "mono",
     },
-    factoryPresets: factory as Settings["state"][],
+    locks: {
+      lockDatumCount: false,
+      lockTempo: false,
+      lockFrameRate: false,
+    },
+    factoryPresets: factory as unknown as Settings["state"][],
     userPresets: JSON.parse(localStorage.getItem(`settings_fs_list`) || "[]"),
     // initialize settings from factory.json and localStorage
     initializeSettings: () => {
@@ -87,7 +104,7 @@ export const useSettingsStore = create(
           draft.userPresets = JSON.parse(
             localStorage.getItem(`settings_fs_list`) || "[]"
           );
-          draft.factoryPresets = factory as Settings["state"][];
+          draft.factoryPresets = factory as unknown as Settings["state"][];
         })
       );
     },
@@ -116,25 +133,240 @@ export const useSettingsStore = create(
     },
     // update current settings from factory or user presets
     updateSettingFromList: (id: number | string, isFactoryPreset: boolean) => {
-      if (isFactoryPreset) {
-        const selectedPreset = get().factoryPresets.find(
-          (preset) => preset.saveId === id
-        );
+
+      // if lockDatumCount is true, keep the current datum count and don't update it from the preset, but update the rest of the settings
+      // or if lockTempo is true, keep the current tempo and don't update it from the preset, but update the rest of the settings
+      // or if lockFrameRate is true, keep the current frameRate and don't update it from the preset, but update the rest of the settings
+      // if lockDatumCount, lockTempo, and lockFrameRate are all false, update all settings from the preset
+
+      if (get().locks.lockDatumCount) {
         set(
           produce((draft) => {
-            draft.settings = selectedPreset;
+            if (isFactoryPreset) {
+              const selectedPreset = get().factoryPresets.find(
+                (preset) => preset.saveId === id
+              );
+              draft.settings = {
+                ...draft.settings,
+                ...selectedPreset,
+                datums: draft.settings.datums,
+                tempo: draft.settings.tempo,
+                frameRate: draft.settings.frameRate,
+              };
+            } else {
+              const selectedPreset = get().userPresets.find(
+                (preset) => preset.saveId === id
+              );
+              draft.settings = {
+                ...draft.settings,
+                ...selectedPreset,
+                datums: draft.settings.datums,
+                tempo: draft.settings.tempo,
+                frameRate: draft.settings.frameRate,
+              };
+            }
+          })
+        );
+      } else if (get().locks.lockTempo) {
+        set(
+          produce((draft) => {
+            if (isFactoryPreset) {
+              const selectedPreset = get().factoryPresets.find(
+                (preset) => preset.saveId === id
+              );
+              draft.settings = {
+                ...draft.settings,
+                ...selectedPreset,
+                datums: draft.settings.datums,
+                tempo: draft.settings.tempo,
+                frameRate: draft.settings.frameRate,
+              };
+            } else {
+              const selectedPreset = get().userPresets.find(
+                (preset) => preset.saveId === id
+              );
+              draft.settings = {
+                ...draft.settings,
+                ...selectedPreset,
+                datums: draft.settings.datums,
+                tempo: draft.settings.tempo,
+                frameRate: draft.settings.frameRate,
+              };
+            }
+          })
+        );
+      } else if (get().locks.lockFrameRate) {
+        set(
+          produce((draft) => {
+            if (isFactoryPreset) {
+              const selectedPreset = get().factoryPresets.find(
+                (preset) => preset.saveId === id
+              );
+              draft.settings = {
+                ...draft.settings,
+                ...selectedPreset,
+                datums: draft.settings.datums,
+                tempo: draft.settings.tempo,
+                frameRate: draft.settings.frameRate,
+              };
+            } else {
+              const selectedPreset = get().userPresets.find(
+                (preset) => preset.saveId === id
+              );
+              draft.settings = {
+                ...draft.settings,
+                ...selectedPreset,
+                datums: draft.settings.datums,
+                tempo: draft.settings.tempo,
+                frameRate: draft.settings.frameRate,
+              };
+            }
           })
         );
       } else {
-        const selectedPreset = get().userPresets.find(
-          (preset) => preset.saveId === id
-        );
         set(
           produce((draft) => {
-            draft.settings = selectedPreset;
+            if (isFactoryPreset) {
+              const selectedPreset = get().factoryPresets.find(
+                (preset) => preset.saveId === id
+              );
+              draft.settings = {
+                ...draft.settings,
+                ...selectedPreset,
+              };
+            }
+            if (!isFactoryPreset) {
+              const selectedPreset = get().userPresets.find(
+                (preset) => preset.saveId === id
+              );
+              draft.settings = {
+                ...draft.settings,
+                ...selectedPreset,
+              };
+            }
           })
         );
       }
+          
+
+
+      // if (get().settings.lockDatumCount) {
+      //   set(
+      //     produce((draft) => {
+      //       if (isFactoryPreset) {
+      //         const selectedPreset = get().factoryPresets.find(
+      //           (preset) => preset.saveId === id
+      //         );
+      //         draft.settings = {
+      //           ...draft.settings,
+      //           ...selectedPreset,
+      //           datums: draft.settings.datums,
+      //           tempo: draft.settings.tempo,
+      //           frameRate: draft.settings.frameRate,
+      //         };
+      //       } else {
+      //         const selectedPreset = get().userPresets.find(
+      //           (preset) => preset.saveId === id
+      //         );
+      //         draft.settings = {
+      //           ...draft.settings,
+      //           ...selectedPreset,
+      //           datums: draft.settings.datums,
+      //           tempo: draft.settings.tempo,
+      //           frameRate: draft.settings.frameRate,
+      //         };
+      //       }
+      //     })
+      //   );
+      // } else if (get().settings.lockTempo) {
+      //   set(
+      //     produce((draft) => {
+      //       if (isFactoryPreset) {
+      //         const selectedPreset = get().factoryPresets.find(
+      //           (preset) => preset.saveId === id
+      //         );
+      //         draft.settings = {
+      //           ...draft.settings,
+      //           ...selectedPreset,
+      //           datums: draft.settings.datums,
+      //           tempo: draft.settings.tempo,
+      //           frameRate: draft.settings.frameRate,
+      //         };
+      //       } else {
+      //         const selectedPreset = get().userPresets.find(
+      //           (preset) => preset.saveId === id
+      //         );
+      //         draft.settings = {
+      //           ...draft.settings,
+      //           ...selectedPreset,
+      //           datums: draft.settings.datums,
+      //           tempo: draft.settings.tempo,
+      //           frameRate: draft.settings.frameRate,
+      //         };
+      //       }
+      //     })
+      //   );
+      // }
+      // else if (get().settings.lockFrameRate) {
+      //   set(
+      //     produce((draft) => {
+      //       if (isFactoryPreset) {
+      //         const selectedPreset = get().factoryPresets.find(
+      //           (preset) => preset.saveId === id
+      //         );
+      //         draft.settings = {
+      //           ...draft.settings,
+      //           ...selectedPreset,
+      //           datums: draft.settings.datums,
+      //           tempo: draft.settings.tempo,
+      //           frameRate: draft.settings.frameRate,
+      //         };
+      //       } else {
+      //         const selectedPreset = get().userPresets.find(
+      //           (preset) => preset.saveId === id
+      //         );
+      //         draft.settings = {
+      //           ...draft.settings,
+      //           ...selectedPreset,
+      //           datums: draft.settings.datums,
+      //           tempo: draft.settings.tempo,
+      //           frameRate: draft.settings.frameRate,
+      //         };
+      //       }
+      //     })
+      //   );
+      // }
+      // else {
+      //   set(
+      //     produce((draft) => {
+      //       if (isFactoryPreset) {
+      //         const selectedPreset = get().factoryPresets.find(
+      //           (preset) => preset.saveId === id
+      //         );
+      //         draft.settings = {
+      //           ...draft.settings,
+      //           ...selectedPreset,
+      //         };
+      //       } else {
+      //         const selectedPreset = get().userPresets.find(
+      //           (preset) => preset.saveId === id
+      //         );
+      //         draft.settings = {
+      //           ...draft.settings,
+      //           ...selectedPreset,
+      //         };
+      //       }
+      //     })
+      //   );
+      // }
+    },
+    // update lock
+    updateLock: (lock: string) => {
+      set(
+        produce((draft) => {
+          draft.locks[lock] = !draft.locks[lock];
+        })
+      );
     },
     // delete user preset from userPresets and localStorage
     deleteSetting: (id: number | string) => {

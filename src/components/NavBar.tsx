@@ -1,6 +1,5 @@
 import framesync from "../assets/framesync.svg";
 
-// navbar component that will be used in the app
 const NavBar = () => {
   return (
     <div className="flex flex-col justify-center  bg-darkest-blue pt-4 pl-6 pb-2">

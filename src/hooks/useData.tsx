@@ -6,55 +6,11 @@ import useAudio2Keyframes from "./useAudio2Keyframes";
 
 import { Settings, State } from "../stores/settingsStore";
 
-export default function useData({
-  // datums,
-  // tempo,
-  // frameRate,
-  // amplitude,
-  // upDownOffset,
-  // leftRightOffset,
-  // rhythmRate,
-  // waveType,
-  // bend,
-  // toggleSinCos,
-  // linkFrameOffset,
-  // noiseAmount,
-  // modEnabled,
-  // modAmp,
-  // modToggleSinCos,
-  // modTempo,
-  // modRhythmRate,
-  // modFrameRate,
-  // modBend,
-  // modMoveLeftRight,
-  // modMoveUpDown,
-}: {
-  // datums: number;
-  // tempo: number;
-  // frameRate: number;
-  // amplitude: number;
-  // upDownOffset: number;
-  // leftRightOffset: number;
-  // rhythmRate: number;
-  // waveType: string;
-  // bend: number;
-  // toggleSinCos: string;
-  // linkFrameOffset: boolean;
-  // noiseAmount: number;
-  // modEnabled: boolean;
-  // modAmp: number;
-  // modToggleSinCos: string;
-  // modTempo: number;
-  // modRhythmRate: number;
-  // modFrameRate: number;
-  // modBend: number;
-  // modMoveLeftRight: number;
-  // modMoveUpDown: number;
-}) {
-  
-  const [settings, updateSetting] = useSettingsStore(
-    (state) => [state.settings, state.updateSetting],
-  );
+export default function useData({}: {}) {
+  const [settings, updateSetting] = useSettingsStore((state) => [
+    state.settings,
+    state.updateSetting,
+  ]);
 
   const {
     datums,
@@ -78,6 +34,9 @@ export default function useData({
     modBend,
     modMoveLeftRight,
     modMoveUpDown,
+    hardMax,
+    hardMin,
+    channelProcess,
   } = settings;
 
   const [audioBuffer, setAudioBuffer] = useAudioBufferStore((state) => [
@@ -85,7 +44,7 @@ export default function useData({
     state.setAudioBuffer,
   ]);
 
-  const keyframes = useAudio2Keyframes(audioBuffer as AudioBuffer, frameRate);
+  const keyframes = useAudio2Keyframes(audioBuffer as AudioBuffer, frameRate, channelProcess);
 
   const data = makeDataFrom(
     datums,
@@ -110,6 +69,8 @@ export default function useData({
     modMoveUpDown,
     modMoveLeftRight,
     keyframes,
+    hardMax,
+    hardMin,
   );
 
   return data;
@@ -139,7 +100,9 @@ const makeDataFrom = (
   modBend?: number,
   modMoveLeftRight?: number,
   modMoveUpDown?: number,
-  keyframes?: number[]
+  keyframes?: number[],
+  hardMax?: number,
+  hardMin?: number,
 ) => {
   return [...new Array(series)].map((d, i) =>
     makeSeries(
@@ -164,7 +127,9 @@ const makeDataFrom = (
       modBend,
       modMoveUpDown,
       modMoveLeftRight,
-      keyframes
+      keyframes,
+      hardMax,
+      hardMin,
     )
   );
 };
@@ -191,7 +156,9 @@ const makeSeries = (
   modBend?: number,
   modMoveLeftRight?: number,
   modMoveUpDown?: number,
-  keyframes?: number[]
+  keyframes?: number[],
+  hardMax?: number,
+  hardMin?: number,
 ) => {
   //let length: number = Number(datums);
   let audioKeyframesLength: number = keyframes?.length as number;
@@ -200,11 +167,11 @@ const makeSeries = (
     ? (length = audioKeyframesLength - 1 - leftRightOffset)
     : (length = datums);
 
-
-
   return {
     label: `${waveType}`,
-    data: [...new Array(datums >= 1 ? Number(datums) : Number(datums = 1))].map((_, i) => {
+    data: [
+      ...new Array(datums >= 1 ? Number(datums) : Number((datums = 1))),
+    ].map((_, i) => {
       let t: number = i + Number(leftRightOffset);
       let modt: number = i + Number(modMoveLeftRight);
       let ak = keyframes as number[];
@@ -275,14 +242,16 @@ const makeSeries = (
               Number(upDownOffset))
           : (y =
               amplitude *
-                Math.sin(((tempo / rhythmRate) * Math.PI * i) / frameRate) **
+                Math.sin(((tempo / rhythmRate) * Math.PI * t) / frameRate) **
                   Number(`${bend}0`) +
               Number(upDownOffset));
       } else if (waveType === "audio") {
-        y = Number(amplitude) * Number(ak[t]) ** Number(bend) + Number(upDownOffset);
+        y =
+          Number(amplitude) * Number(ak[t]) ** Number(bend) +
+          Number(upDownOffset);
       }
 
-      const primaryWaveY = y;
+      const primaryWaveY = Number(y);
 
       if ((y as number) > 0) {
         y = (y as number) + Math.random() * Number(noiseAmount);
@@ -295,12 +264,11 @@ const makeSeries = (
       } else {
         modToggleSinCos === "cos"
           ? (y =
-              (y as number) *
+              (y as number) +
               (Number(modAmp) *
                 Math.cos(
-                  ((Number(modTempo) / Number(modRhythmRate)) * Math.PI * modt) /
-                    Number(modFrameRate)
-
+                  ((Number(tempo) / Number(modRhythmRate)) * Math.PI * modt) /
+                    Number(frameRate)
                 ) **
                   Number(
                     `${
@@ -312,8 +280,8 @@ const makeSeries = (
               (y as number) *
               (Number(modAmp) *
                 Math.sin(
-                  ((Number(modTempo) / Number(modRhythmRate)) * Math.PI * modt) /
-                    Number(modFrameRate)
+                  ((Number(tempo) / Number(modRhythmRate)) * Math.PI * modt) /
+                    Number(frameRate)
                 ) **
                   Number(
                     `${
@@ -323,12 +291,31 @@ const makeSeries = (
                 Number(modMoveUpDown)));
       }
 
-      Number.isNaN(y) ? (y = 1) : (y = y);
 
+      // let scalingFactor;
+      // if (y > hardMax) {
+      //   scalingFactor = hardMax / y;
+      // } else if (y < hardMin) {
+      //   scalingFactor = hardMin / y;
+      // } else {
+      //   scalingFactor = 1;
+      // }
+
+      // y = y * scalingFactor;
+
+      Number.isNaN(y) ? (y = upDownOffset) : (y = y);
+      
+      if ((y as number) > Number(hardMax)) {
+        y = Number(hardMax);
+      } else if ((y as number) < Number(hardMin)) {
+        y = Number(hardMin);
+      }
+
+      //y = y - 0;
 
       return {
         primary: linkFrameOffset === true ? t : t - Number(leftRightOffset),
-        secondary: y,
+        secondary: Number(y),
         primaryWave: Number(primaryWaveY),
       };
     }),

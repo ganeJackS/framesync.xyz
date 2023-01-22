@@ -36,7 +36,6 @@ export const SaveSettings = () => {
   } = settings;
 
   const handleSave = () => {
-    // throw error if saveName is empty
     if (saveName === "") {
       saveName = `${waveType}-${tempo}bpm-${frameRate}fps-${amplitude}amp`
     }

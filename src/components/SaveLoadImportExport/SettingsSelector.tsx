@@ -44,7 +44,7 @@ const SettingsSelector = () => {
 
   return (
     <>
-      <fieldset className="w-240px flex flex-col border border-dark-blue">
+      <fieldset className="flex flex-col border border-dark-blue h-96">
         <legend className="flex flex-row justify-between text-sm">
           Select Preset
           <button
@@ -53,7 +53,7 @@ const SettingsSelector = () => {
             Edit
           </button>
         </legend>
-        <div className="h-450 pt-2">
+        <div className="pt-2 overflow-y-auto">
           <div className="flex flex-auto justify-end"></div>
           <ul className="text-md flex h-full flex-col justify-between">
             {/* Factory Presets */}
@@ -74,9 +74,9 @@ const SettingsSelector = () => {
             {/* Custom Presets */}
             <ShowHideToggle label="User Presets">
               {userPresets.map((setting) => (
-                <div 
-                className="flex flex-row justify-between"
-                key={setting.saveId}>
+                <div
+                  className="flex flex-row justify-between"
+                  key={setting.saveId}>
                   <li
                     className={`flex flex-auto cursor-pointer justify-between  bg-darkest-blue pl-2 hover:bg-darker-blue ${
                       setting.saveId === selectedSettingId

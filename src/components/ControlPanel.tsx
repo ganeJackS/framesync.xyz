@@ -7,7 +7,14 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { AxisOptions, Chart, ChartOptions, Datum } from "react-charts";
+import {
+  AxisOptions,
+  Chart,
+  ChartOptions,
+  Datum,
+  GridDimensions,
+  AxisOptionsWithScaleType,
+} from "react-charts";
 import NumberInput from "./NumberInput";
 import sinusoid from "../assets/sinusoid.svg";
 import saw from "../assets/saw.svg";
@@ -20,7 +27,7 @@ import CopyToast from "./CopyToast";
 import shallow from "zustand/shallow";
 
 import useAudioBufferStore from "../stores/audioBufferStore";
-import { Settings, useSettingsStore } from "../stores/settingsStore";
+import { Settings, State, useSettingsStore } from "../stores/settingsStore";
 import useData from "../hooks/useData";
 import SelectToggle from "./SelectToggle";
 import KeyframeTable from "./KeyframeTable";
@@ -30,13 +37,23 @@ import ExportSettingsButton from "./SaveLoadImportExport/ExportSettingsButton";
 import ImportSettingsButton from "./SaveLoadImportExport/ImportSettingsButton";
 
 export default function ControlPanel() {
-  const [settings, factoryPresets, userPresets, updateSetting] =
-    useSettingsStore((state) => [
-      state.settings,
-      state.factoryPresets,
-      state.userPresets,
-      state.updateSetting,
-    ]);
+  const [
+    settings,
+    locks,
+    factoryPresets,
+    userPresets,
+    updateSetting,
+    updateSettingFromList,
+    updateLock,
+  ] = useSettingsStore((state) => [
+    state.settings,
+    state.locks,
+    state.factoryPresets,
+    state.userPresets,
+    state.updateSetting,
+    state.updateSettingFromList,
+    state.updateLock,
+  ]);
 
   const {
     saveName,
@@ -64,7 +81,12 @@ export default function ControlPanel() {
     modMoveUpDown,
     keyframes,
     decimalPrecision,
+    hardMax,
+    hardMin,
+    channelProcess,
   } = settings;
+
+  const { lockDatumCount, lockTempo, lockFrameRate } = locks;
 
   const [
     {
@@ -86,7 +108,7 @@ export default function ControlPanel() {
     boxWidth: 0,
   });
 
-  const data = useData({
+  const rawData = useData({
     datums,
     tempo,
     frameRate,
@@ -111,6 +133,8 @@ export default function ControlPanel() {
     keyframes,
   });
 
+  const data = structuredClone(rawData);
+
   const [chartType, setChartType] = React.useState("line");
   const [highlightedText, setHighlightedText] = React.useState("");
   const [primaryCursorValue, setPrimaryCursorValue] = React.useState();
@@ -126,6 +150,12 @@ export default function ControlPanel() {
     updateSetting(
       event?.target?.name as keyof Settings["state"],
       event?.target?.value
+    );
+  }
+  function handleLockUpdate(event: React.ChangeEvent<HTMLInputElement>) {
+    updateLock(
+      event?.target?.name as keyof State["locks"],
+      event?.target?.checked
     );
   }
 
@@ -153,36 +183,26 @@ export default function ControlPanel() {
     fileReader.readAsArrayBuffer(file);
   };
 
-  // const ticksOnXAxis = document.querySelectorAll(
-  //   "#root > div:nth-child(2) > div > div > div > div > div > svg > g.axes > g:nth-child(1) > g.Axis-Group.inner > g > g.domainAndTicks > g > text"
-  // );
-
-  // const linesOnXAxis = document.querySelectorAll(
-  // "#root > div:nth-child(2) > div > div > div > div > div > svg > g.axes > g:nth-child(1) > g.Axis-Group.inner > g > g.grid > g:nth-child(6)"
-  // );
-
-  // ticksOnXAxis.forEach((tick) => {
-  //   if (Number(tick.textContent) % frameRate === 0) {
-  //     tick.classList.add('tick-highlight');
-  //     tick.classList.remove('tick-hide');
-  //   } else {
-  //     tick.classList.add('tick-hide');
-  //     tick.classList.remove('tick-highlight');
-
-  //   }
-  // });
-
   const primaryAxis = React.useMemo<
-    AxisOptions<(typeof data)[number]["data"][number]>
+    AxisOptionsWithScaleType<(typeof data)[number]["data"][number]>
   >(
     () => ({
       getValue: (datum) => Number(datum.primary),
       primaryAxisId: "primary",
+      showDatumElements: true,
       show: showAxes,
       primary: true,
       dataType: "linear",
       scaleType: "linear",
+      minDomainLength: 1,
+      tickCount: 48,
       // tickRotation: datums < 100 ? 0 : 45,
+      styles: {
+        tick: {
+          fill: "red",
+          stroke: "red",
+        },
+      },
     }),
     [showAxes]
   );
@@ -218,26 +238,30 @@ export default function ControlPanel() {
     );
   }
 
-  const yArray = data[0].data.map((datum, i) => {
-    return `${Number(datum.primary) % frameRate === 0 ? "\r\n" : ""}${
-      Number(datum.primary) <= 9 ? "  " : ""
-    }${Number(datum.secondary) < 0 ? "" : " "}${
-      Number(datum.secondary).toFixed(decimalPrecision) === "-0.00" ? " " : ""
-    }${datum.primary >= 10 ? " " : ""}${datum.primary <= 99 ? " " : ""}${
-      linkFrameOffset == true ? i + Number(leftRightOffset) : i
-    }:${Math.sign(Number(datum.secondary)) === 1 || -1 ? "" : ""}${
-      Math.sign(Number(datum.secondary)) === -1 ? "" : ""
-    }(${Number(datum.secondary)
-      .toFixed(decimalPrecision)
-      .replace("-0.00", "0.00")})`;
-  });
+  const yArray = data[0].data.map(
+    (datum: { primary: number; secondary: any }, i: number) => {
+      return `${Number(datum.primary) % frameRate === 0 ? "\r\n" : ""}${
+        Number(datum.primary) <= 9 ? "  " : ""
+      }${Number(datum.secondary) < 0 ? "" : " "}${
+        Number(datum.secondary).toFixed(decimalPrecision) === "-0.00" ? " " : ""
+      }${datum.primary >= 10 ? " " : ""}${datum.primary <= 99 ? " " : ""}${
+        linkFrameOffset == true ? i + Number(leftRightOffset) : i
+      }:${Math.sign(Number(datum.secondary)) === 1 || -1 ? "" : ""}${
+        Math.sign(Number(datum.secondary)) === -1 ? "" : ""
+      }(${Number(datum.secondary)
+        .toFixed(decimalPrecision)
+        .replace("-0.00", "0.00")})`;
+    }
+  );
 
   const yArrayRaw = data[0].data.map((datum: { secondary: any }) => {
     return datum.secondary?.toFixed(decimalPrecision);
   });
-  const primaryWaveArray = data[0].data.map((datum: {primaryWave: number}) => {
-    return datum.primaryWave?.toFixed(decimalPrecision);
-  });
+  const primaryWaveArray = data[0].data.map(
+    (datum: { primaryWave: number }) => {
+      return datum.primaryWave?.toFixed(decimalPrecision);
+    }
+  );
 
   const yArraySum = yArrayRaw.reduce(
     (accumulator: number, currentValue: number) =>
@@ -256,29 +280,39 @@ export default function ControlPanel() {
   const primaryWaveMax = Math.max(...(primaryWaveArray as unknown as number[]));
   const primaryWaveMin = Math.min(...(primaryWaveArray as unknown as number[]));
 
-
   let currentFormula = `(${amplitude} * ${
     toggleSinCos === "cos" ? "cos" : "sin"
   }((${tempo} / ${rhythmRate} * 3.141 * (t + ${leftRightOffset}) / ${frameRate} ))**${bend} + ${upDownOffset})`;
 
   if (waveType === "sinusoid") {
-    currentFormula = `(${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin" }((${tempo} / ${rhythmRate} * 3.141 * (t + ${leftRightOffset}) / ${frameRate}))**${bend} + ${upDownOffset})`;
+    currentFormula = `(${amplitude} * ${
+      toggleSinCos === "cos" ? "cos" : "sin"
+    }((${tempo} / ${rhythmRate} * 3.141 * (t + ${leftRightOffset}) / ${frameRate}))**${bend} + ${upDownOffset})`;
   } else if (waveType === "saw") {
     currentFormula = `(-(2 * ${amplitude} / 3.141) * arctan((1 * ${bend} + 1) / tan(((t  + ${leftRightOffset}) * 3.141 * ${tempo} / ${rhythmRate} / ${frameRate}))) + ${upDownOffset})`;
   } else if (waveType === "triangle") {
-    currentFormula = `((2 * ${amplitude} / 3.141) * arcsin(${ toggleSinCos === "cos" ? "cos" : "sin" }(${tempo} / ${rhythmRate} * 3.141 * (t + ${leftRightOffset}) / ${frameRate})**${bend}) + ${upDownOffset})`;
+    currentFormula = `((2 * ${amplitude} / 3.141) * arcsin(${
+      toggleSinCos === "cos" ? "cos" : "sin"
+    }(${tempo} / ${rhythmRate} * 3.141 * (t + ${leftRightOffset}) / ${frameRate})**${bend}) + ${upDownOffset})`;
   } else if (waveType === "bumpdip") {
-    currentFormula = `(${amplitude} * ${ toggleSinCos === "cos" ? "cos" : "sin" }((${tempo} / ${rhythmRate} * 3.141 * (t + ${leftRightOffset}) / ${frameRate}))**${bend}0 + ${upDownOffset})`;
+    currentFormula = `(${amplitude} * ${
+      toggleSinCos === "cos" ? "cos" : "sin"
+    }((${tempo} / ${rhythmRate} * 3.141 * (t + ${leftRightOffset}) / ${frameRate}))**${bend}0 + ${upDownOffset})`;
   } else if (waveType === "square") {
-    currentFormula = `where((${amplitude} * ${toggleSinCos === "cos" ? "cos" : "sin" }((${tempo} / ${rhythmRate} * 3.141 * (t + ${leftRightOffset}) / ${frameRate}))**${bend} + ${upDownOffset})>=${upDownOffset}, ${primaryWaveMax}, ${primaryWaveMin})`
+    currentFormula = `where((${amplitude} * ${
+      toggleSinCos === "cos" ? "cos" : "sin"
+    }((${tempo} / ${rhythmRate} * 3.141 * (t + ${leftRightOffset}) / ${frameRate}))**${bend} + ${upDownOffset})>=${upDownOffset}, ${primaryWaveMax}, ${primaryWaveMin})`;
   }
-
 
   const currentFormulaMod = `(${modAmp} * ${
     modToggleSinCos === "cos" ? "cos" : "sin"
-  }((${modTempo} / ${modRhythmRate} * 3.141 * (t + ${modMoveLeftRight}) / ${modFrameRate} ))**${
+  }((${tempo} / ${modRhythmRate} * 3.141 * (t + ${modMoveLeftRight}) / ${frameRate} ))**${
     waveType != "bumpdup" ? modBend : modBend + 0
   } + ${modMoveUpDown})`;
+
+  const frameInSeconds = (Number(primaryCursorValue) / frameRate).toFixed(
+    decimalPrecision
+  );
 
   // const calculateColor = (value: number, minValue: number, maxValue: number) => {
   //   const percentage = 1 * (value - minValue) / (maxValue - minValue);
@@ -306,6 +340,8 @@ export default function ControlPanel() {
                 memoizeSeries,
                 dark: true,
                 tooltip: false,
+                //showDebugAxes: true,
+                //useIntersectionObserver: true,
 
                 getDatumStyle: (d, _status) => ({
                   color: "#F97316",
@@ -339,7 +375,6 @@ export default function ControlPanel() {
                   value: primaryCursorValue,
                   onChange: (value) => {
                     setPrimaryCursorValue(value);
-
                   },
                 },
                 secondaryCursor: {
@@ -348,6 +383,7 @@ export default function ControlPanel() {
                     setSecondaryCursorValue(value);
                   },
                 },
+
                 // onFocusDatum: (datum) => {
                 //   setState((old) => ({
                 //     ...old,
@@ -378,7 +414,9 @@ export default function ControlPanel() {
         </label>
         {/* frame and value */}
         <div className="flex flex-row justify-center space-x-2 bg-darkest-blue font-mono text-gray-400">
-          {primaryCursorValue}:({secondaryCursorValue?.toFixed(decimalPrecision)})
+          {primaryCursorValue}:(
+          {secondaryCursorValue?.toFixed(decimalPrecision)}) @{" "}
+          {Number.isNaN(frameInSeconds) ? 0 : frameInSeconds} seconds
         </div>
 
         {/* Stats */}
@@ -413,10 +451,10 @@ export default function ControlPanel() {
         </div>
 
         {/* Control Panel */}
-        <div className="ml-2 flex max-w-2xl grow justify-start space-x-2 font-mono md:flex-col lg:flex-row ">
+        <div className="ml-2 flex w-md justify-start space-x-2 font-mono md:flex-col lg:flex-row ">
           {/* Save Settings */}
 
-          <fieldset className="min-w-fit space-x-2 bg-darkest-blue font-mono">
+          <fieldset className="min-w-fit space-x-2 rounded-sm border border-dark-blue bg-darkest-blue font-mono shadow-sm">
             <legend className="border-1 flex flex-col ">
               Presets (experimental)
             </legend>
@@ -426,10 +464,36 @@ export default function ControlPanel() {
             </div>
             <SettingsSelector />
             <SaveSettings />
+
+            <div className="flex flex-col p-2 align-middle">
+              <SelectToggle
+                name={"Lock Frame Count"}
+                isOrange={lockDatumCount}
+                onToggle={(e) => {
+                  updateLock("lockDatumCount", e ? true : false);
+                }}
+              />
+
+              <SelectToggle
+                name={"Lock Frame Rate"}
+                isOrange={lockFrameRate}
+                onToggle={(e) => {
+                  updateLock("lockFrameRate", e ? true : false);
+                }}
+              />
+
+              <SelectToggle
+                name={"Lock Tempo"}
+                isOrange={lockTempo}
+                onToggle={(e) => {
+                  updateLock("lockTempo", e ? true : false);
+                }}
+              />
+            </div>
           </fieldset>
 
           {/* Wave Settings */}
-          <fieldset className="min-w-fit space-x-2 bg-darkest-blue p-4 font-mono">
+          <fieldset className="space-x-2 w-max rounded-sm border border-dark-blue bg-darkest-blue p-4 font-mono shadow-sm">
             <legend className="flex flex-row">
               Select Wave or upload{" "}
               <span className="pl-2">
@@ -442,9 +506,9 @@ export default function ControlPanel() {
               </span>{" "}
             </legend>
 
-            <div className="flex flex-col">
+            <div className="flex w-full flex-col">
               {/* Primary Wave Settings */}
-              <fieldset className="mb-2 min-w-fit shrink border-2 border-dark-blue pl-2 pr-2 pb-2">
+              <fieldset className="mb-2 w-full shrink border-2 border-dark-blue pl-2 pr-2 pb-2 shadow-inner">
                 <legend className="mb-2">
                   Primary Wave
                   {/* Sin/Cos */}
@@ -461,8 +525,21 @@ export default function ControlPanel() {
                       <option value="sin">Sine</option>
                     </select>
                   </label>
+                  <label>
+                    {" "}
+                    <select
+                      className="border-2 border-dark-blue bg-darker-blue"
+                      value={channelProcess}
+                      onChange={(e) => {
+                        e.persist();
+                        updateSetting("channelProcess", e.target.value);
+                      }}>
+                      <option value="stereo">stereo</option>
+                      <option value="stereoNegative">stereo image</option>
+                    </select>
+                  </label>
                 </legend>
-                <div className="mb-2 flex shrink flex-row justify-start text-center text-xs">
+                <div className="mb-2 flex max-w-fit shrink flex-row justify-start text-center text-xs">
                   {/* Sinusoid */}
                   <input
                     className="radio appearance-none"
@@ -477,8 +554,9 @@ export default function ControlPanel() {
                       waveType === "sinusoid"
                         ? "border-orange-500"
                         : "border-dark-blue"
-                    } cursor-pointer duration-300 ease-out hover:border-orange-600`}
-                    htmlFor="sinusoid">
+                    } cursor-pointer duration-150 ease-out hover:border-orange-600`}
+                    htmlFor="sinusoid"
+                    title="Sinusoid">
                     <img
                       src={sinusoid}
                       alt="sinusoid"
@@ -499,8 +577,9 @@ export default function ControlPanel() {
                       waveType === "saw"
                         ? "border-orange-500"
                         : "border-dark-blue"
-                    } cursor-pointer duration-300 ease-out hover:border-orange-600`}
-                    htmlFor="saw">
+                    } cursor-pointer duration-150 ease-out hover:border-orange-600`}
+                    htmlFor="saw"
+                    title="Sawtooth">
                     <img src={saw} alt="saw" className={"aspect-square w-16"} />
                   </label>
                   {/* Triangle */}
@@ -518,8 +597,9 @@ export default function ControlPanel() {
                       waveType === "triangle"
                         ? "border-orange-500"
                         : "border-dark-blue"
-                    } cursor-pointer duration-300 ease-out hover:border-orange-600`}
-                    htmlFor="triangle">
+                    } cursor-pointer duration-150 ease-out hover:border-orange-600`}
+                    htmlFor="triangle"
+                    title="Triangle">
                     <img
                       src={triangle}
                       alt="triangle"
@@ -540,8 +620,9 @@ export default function ControlPanel() {
                       waveType === "square"
                         ? "border-orange-500"
                         : "border-dark-blue"
-                    } cursor-pointer duration-300 ease-out hover:border-orange-600`}
-                    htmlFor="square">
+                    } cursor-pointer duration-150 ease-out hover:border-orange-600`}
+                    htmlFor="square"
+                    title="Square">
                     <img
                       src={square}
                       alt="square"
@@ -562,8 +643,9 @@ export default function ControlPanel() {
                       waveType === "bumpdip"
                         ? "border-orange-500"
                         : "border-dark-blue"
-                    } cursor-pointer duration-300 ease-out hover:border-orange-600`}
-                    htmlFor="bumpdip">
+                    } cursor-pointer duration-150 ease-out hover:border-orange-600`}
+                    htmlFor="bumpdip"
+                    title="Bumpdip">
                     <img
                       src={bumpdip}
                       alt="bumpdip"
@@ -588,8 +670,9 @@ export default function ControlPanel() {
                       waveType === "audio"
                         ? "border-orange-500"
                         : "border-dark-blue"
-                    } cursor-pointer duration-300 ease-out hover:border-orange-600`}
-                    htmlFor="audio">
+                    } cursor-pointer duration-150 ease-out hover:border-orange-600`}
+                    htmlFor="audio"
+                    title="Audio">
                     <img
                       src={audiofile}
                       alt="audio"
@@ -600,7 +683,9 @@ export default function ControlPanel() {
                 {/* Primary Wave Settings */}
                 <div className="flex flex-auto">
                   {/* Amplitude */}
-                  <label className="z-index-100 mr-2 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                  <label
+                    title="[Y-Axis] Sets the range of keyframe values. Higher absolute value = more effect. Lower absolute value = less effect. Use negative values to invert the polarity of the wave. Max is highest value, min is lowest. Use negative values for dips or positive for bumps."
+                    className="z-index-100 mr-2 flex w-fit flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                     AMPLITUDE{" "}
                     <NumberInput
                       name="amplitude"
@@ -611,7 +696,9 @@ export default function ControlPanel() {
                     />
                   </label>
                   {/* Up/Down Offset*/}
-                  <label className="z-index-100 mr-2 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                  <label
+                    title="[Y-Axis] Moves entire keyframe value range up or down. Useful for creating biased effects, for example, zoom in effects that change in speed but do not ever zoom out. Leave at 0 for balanced effect."
+                    className="z-index-100 mr-2 flex w-fit flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                     SHIFT UP/DOWN{" "}
                     <NumberInput
                       name="upDownOffset"
@@ -622,11 +709,12 @@ export default function ControlPanel() {
                     />
                   </label>
                   {/* Bend*/}
-                  <label className="z-index-100 mr-2 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                  <label
+                    title="[Y-Axis] Bend adds curviness to the wave. Can be used to focus values around a specific point or add smoothness to movement, depending on the wave type."
+                    className="z-index-100 mr-2 flex w-fit flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                     BEND{" "}
                     <NumberInput
                       name="bend"
-                      // value={bend === 0 && waveType != "saw" ? 1 : bend}
                       min={1}
                       max={waveType === "saw" ? 100 : 200}
                       step={waveType === "saw" ? 0.1 : 2}
@@ -635,7 +723,9 @@ export default function ControlPanel() {
                   </label>
 
                   {/* Noise*/}
-                  <label className="z-index-100 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                  <label
+                    title="[Y-Axis] Adds randomness. Only applies to keyframe string. Higher values = more random."
+                    className="z-index-100 flex w-fit flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                     NOISE{" "}
                     <NumberInput
                       name="noiseAmount"
@@ -650,28 +740,25 @@ export default function ControlPanel() {
               {/* Secondary Wave Settings */}
 
               {/* Modulator Settings */}
-              <fieldset className="border-2 border-dark-blue pl-2 pr-2 pb-2 ">
+              <fieldset className="border-2 border-dark-blue pl-2 pr-2 pb-2">
                 <legend className="mb-2 flex flex-row space-x-2">
                   <label className="ml-2 flex flex-row items-center">
-                    <input
-                      name="modEnabled"
-                      type="checkbox"
-                      className="form-checkbox h-5 w-5 cursor-pointer text-orange-500"
-                      checked={modEnabled}
-                      onChange={(e) => {
-                        e.persist();
-                        updateSetting("modEnabled", e.target.checked);
+                    <SelectToggle
+                      name={"Enable Modulator"}
+                      isOrange={modEnabled}
+                      onToggle={(modEnabled) => {
+                        updateSetting("modEnabled", modEnabled ? true : false);
                       }}
                     />
                   </label>{" "}
-                  Enable Modulator
                   {/* checkbox for modEnabled */}
                   {/* Sin/Cos */}
                   <label>
-                    {" "}
                     <select
                       name="modToggleSinCos"
-                      className="border-2 border-dark-blue bg-darker-blue"
+                      className={`border-2 border-dark-blue bg-darker-blue ${
+                        modEnabled ? "" : "opacity-50"
+                      }`}
                       value={modToggleSinCos}
                       onChange={(e) => {
                         e.persist();
@@ -682,114 +769,144 @@ export default function ControlPanel() {
                     </select>
                   </label>
                 </legend>
-                {/* Secondary Wave Settings */}
-                <div className="flex flex-col flex-wrap ">
-                  <div className="mb-2 flex flex-row">
-                    {/* Mod Amplitude */}
-                    <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
-                      MOD AMPLITUDE{" "}
-                      <NumberInput
-                        name="modAmp"
-                        min={-100}
-                        max={100}
-                        step={0.01}
-                        onChange={handleChange}
-                      />
-                    </label>
-                    {/* Mod Up/Down Offset*/}
-                    <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
-                      MOD SHIFT UP/DOWN{" "}
-                      <NumberInput
-                        name="modMoveUpDown"
-                        min={-100}
-                        max={100}
-                        step={0.1}
-                        onChange={handleChange}
-                      />
-                    </label>
-                    {/* Mod Bend*/}
-                    <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
-                      MOD BEND{" "}
-                      <NumberInput
-                        name="modBend"
-                        min={1}
-                        max={1000}
-                        step={2}
-                        onChange={handleChange}
-                      />
-                    </label>
-                  </div>
-                  <div className="flex flex-row">
-                    {/* Mod Tempo*/}
-                    <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
-                      MOD TEMPO{" "}
-                      <NumberInput
-                        name="modTempo"
-                        min={1}
-                        max={1000}
-                        step={1}
-                        onChange={handleChange}
-                      />
-                    </label>
-                    {/* Mod Rhythm Rate*/}
-                    <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
-                      MOD RHYTHM RATE {/* option selector for rhythmRates */}
-                      <select
-                        name="modRhythmRate"
-                        className="border-2 border-dark-blue bg-darker-blue"
-                        value={modRhythmRate}
-                        onChange={handleChangeSelect}>
-                        <option value="7680">32</option>
-                        <option value="3840">16</option>
-                        <option value="1920">8</option>
-                        <option value="960">4</option>
-                        <option value="480">2</option>
-                        <option value="240">1</option>
-                        <option value="120">1/2</option>
-                        <option value="40">1/2t</option>
-                        <option value="60">1/4 (beat)</option>
-                        <option value="20">1/4t</option>
-                        <option value="30">1/8</option>
-                        <option value="10">1/8t</option>
-                        <option value="15">1/16</option>
-                        <option value="5">1/16t</option>
-                        <option value="7.5">1/32</option>
-                        <option value="2.5">1/32t</option>
-                      </select>
-                    </label>
-                    {/* Mod Frame Rate*/}
-                    <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
-                      MOD FRAME RATE{" "}
-                      <NumberInput
-                        name="modFrameRate"
-                        min={1}
-                        max={1000}
-                        step={1}
-                        onChange={handleChange}
-                      />
-                    </label>
-                    {/* Move Left/Right */}
-                    <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
-                      MOD SHIFT LEFT/RIGHT{" "}
-                      <NumberInput
-                        name="modMoveLeftRight"
-                        min={0}
-                        max={100000}
-                        step={1}
-                        onChange={handleChange}
-                      />
-                    </label>
+                <div className={`${modEnabled ? "" : "opacity-50"}`}>
+                  {/* Secondary Wave Settings */}
+                  <div className="flex flex-col flex-wrap ">
+                    <div className="mb-2 flex flex-row">
+                      {/* Mod Amplitude */}
+                      <label className="z-index-100 mr-2   flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                        MOD AMPLITUDE{" "}
+                        <NumberInput
+                          name="modAmp"
+                          min={-100}
+                          max={100}
+                          step={0.01}
+                          onChange={handleChange}
+                        />
+                      </label>
+                      {/* Mod Up/Down Offset*/}
+                      <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                        MOD SHIFT UP/DOWN{" "}
+                        <NumberInput
+                          name="modMoveUpDown"
+                          min={-100}
+                          max={100}
+                          step={0.1}
+                          onChange={handleChange}
+                        />
+                      </label>
+                      {/* Mod Bend*/}
+                      <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                        MOD BEND{" "}
+                        <NumberInput
+                          name="modBend"
+                          min={1}
+                          max={1000}
+                          step={2}
+                          onChange={handleChange}
+                        />
+                      </label>
+                    </div>
+                    <div className="flex flex-row">
+                      {/* Mod Tempo*/}
+                      {/* <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                        MOD TEMPO{" "}
+                        <NumberInput
+                          name="modTempo"
+                          min={1}
+                          max={1000}
+                          step={1}
+                          onChange={handleChange}
+                        />
+                      </label> */}
+                      {/* Mod Rhythm Rate*/}
+                      <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                        MOD SYNC RATE {/* option selector for rhythmRates */}
+                        <select
+                          name="modRhythmRate"
+                          className="border-2 border-dark-blue bg-darker-blue"
+                          value={modRhythmRate}
+                          onChange={handleChangeSelect}>
+                          <option value="7680">32</option>
+                          <option value="3840">16</option>
+                          <option value="1920">8</option>
+                          <option value="960">4</option>
+                          <option value="480">2</option>
+                          <option value="240">1</option>
+                          <option value="120">1/2</option>
+                          <option value="40">1/2t</option>
+                          <option value="60">1/4 (beat)</option>
+                          <option value="20">1/4t</option>
+                          <option value="30">1/8</option>
+                          <option value="10">1/8t</option>
+                          <option value="15">1/16</option>
+                          <option value="5">1/16t</option>
+                          <option value="7.5">1/32</option>
+                          <option value="2.5">1/32t</option>
+                        </select>
+                      </label>
+                      {/* Mod Frame Rate*/}
+                      {/* <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                        MOD FRAME RATE{" "}
+                        <NumberInput
+                          name="modFrameRate"
+                          min={1}
+                          max={1000}
+                          step={1}
+                          onChange={handleChange}
+                        />
+                      </label> */}
+                      {/* Move Left/Right */}
+                      <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                        MOD SHIFT LEFT/RIGHT{" "}
+                        <NumberInput
+                          name="modMoveLeftRight"
+                          min={0}
+                          max={100000}
+                          step={1}
+                          onChange={handleChange}
+                        />
+                      </label>
+                    </div>
                   </div>
                 </div>
               </fieldset>
             </div>
+            {/* <fieldset className="flex flex-col border-2 border-dark-blue bg-darkest-blue pl-1 pt-1 pb-2 text-sm">
+              <legend className="text-sm">Global Limits</legend>
+              <div className="flex flex-row">
+                <label className="z-index-100 mr-2 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                  HARD MIN{" "}
+                  <NumberInput
+                    name="hardMin"
+                    min={-100000}
+                    max={100000}
+                    step={0.01}
+                    onChange={handleChange}
+                  />
+                </label>
+                <label className="z-index-100 mr-2 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                  HARD MAX{" "}
+                  <NumberInput
+                    name="hardMax"
+                    min={-100000}
+                    max={100000}
+                    step={0.01}
+                    onChange={handleChange}
+                  />
+                </label>
+              </div>
+            </fieldset> */}
           </fieldset>
+
           {/* Framesync Settings */}
-          <div className="flex flex-col font-mono">
+          <div className="flex w-fit flex-col font-mono">
             {/* Frame Settings */}
-            <fieldset className="flex flex-row justify-start bg-darkest-blue pl-3 pr-3 pb-3 font-mono">
+            <fieldset className="flex flex-row justify-start rounded-sm border border-dark-blue bg-darkest-blue pl-3 pr-3 pb-3 font-mono shadow-sm">
               <legend>Frame Settings</legend>
-              <label className="z-index-100 mr-2 flex grow  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+              <label
+                title="Set this to the FPS you'll use in the video output section of Deforum. The higher the frame rate, the smoother the motion. If in doubt, try 12, 24, 30, 60, or 120 FPS. Or if your BPM is not evenly divisible by these frame rates, you may want to match the frame rate and your BPM. Or do as suggested in the tempo tip."
+                className="z-index-100 mr-2 flex   flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                 FRAME RATE (FPS)
                 <NumberInput
                   name="frameRate"
@@ -799,7 +916,9 @@ export default function ControlPanel() {
                   onChange={handleChange}
                 />
               </label>
-              <label className="z-index-100 flex grow flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+              <label
+                title="The number of frames visible in the graph above and the number of keyframes generated in the keyframes output. Has no effect on formulas."
+                className="z-index-100 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                 FRAME COUNT
                 <NumberInput
                   name="datums"
@@ -812,12 +931,16 @@ export default function ControlPanel() {
             </fieldset>
 
             {/* Sync Settings */}
-            <fieldset className="flex-row-auto justify-start bg-darkest-blue pl-3 pr-3 pb-3 font-mono">
+            <fieldset className="flex-row-auto justify-start rounded-sm border border-dark-blue bg-darkest-blue pl-3 pr-3 pb-3 font-mono shadow-sm">
               <legend>Sync Settings</legend>
               {/* Tempo and Shift Left/Right */}
               <div className="mb-2 flex flex-row space-x-2">
                 {/* Tempo */}
-                <label className={`z-index-100 flex grow flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm ${waveType === "audio" ? "opacity-50" : ""}`}>
+                <label
+                  title="You may get better results by setting this to 120bpm and then speeding up/slowing down the video to match the target bpm using video editing software."
+                  className={`z-index-100 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm ${
+                    waveType === "audio" ? "opacity-50" : ""
+                  }`}>
                   TEMPO (BPM)
                   <NumberInput
                     name="tempo"
@@ -825,11 +948,13 @@ export default function ControlPanel() {
                     max={10000}
                     step={1}
                     onChange={handleChange}
-                   />
+                  />
                 </label>
                 {/* Shift Left/Right */}
 
-                <label className="z-index-100 flex grow flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                <label
+                  title="Shifts the entire wave left or right over time in frames. Check 'START FRAME' to set this value as the starting frame in the 'Keyframes' output."
+                  className="z-index-100 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                   SHIFT LEFT/RIGHT
                   {/* Link Horizonal Offset & Starting Frame */}
                   <label className="text-xs">
@@ -854,10 +979,12 @@ export default function ControlPanel() {
                 </label>
               </div>
 
-              <div className="flex flex-col">
-                <fieldset 
-                disabled={waveType === "audio" ? true : false}
-                className={`border-2 border-dark-blue pl-2 pr-2 ${waveType === "audio" ? "opacity-50" : ""}`} >
+              <div className="flex flex-col w-fit">
+                <fieldset
+                  disabled={waveType === "audio" ? true : false}
+                  className={`border-2 border-dark-blue pl-2 pr-2 ${
+                    waveType === "audio" ? "opacity-50" : ""
+                  }`}>
                   <legend className="text-sm">SYNC RATE</legend>
                   {/*New Rythm Rate*/}
                   <div className="mb-2 flex flex-col-reverse flex-wrap justify-start text-center font-mono text-xs">
@@ -878,7 +1005,7 @@ export default function ControlPanel() {
                           rhythmRate == 40
                             ? "border-orange-500"
                             : "border-dark-blue"
-                        } cursor-pointer duration-300 ease-out hover:border-orange-600`}
+                        } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                         htmlFor="halfbarTriplet">
                         1/2T
                       </label>
@@ -896,7 +1023,7 @@ export default function ControlPanel() {
                           rhythmRate == 20
                             ? "border-orange-500"
                             : "border-dark-blue"
-                        } cursor-pointer duration-300 ease-out hover:border-orange-600`}
+                        } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                         htmlFor="quarterbarTriplet">
                         1/4T
                       </label>
@@ -914,7 +1041,7 @@ export default function ControlPanel() {
                           rhythmRate == 10
                             ? "border-orange-500"
                             : "border-dark-blue"
-                        } cursor-pointer duration-300 ease-out hover:border-orange-600`}
+                        } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                         htmlFor="eighthbarTriplet">
                         1/8T
                       </label>
@@ -932,7 +1059,7 @@ export default function ControlPanel() {
                           rhythmRate == 5
                             ? "border-orange-500"
                             : "border-dark-blue"
-                        } cursor-pointer duration-300 ease-out hover:border-orange-600`}
+                        } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                         htmlFor="sixteenthbarTriplet">
                         1/16T
                       </label>
@@ -950,7 +1077,7 @@ export default function ControlPanel() {
                           rhythmRate == 2.5
                             ? "border-orange-500"
                             : "border-dark-blue"
-                        } cursor-pointer duration-300 ease-out hover:border-orange-600`}
+                        } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                         htmlFor="thirtysecondbarTriplet">
                         1/32T
                       </label>
@@ -972,7 +1099,7 @@ export default function ControlPanel() {
                           rhythmRate == 120
                             ? "border-orange-500"
                             : "border-dark-blue"
-                        } cursor-pointer duration-300 ease-out hover:border-orange-600`}
+                        } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                         htmlFor="halfbar">
                         1/2
                       </label>
@@ -990,7 +1117,7 @@ export default function ControlPanel() {
                           rhythmRate == 60
                             ? "border-orange-500"
                             : "border-dark-blue"
-                        } cursor-pointer duration-300 ease-out hover:border-orange-600`}
+                        } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                         htmlFor="quarterbar">
                         1/4
                       </label>
@@ -1009,7 +1136,7 @@ export default function ControlPanel() {
                           rhythmRate == 30
                             ? "border-orange-500"
                             : "border-dark-blue"
-                        } cursor-pointer duration-300 ease-out hover:border-orange-600`}
+                        } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                         htmlFor="eighthbar">
                         1/8
                       </label>
@@ -1028,7 +1155,7 @@ export default function ControlPanel() {
                           rhythmRate == 15
                             ? "border-orange-500"
                             : "border-dark-blue"
-                        } cursor-pointer duration-300 ease-out hover:border-orange-600`}
+                        } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                         htmlFor="sixteenthbar">
                         1/16
                       </label>
@@ -1047,7 +1174,7 @@ export default function ControlPanel() {
                           rhythmRate == 7.5
                             ? "border-orange-500"
                             : "border-dark-blue"
-                        } cursor-pointer duration-300 ease-out hover:border-orange-600`}
+                        } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                         htmlFor="thirtysecondbar">
                         1/32
                       </label>
@@ -1068,7 +1195,7 @@ export default function ControlPanel() {
                           rhythmRate == 7680
                             ? "border-orange-500"
                             : "border-dark-blue"
-                        } cursor-pointer duration-300 ease-out hover:border-orange-600`}
+                        } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                         htmlFor="thirtytwoBars">
                         32
                       </label>
@@ -1086,7 +1213,7 @@ export default function ControlPanel() {
                           rhythmRate == 3840
                             ? "border-orange-500"
                             : "border-dark-blue"
-                        } cursor-pointer duration-300 ease-out hover:border-orange-600`}
+                        } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                         htmlFor="16bars">
                         16
                       </label>
@@ -1104,7 +1231,7 @@ export default function ControlPanel() {
                           rhythmRate == 1920
                             ? "border-orange-500"
                             : "border-dark-blue"
-                        } cursor-pointer duration-300 ease-out hover:border-orange-600`}
+                        } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                         htmlFor="8bars">
                         8
                       </label>
@@ -1122,7 +1249,7 @@ export default function ControlPanel() {
                           rhythmRate == 960
                             ? "border-orange-500"
                             : "border-dark-blue"
-                        } cursor-pointer duration-300 ease-out hover:border-orange-600`}
+                        } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                         htmlFor="4bars">
                         4
                       </label>
@@ -1140,7 +1267,7 @@ export default function ControlPanel() {
                           rhythmRate == 480
                             ? "border-orange-500"
                             : "border-dark-blue"
-                        } cursor-pointer duration-300 ease-out hover:border-orange-600`}
+                        } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                         htmlFor="2bars">
                         2
                       </label>
@@ -1158,7 +1285,7 @@ export default function ControlPanel() {
                           rhythmRate == 240
                             ? "border-orange-500"
                             : "border-dark-blue"
-                        } cursor-pointer duration-300 ease-out hover:border-orange-600`}
+                        } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                         htmlFor="1bar">
                         1
                       </label>
@@ -1305,15 +1432,36 @@ export default function ControlPanel() {
             </table>
           </fieldset>
         </div>
+        <div className="mt-2 mb-2 flex h-0.5 w-full flex-col bg-darkest-blue"></div>
 
         {/* Outputs */}
-        <div className="mt-1 flex w-max min-w-full grow flex-row items-center justify-start">
-          {/* a button to copy keyframeOutput to the clipboard */}
-
-          <div>
+        <div className="ml-4 flex w-full flex-col">
+          <h2 className="text-lg">Outputs</h2>
+          <ul className="text-sm text-slate-300">
+            <li>
+              Copy a formula or keyframes string below and paste them into your
+              desired motion parameter in Deforum.
+            </li>
+            <li>
+              - The keyframes and the formula are equivalent, so you can use
+              either one.
+            </li>
+            <li>
+              - However, if you add NOISE, it will only be applied to the
+              keyframes string.
+            </li>
+            <li>
+              - For readability, each row of keyframes is equal to 1 second of
+              keyframe data i.e. a new row is added every interval of your frame
+              rate.
+            </li>
+          </ul>
+        </div>
+        <div className="mt-1 ml-4 flex flex-col justify-start">
+          <div className="flex flex-row items-center">
             <label>
               <button
-                className="bg-green-800 p-2 font-mono text-white transition-all duration-150 ease-out hover:bg-green-600 active:bg-green-700"
+                className="w-max bg-green-800 p-2 font-mono text-white transition-all duration-150 ease-out hover:bg-green-600 active:bg-green-700"
                 onCopy={copyHighlightedTextHandler}
                 onClick={() => {
                   navigator.clipboard.writeText(yArray as unknown as string);
@@ -1322,8 +1470,11 @@ export default function ControlPanel() {
               </button>
             </label>
             <label>
+              {/* Copy Keyframes Button */}
+
+              {/* Copy Formula Button */}
               <button
-                className="bg-green-700 p-2 font-mono text-white transition-all duration-150 ease-out hover:bg-green-500 active:bg-green-600"
+                className="w-max bg-green-700 p-2 font-mono text-white transition-all duration-150 ease-out hover:bg-green-500 active:bg-green-600"
                 onClick={() => {
                   navigator.clipboard.writeText(
                     `(${currentFormula}${modEnabled ? "*" : ""}${
@@ -1333,36 +1484,33 @@ export default function ControlPanel() {
                 }}>
                 <CopyToast>Copy Formula</CopyToast>
               </button>
-              <div className="inline-flex bg-darkest-blue p-3 font-mono">
+              {/* Formula String */}
+              <div className="inline-flex bg-darkest-blue p-2 font-mono text-xs">
                 {waveType != "audio"
                   ? `${
                       linkFrameOffset == true ? Number(leftRightOffset) : 0
                     }: (${currentFormula}${modEnabled ? "*" : ""}${
                       modEnabled ? currentFormulaMod : ""
                     })`
-                  : "N/A"}
+                  : "No formulas for audio"}
               </div>
             </label>
-            <label>
-              <textarea
-                className=" mb-2 flex h-96 resize flex-row items-start justify-start border-2 border-dark-blue bg-darkest-blue font-mono"
-                id="keyframeOutput"
-                onSelect={handleTextChange}
-                onCopy={copyHighlightedTextHandler}
-                wrap="off"
-                value={yArray}
-                onChange={(e) => {
-                  e.persist();
-                  setState((old) => ({
-                    ...old,
-                    yArray: e.target.value,
-                  }));
-                }}
-                style={{
-                  width: "980px",
-                }}></textarea>
-            </label>
+            {/* Keyframes String */}
           </div>
+          <textarea
+            className="mb-2 box-border flex h-96 resize flex-col  rounded-sm border border-dark-blue bg-darkest-blue font-mono shadow-sm"
+            id="keyframeOutput"
+            onSelect={handleTextChange}
+            onCopy={copyHighlightedTextHandler}
+            wrap="off"
+            value={yArray}
+            onChange={(e) => {
+              e.persist();
+              setState((old) => ({
+                ...old,
+                yArray: e.target.value,
+              }));
+            }}></textarea>
         </div>
 
         <div className="mt-10 flex flex-row justify-center justify-items-center text-3xl">
