@@ -537,7 +537,7 @@ export default function ControlPanel() {
                   </label>
                   <label>
                     {" "}
-                    <select
+                    {/* <select
                       className="border-2 border-dark-blue bg-darker-blue"
                       value={channelProcess}
                       onChange={(e) => {
@@ -546,7 +546,7 @@ export default function ControlPanel() {
                       }}>
                       <option value="stereo">stereo</option>
                       <option value="stereoNegative">stereo image</option>
-                    </select>
+                    </select> */}
                   </label>
                 </legend>
                 <div className="mb-2 flex max-w-fit shrink flex-row justify-start text-center text-xs">
