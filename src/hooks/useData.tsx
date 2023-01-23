@@ -264,7 +264,7 @@ const makeSeries = (
       } else {
         modToggleSinCos === "cos"
           ? (y =
-              (y as number) +
+              (y as number) *
               (Number(modAmp) *
                 Math.cos(
                   ((Number(tempo) / Number(modRhythmRate)) * Math.PI * modt) /

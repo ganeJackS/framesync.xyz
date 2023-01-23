@@ -151,12 +151,6 @@ export default function ControlPanel() {
       event?.target?.value
     );
   }
-  function handleLockUpdate(event: React.ChangeEvent<HTMLInputElement>) {
-    updateLock(
-      event?.target?.name as keyof State["locks"],
-      event?.target?.checked
-    );
-  }
 
   const fileInput = useRef<HTMLInputElement>(null);
   const audioElement = useRef<HTMLAudioElement>(null);
@@ -700,8 +694,8 @@ export default function ControlPanel() {
                     AMPLITUDE{" "}
                     <NumberInput
                       name="amplitude"
-                      min={-100}
-                      max={100}
+                      min={-10000}
+                      max={10000}
                       step={0.01}
                       onChange={handleChange}
                     />
@@ -727,7 +721,7 @@ export default function ControlPanel() {
                     <NumberInput
                       name="bend"
                       min={1}
-                      max={waveType === "saw" ? 100 : 200}
+                      max={waveType === "saw" ? 200 : 500}
                       step={waveType === "saw" ? 0.1 : 2}
                       onChange={handleChange}
                     />
