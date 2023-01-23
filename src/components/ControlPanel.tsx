@@ -1,5 +1,4 @@
 import ResizableBox from "../ResizableBox";
-import useChart from "../hooks/useChart";
 import React, {
   useCallback,
   useEffect,
@@ -160,7 +159,7 @@ export default function ControlPanel() {
   }
 
   const fileInput = useRef<HTMLInputElement>(null);
-  //const audioElement = useRef<HTMLAudioElement>(null);
+  const audioElement = useRef<HTMLAudioElement>(null);
   const [audioBuffer, setAudioBuffer] = useAudioBufferStore((state) => [
     state.audioBuffer,
     state.setAudioBuffer,
@@ -176,11 +175,12 @@ export default function ControlPanel() {
         arrayBuffer,
         (buffer: React.SetStateAction<AudioBuffer | null>) => {
           setAudioBuffer(buffer as AudioBuffer);
-          //audioElement.current!.src = URL.createObjectURL(file);
+          audioElement.current!.src = URL.createObjectURL(file);
         }
       );
     };
     fileReader.readAsArrayBuffer(file);
+    updateSetting("waveType", "audio");
   };
 
   const primaryAxis = React.useMemo<
@@ -451,7 +451,7 @@ export default function ControlPanel() {
         </div>
 
         {/* Control Panel */}
-        <div className="ml-2 flex w-md justify-start space-x-2 font-mono md:flex-col lg:flex-row ">
+        <div className="w-md ml-2 flex justify-start space-x-2 font-mono md:flex-col lg:flex-row ">
           {/* Save Settings */}
 
           <fieldset className="min-w-fit space-x-2 rounded-sm border border-dark-blue bg-darkest-blue font-mono shadow-sm">
@@ -493,18 +493,28 @@ export default function ControlPanel() {
           </fieldset>
 
           {/* Wave Settings */}
-          <fieldset className="space-x-2 w-max rounded-sm border border-dark-blue bg-darkest-blue p-4 font-mono shadow-sm">
+          <fieldset className="w-max space-x-2 rounded-sm border border-dark-blue bg-darkest-blue p-4 font-mono shadow-sm">
             <legend className="flex flex-row">
-              Select Wave or upload{" "}
-              <span className="pl-2">
+              Select a primary wave or upload an mp3/wav for audio2keyframes{" "}
+              
+            </legend>
+            
+            <span className="pl-2">
+              
                 <input
-                  className="text-orange-500"
+                  className="text-orange-500 mb-2"
                   type="file"
                   ref={fileInput}
                   onChange={handleFileUpload}
                 />
               </span>{" "}
-            </legend>
+              <audio
+                className={`mb-2 block w-full rounded-none bg-darkest-blue ${waveType === "audio" ? "" : "opacity-30"}`}
+                ref={audioElement}
+                controls
+                style={{ borderRadius: "0px" }}
+              />
+            
 
             <div className="flex w-full flex-col">
               {/* Primary Wave Settings */}
@@ -664,6 +674,7 @@ export default function ControlPanel() {
                       e.persist();
                       updateSetting("waveType", e.target.value);
                     }}
+                    
                   />
                   <label
                     className={`border-2 bg-darker-blue p-1 ${
@@ -979,7 +990,7 @@ export default function ControlPanel() {
                 </label>
               </div>
 
-              <div className="flex flex-col w-fit">
+              <div className="flex w-fit flex-col">
                 <fieldset
                   disabled={waveType === "audio" ? true : false}
                   className={`border-2 border-dark-blue pl-2 pr-2 ${

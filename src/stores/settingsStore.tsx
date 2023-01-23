@@ -33,7 +33,7 @@ export interface Settings {
     decimalPrecision: number;
     hardMax: number;
     hardMin: number;
-    channelProcess: 'mono' | 'stereo' | 'stereoNegative';
+    channelProcess: "mono" | "stereo" | "stereoNegative";
   };
 }
 
@@ -51,10 +51,15 @@ export type State = {
 export type Actions = {
   updateSetting: (name: keyof Settings["state"], value: any) => void;
   saveSetting: (saveName: string) => void;
-  updateSettingFromList: ( id: number | string, isFactoryPreset: boolean) => void;
+  updateSettingFromList: (
+    id: number | string,
+    isFactoryPreset: boolean
+  ) => void;
   deleteSetting: (id: number | string) => void;
   initializeSettings: () => void;
   updateLock: (name: keyof State["locks"], value: boolean) => void;
+  // edit saveName in settings by id
+  updateSettingName: (id: number | string, saveName: string) => void;
 };
 
 export const useSettingsStore = create(
@@ -133,12 +138,6 @@ export const useSettingsStore = create(
     },
     // update current settings from factory or user presets
     updateSettingFromList: (id: number | string, isFactoryPreset: boolean) => {
-
-      // if lockDatumCount is true, keep the current datum count and don't update it from the preset, but update the rest of the settings
-      // or if lockTempo is true, keep the current tempo and don't update it from the preset, but update the rest of the settings
-      // or if lockFrameRate is true, keep the current frameRate and don't update it from the preset, but update the rest of the settings
-      // if lockDatumCount, lockTempo, and lockFrameRate are all false, update all settings from the preset
-
       if (get().locks.lockDatumCount) {
         set(
           produce((draft) => {
@@ -247,118 +246,6 @@ export const useSettingsStore = create(
           })
         );
       }
-          
-
-
-      // if (get().settings.lockDatumCount) {
-      //   set(
-      //     produce((draft) => {
-      //       if (isFactoryPreset) {
-      //         const selectedPreset = get().factoryPresets.find(
-      //           (preset) => preset.saveId === id
-      //         );
-      //         draft.settings = {
-      //           ...draft.settings,
-      //           ...selectedPreset,
-      //           datums: draft.settings.datums,
-      //           tempo: draft.settings.tempo,
-      //           frameRate: draft.settings.frameRate,
-      //         };
-      //       } else {
-      //         const selectedPreset = get().userPresets.find(
-      //           (preset) => preset.saveId === id
-      //         );
-      //         draft.settings = {
-      //           ...draft.settings,
-      //           ...selectedPreset,
-      //           datums: draft.settings.datums,
-      //           tempo: draft.settings.tempo,
-      //           frameRate: draft.settings.frameRate,
-      //         };
-      //       }
-      //     })
-      //   );
-      // } else if (get().settings.lockTempo) {
-      //   set(
-      //     produce((draft) => {
-      //       if (isFactoryPreset) {
-      //         const selectedPreset = get().factoryPresets.find(
-      //           (preset) => preset.saveId === id
-      //         );
-      //         draft.settings = {
-      //           ...draft.settings,
-      //           ...selectedPreset,
-      //           datums: draft.settings.datums,
-      //           tempo: draft.settings.tempo,
-      //           frameRate: draft.settings.frameRate,
-      //         };
-      //       } else {
-      //         const selectedPreset = get().userPresets.find(
-      //           (preset) => preset.saveId === id
-      //         );
-      //         draft.settings = {
-      //           ...draft.settings,
-      //           ...selectedPreset,
-      //           datums: draft.settings.datums,
-      //           tempo: draft.settings.tempo,
-      //           frameRate: draft.settings.frameRate,
-      //         };
-      //       }
-      //     })
-      //   );
-      // }
-      // else if (get().settings.lockFrameRate) {
-      //   set(
-      //     produce((draft) => {
-      //       if (isFactoryPreset) {
-      //         const selectedPreset = get().factoryPresets.find(
-      //           (preset) => preset.saveId === id
-      //         );
-      //         draft.settings = {
-      //           ...draft.settings,
-      //           ...selectedPreset,
-      //           datums: draft.settings.datums,
-      //           tempo: draft.settings.tempo,
-      //           frameRate: draft.settings.frameRate,
-      //         };
-      //       } else {
-      //         const selectedPreset = get().userPresets.find(
-      //           (preset) => preset.saveId === id
-      //         );
-      //         draft.settings = {
-      //           ...draft.settings,
-      //           ...selectedPreset,
-      //           datums: draft.settings.datums,
-      //           tempo: draft.settings.tempo,
-      //           frameRate: draft.settings.frameRate,
-      //         };
-      //       }
-      //     })
-      //   );
-      // }
-      // else {
-      //   set(
-      //     produce((draft) => {
-      //       if (isFactoryPreset) {
-      //         const selectedPreset = get().factoryPresets.find(
-      //           (preset) => preset.saveId === id
-      //         );
-      //         draft.settings = {
-      //           ...draft.settings,
-      //           ...selectedPreset,
-      //         };
-      //       } else {
-      //         const selectedPreset = get().userPresets.find(
-      //           (preset) => preset.saveId === id
-      //         );
-      //         draft.settings = {
-      //           ...draft.settings,
-      //           ...selectedPreset,
-      //         };
-      //       }
-      //     })
-      //   );
-      // }
     },
     // update lock
     updateLock: (lock: string) => {
@@ -372,7 +259,9 @@ export const useSettingsStore = create(
     deleteSetting: (id: number | string) => {
       set(
         produce((draft) => {
-          const index = draft.userPresets.findIndex((setting: { saveId: string | number; }) => setting.saveId === id);
+          const index = draft.userPresets.findIndex(
+            (setting: { saveId: string | number }) => setting.saveId === id
+          );
           draft.userPresets.splice(index, 1);
           if (draft.settings.saveId === id) {
             draft.settings = draft.factoryPresets[0];
@@ -380,7 +269,24 @@ export const useSettingsStore = create(
         })
       );
       // remove from local storage
-      localStorage.setItem(`settings_fs_list`, JSON.stringify(get().userPresets));
+      localStorage.setItem(
+        `settings_fs_list`,
+        JSON.stringify(get().userPresets)
+      );
+    },
+    updateSettingName: (id: number | string, saveName: string) => {
+      set(
+        produce((draft) => {
+          const index = draft.userPresets.findIndex(
+            (setting: { saveId: string | number }) => setting.saveId === id
+          );
+          draft.userPresets[index].saveName = saveName;
+        })
+      );
+      localStorage.setItem(
+        `settings_fs_list`,
+        JSON.stringify(get().userPresets)
+      );
     },
   }))
 );

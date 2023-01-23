@@ -105,6 +105,11 @@ body {
     border: 2px solid #021d2f;
   } */
   
+
+  input {
+    @apply bg-darkest-blue text-white outline-none;
+  }
+
  
   td {
     padding: 0 4px;
