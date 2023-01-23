@@ -44,7 +44,7 @@ export default function useData({}: {}) {
     state.setAudioBuffer,
   ]);
 
-  const keyframes = useAudio2Keyframes(audioBuffer as AudioBuffer, frameRate, channelProcess);
+  const keyframes = useAudio2Keyframes(audioBuffer as AudioBuffer, frameRate);
 
   const data = makeDataFrom(
     datums,
