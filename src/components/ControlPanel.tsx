@@ -38,7 +38,6 @@ import { SaveSettings } from "./SaveLoadImportExport/SaveSettings";
 import SettingsSelector from "./SaveLoadImportExport/SettingsSelector";
 import ExportSettingsButton from "./SaveLoadImportExport/ExportSettingsButton";
 import ImportSettingsButton from "./SaveLoadImportExport/ImportSettingsButton";
-import { ScaleLinear } from "d3-scale";
 import {curveLinear} from "d3-shape";
 
 
@@ -175,8 +174,7 @@ export default function ControlPanel() {
 
   const fileInput = useRef<HTMLInputElement>(null);
   const audioElement = useRef<HTMLAudioElement>(null);
-  const [audioBuffer, setAudioBuffer] = useAudioBufferStore((state) => [
-    state.audioBuffer,
+  const [ setAudioBuffer] = useAudioBufferStore((state) => [
     state.setAudioBuffer,
   ]);
 
@@ -191,11 +189,13 @@ export default function ControlPanel() {
         (buffer: React.SetStateAction<AudioBuffer | null>) => {
           setAudioBuffer(buffer as AudioBuffer);
           audioElement.current!.src = URL.createObjectURL(file);
+          audioElement.current!.play();
         }
       );
     };
     fileReader.readAsArrayBuffer(file);
     updateSetting("waveType", "audio");
+    console.log("file", file);
   };
 
   const primaryAxis = React.useMemo<
