@@ -7,10 +7,10 @@ import useAudio2Keyframes from "./useAudio2Keyframes";
 import { Settings, State } from "../stores/settingsStore";
 
 export default function useData({}: {}) {
-  // const [settings, updateSetting] = useSettingsStore((state) => [
-  //   state.settings,
-  //   state.updateSetting,
-  // ], shallow);
+  const [settings, updateSetting] = useSettingsStore((state) => [
+    state.settings,
+    state.updateSetting,
+  ], shallow);
 
   const settingsRef = useRef(useSettingsStore.getState().settings);
 
@@ -142,6 +142,8 @@ const makeDataFrom = (
   );
 };
 
+
+
 const makeSeries = (
   datums: number,
   tempo: number,
@@ -170,20 +172,30 @@ const makeSeries = (
 ) => {
   //let length: number = Number(datums);
   let audioKeyframesLength: number = keyframes?.length as number;
+  
+  
+  if (waveType === "audio") {
+    datums = datums < audioKeyframesLength ? audioKeyframesLength : datums;
+  }
 
-  waveType === "audio"
-    ? (length = audioKeyframesLength - 1 - leftRightOffset)
-    : (length = datums);
+  // waveType === "audio"
+  // ? (datums === audioKeyframesLength ? audioKeyframesLength : datums)
+  // : (datums);
+
+  //datums = datums > audioKeyframesLength ? audioKeyframesLength : datums;
 
   return {
     label: `wave 1`,
     data: [
-      ...new Array(datums >= 1 ? Number(datums) : Number((datums = 1))),
+      ...new Array(datums as number >= 1 ? Number(datums) : Number((datums = 1))),
     ].map((_, i) => {
       let t: number = i + Number(leftRightOffset);
       let modt: number = i + Number(modMoveLeftRight);
       let ak = keyframes as number[];
       let y;
+
+     
+  
 
       waveType === "audio" ? (y = ak[t]) : (y = 0);
 

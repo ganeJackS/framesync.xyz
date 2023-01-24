@@ -197,7 +197,7 @@ export default function ControlPanel() {
     AxisOptions<(typeof data)[number]["data"][number]>
   >(
     () => ({
-      getValue: (datum) => Number(datum.primary),
+      getValue: (datum) => datum.primary,
       primaryAxisId: "primary",
       position: "bottom",
       show: showAxes,
@@ -206,6 +206,7 @@ export default function ControlPanel() {
       shouldNice: true,
       curve: curveLinear,
       scaleType: "linear",
+      minDomainLength: 10,
 
       // formatters: {
       //   scale: (value) => {
@@ -227,10 +228,13 @@ export default function ControlPanel() {
         dataType: "linear",
         elementType: chartType === "bar" ? "bar" : "line",
         curve: curveLinear,
+        
       },
     ],
     [showAxes, showPoints, chartType]
   );
+
+  datums >= 1 ? datums : datums + 1;
 
   function setChartTypeHandler(e: React.ChangeEvent<HTMLSelectElement>) {
     setChartType(e.target.value);
@@ -264,9 +268,13 @@ export default function ControlPanel() {
     }
   );
 
+
+
   const yArrayRaw = data[0].data.map((datum: { secondary: any }) => {
     return datum.secondary?.toFixed(decimalPrecision);
   });
+
+
   const primaryWaveArray = data[0].data.map(
     (datum: { primaryWave: number }) => {
       return datum.primaryWave?.toFixed(decimalPrecision);
@@ -362,6 +370,7 @@ export default function ControlPanel() {
                 memoizeSeries: true,
                 dark: true,
                 tooltip: false,
+                
                 //showDebugAxes: true,
                 //useIntersectionObserver: true,
 
