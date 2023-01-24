@@ -49,12 +49,14 @@ export default function useData({}: {}) {
     channelProcess,
   } = settingsRef.current;
 
-  const [audioBuffer, setAudioBuffer] = useAudioBufferStore((state) => [
-    state.audioBuffer,
-    state.setAudioBuffer,
+  const [audioBuffer] = useAudioBufferStore((state) => [
+    state.audioBuffer
+
   ]);
 
   const keyframes = useAudio2Keyframes(audioBuffer as AudioBuffer, frameRate);
+
+  console.log("useData", keyframes)
 
   const data = makeDataFrom(
     datums,

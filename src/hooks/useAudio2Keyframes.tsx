@@ -28,8 +28,10 @@ function useAudio2Keyframes(audioBuffer: AudioBuffer, frameRate: number) {
 
     setKeyframes(normalizedChunkValues);
   }, [audioBuffer, frameRate]);
-
+  
+  console.log("audio2keyframes", keyframes)
   return keyframes;
+  
 }
 
 export default useAudio2Keyframes;
