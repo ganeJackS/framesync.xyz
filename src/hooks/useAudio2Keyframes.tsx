@@ -14,16 +14,16 @@ function useAudio2Keyframes(audioBuffer: AudioBuffer, frameRate: number) {
     const chunkSize = Math.floor(audioBuffer.length / numFrames);
     const chunkValues: number[] = [];
 
-    for (let i = 0; i < numFrames; i++) {
-      let chunkValue = 0;
-      for (let j = i * chunkSize; j < (i + 1) * chunkSize; j++) {
-        chunkValue += Math.abs(audioBuffer.getChannelData(0)[j]);
-      }
-      if (!chunkValue) {
-        chunkValue = 0;
-      }
-      chunkValues.push(chunkValue);
-    }
+    // for (let i = 0; i < numFrames; i++) {
+    //   let chunkValue = 0;
+    //   for (let j = i * chunkSize; j < (i + 1) * chunkSize; j++) {
+    //     chunkValue += Math.abs(audioBuffer.getChannelData(0)[j]);
+    //   }
+    //   if (!chunkValue) {
+    //     chunkValue = 0;
+    //   }
+    //   chunkValues.push(chunkValue);
+    // }
     console.log("chunkValues", chunkValues)
     // const normalizedChunkValues = chunkValues.map(
     //   (value) => value / Math.max(...chunkValues)
