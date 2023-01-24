@@ -1,22 +1,11 @@
 import ResizableBox from "../ResizableBox";
 import React, {
-  useCallback,
   useEffect,
-  useMemo,
   useRef,
-  useState,
 } from "react";
 import {
   AxisOptions,
-  Chart,
-  ChartOptions,
-  Datum,
-  GridDimensions,
-  AxisOptionsWithScaleType,
-  AxisBand,
-  AxisBandOptions,
-  AxisOptionsBase,
-  AxisTimeOptions,
+  Chart
 } from "react-charts";
 import NumberInput from "./NumberInput";
 import sinusoid from "../assets/sinusoid.svg";
@@ -33,31 +22,26 @@ import useAudioBufferStore from "../stores/audioBufferStore";
 import { Settings, State, useSettingsStore } from "../stores/settingsStore";
 import useData from "../hooks/useData";
 import SelectToggle from "./SelectToggle";
-import KeyframeTable from "./KeyframeTable";
 import { SaveSettings } from "./SaveLoadImportExport/SaveSettings";
 import SettingsSelector from "./SaveLoadImportExport/SettingsSelector";
 import ExportSettingsButton from "./SaveLoadImportExport/ExportSettingsButton";
 import ImportSettingsButton from "./SaveLoadImportExport/ImportSettingsButton";
 import { curveLinear } from "d3-shape";
-import hash from "object-hash";
+
 
 export default function ControlPanel() {
   const [
     settings,
     locks,
-    //factoryPresets,
-    //userPresets,
     updateSetting,
-    //updateSettingFromList,
     updateLock,
   ] = useSettingsStore(
     (state) => [
       state.settings,
       state.locks,
-      //state.factoryPresets,
-      //state.userPresets,
+
       state.updateSetting,
-      //state.updateSettingFromList,
+
       state.updateLock,
     ],
     shallow
@@ -192,9 +176,6 @@ export default function ControlPanel() {
     };
 
     fileReader.readAsArrayBuffer(file);
-    // file.text().then((text) => {
-    //   console.log(hash(text));
-    // });
     updateSetting("waveType", "audio");
     updateSetting("channelProcess", "stereo");
   };
@@ -213,12 +194,6 @@ export default function ControlPanel() {
       curve: curveLinear,
       scaleType: "linear",
       minDomainLength: 10,
-
-      // formatters: {
-      //   scale: (value) => {
-      //     return value % frameRate === 0 ? value : ".";
-      //   },
-      // },
     }),
     [showAxes, datums, frameRate, rhythmRate, tempo]
   );
@@ -422,36 +397,6 @@ export default function ControlPanel() {
           {cursorValues}
         </div>
 
-        {/* Stats */}
-        {/* <div className="mb-4 flex shrink flex-row justify-center space-x-2 bg-darkest-blue font-mono text-gray-400">
-          Min: {yArrayMin?.toFixed(decimalPrecision)} | Max:{" "}
-          {yArrayMax?.toFixed(decimalPrecision)} | Sum:{" "}
-          {Number(datums) > 1
-            ? yArraySum?.toFixed(decimalPrecision)
-            : yArraySum}{" "}
-          | Average:{" "}
-          {Number(datums) > 1
-            ? yArrayAvg?.toFixed(decimalPrecision)
-            : yArrayAvg}{" "}
-          | Absolute Sum:{" "}
-          {Number(datums) > 1 ? yArraySum.toFixed(decimalPrecision) : yArraySum}{" "}
-          | Absolute Avg:{" "}
-          {Number(datums) > 1
-            ? yArrayAbsAvg.toFixed(decimalPrecision)
-            : yArrayAbsAvg}{" "}
-          | Duration: {(yArrayRaw.length / frameRate).toFixed(decimalPrecision)}
-          s{" "}
-          <label>
-            | Chart{" "}
-            <select
-              className="border-2 border-dark-blue bg-darker-blue"
-              value={chartType}
-              onChange={setChartTypeHandler}>
-              <option value="line">Line</option>
-              <option value="bar">Bar</option>
-            </select>
-          </label>
-        </div> */}
 
         {/* Control Panel */}
         <div className="w-md ml-2 flex justify-start space-x-2 font-mono md:flex-col lg:flex-row ">
