@@ -148,6 +148,7 @@ export default function ControlPanel() {
     modMoveLeftRight,
     modMoveUpDown,
     keyframes,
+    channelProcess,
   });
 
 
@@ -191,6 +192,7 @@ export default function ControlPanel() {
     };
     fileReader.readAsArrayBuffer(file);
     updateSetting("waveType", "audio");
+    updateSetting("channelProcess", "mono");
   };
 
   const primaryAxis = React.useMemo<
@@ -537,6 +539,17 @@ export default function ControlPanel() {
               controls
               style={{ borderRadius: "0px" }}
             />
+            <select
+              className="border-2 border-dark-blue bg-darker-blue"
+              value={channelProcess}
+              onChange={(e) => {
+                e.persist();
+                updateSetting("channelProcess", e.target.value);
+              }}>
+              <option value="mono">Mono</option>
+              <option value="stereo">Stereo</option>
+              <option value="stereoNegative">StereoN</option>
+            </select>
             <div className="flex w-full flex-col">
               {/* Primary Wave Settings */}
               <fieldset className="mb-2 w-full shrink border-2 border-dark-blue pl-2 pr-2 pb-2 shadow-inner">

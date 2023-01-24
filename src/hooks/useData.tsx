@@ -54,7 +54,7 @@ export default function useData({}: {}) {
     
   ]);
 
-  const keyframes = useAudio2Keyframes(audioBuffer as AudioBuffer, frameRate);
+  const keyframes = useAudio2Keyframes(audioBuffer as AudioBuffer, frameRate, channelProcess);
 
   const data = makeDataFrom(
     datums,
@@ -78,7 +78,7 @@ export default function useData({}: {}) {
     modBend,
     modMoveUpDown,
     modMoveLeftRight,
-    keyframes,
+    keyframes,    
   );
 
   return data;
