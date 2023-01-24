@@ -152,7 +152,6 @@ export default function ControlPanel() {
     channelProcess,
   });
 
-
   const [chartType, setChartType] = React.useState("line");
   const [highlightedText, setHighlightedText] = React.useState("");
   const [primaryCursorValue, setPrimaryCursorValue] = React.useState();
@@ -191,7 +190,7 @@ export default function ControlPanel() {
         }
       );
     };
-    
+
     fileReader.readAsArrayBuffer(file);
     file.text().then((text) => {
       console.log(hash(text));
@@ -235,7 +234,6 @@ export default function ControlPanel() {
         dataType: "linear",
         elementType: chartType === "bar" ? "bar" : "line",
         curve: curveLinear,
-        
       },
     ],
     [showAxes, showPoints, chartType]
@@ -275,12 +273,9 @@ export default function ControlPanel() {
     }
   );
 
-
-
   const yArrayRaw = data[0].data.map((datum: { secondary: any }) => {
     return datum.secondary?.toFixed(decimalPrecision);
   });
-
 
   const primaryWaveArray = data[0].data.map(
     (datum: { primaryWave: number }) => {
@@ -377,7 +372,7 @@ export default function ControlPanel() {
                 memoizeSeries: true,
                 dark: true,
                 tooltip: false,
-                
+
                 //showDebugAxes: true,
                 //useIntersectionObserver: true,
 
@@ -524,37 +519,30 @@ export default function ControlPanel() {
           </fieldset>
 
           {/* Wave Settings */}
-          <fieldset className="w-max space-x-2 rounded-sm border border-dark-blue bg-darkest-blue p-4 font-mono shadow-sm">
+          <fieldset className="w-max space-x-2 rounded-sm border border-dark-blue bg-darkest-blue pr-4 pt-2 pb-2 font-mono shadow-sm">
             <legend className="flex flex-row">
               Select a primary wave or upload an mp3/wav for audio2keyframes{" "}
             </legend>
-            <span className="pl-2">
+            {/* Audio Controls */}
+           <div className="flex flex-col w-max border border-dark-blue mb-2">
               <input
-                className="mb-2 text-orange-500"
+                className="border border-dark-blue bg-darker-blue pr-2 text-orange-500"
                 type="file"
                 ref={fileInput}
                 onChange={handleFileUpload}
               />
-            </span>{" "}
-            <audio
-              className={`mb-2 block w-full rounded-none bg-darkest-blue ${
-                waveType === "audio" ? "" : "opacity-30"
-              }`}
-              ref={audioElement}
-              controls
-              style={{ borderRadius: "0px" }}
-            />
-            <select
-              className="border-2 border-dark-blue bg-darker-blue"
-              value={channelProcess}
-              onChange={(e) => {
-                e.persist();
-                updateSetting("channelProcess", e.target.value);
-              }}>
-              <option value="mono">Mono</option>
-              <option value="stereo">Stereo</option>
-              <option value="stereoNegative">StereoN</option>
-            </select>
+
+        
+              <audio
+                className={`flex flex-auto grow mr-0 rounded-none bg-darkest-blue ${
+                  waveType === "audio" ? "" : "opacity-30"
+                }`}
+                ref={audioElement}
+                controls
+                use-credentials
+              />
+       
+            </div>
             <div className="flex w-full flex-col">
               {/* Primary Wave Settings */}
               <fieldset className="mb-2 w-full shrink border-2 border-dark-blue pl-2 pr-2 pb-2 shadow-inner">
@@ -574,16 +562,19 @@ export default function ControlPanel() {
                       <option value="sin">Sine</option>
                     </select>
                   </label>{" "}
-                  {/* <select
-                      className="border-2 border-dark-blue bg-darker-blue"
-                      value={channelProcess}
-                      onChange={(e) => {
-                        e.persist();
-                        updateSetting("channelProcess", e.target.value);
-                      }}>
-                      <option value="stereo">stereo</option>
-                      <option value="stereoNegative">stereo image</option>
-                    </select> */}
+                  <select
+                    className={`border-2 border-dark-blue bg-darker-blue ${
+                      waveType === "audio" ? "" : "opacity-30"
+                    }`}
+                    value={channelProcess}
+                    onChange={(e) => {
+                      e.persist();
+                      updateSetting("channelProcess", e.target.value);
+                    }}>
+                    <option value="mono">Mono</option>
+                    <option value="stereo">Stereo</option>
+                    <option value="stereoNegative">StereoN</option>
+                  </select>
                 </legend>
                 <div className="mb-2 flex max-w-fit shrink flex-row justify-start text-center text-xs">
                   {/* Sinusoid */}
