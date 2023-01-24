@@ -1,4 +1,4 @@
-import react, { useEffect, useState } from "react";
+import react, { useEffect, useRef, useState } from "react";
 import { useSettingsStore } from "../stores/settingsStore";
 import shallow from "zustand/shallow";
 import useAudioBufferStore from "../stores/audioBufferStore";
@@ -7,10 +7,20 @@ import useAudio2Keyframes from "./useAudio2Keyframes";
 import { Settings, State } from "../stores/settingsStore";
 
 export default function useData({}: {}) {
-  const [settings, updateSetting] = useSettingsStore((state) => [
-    state.settings,
-    state.updateSetting,
-  ]);
+  // const [settings, updateSetting] = useSettingsStore((state) => [
+  //   state.settings,
+  //   state.updateSetting,
+  // ], shallow);
+
+  const settingsRef = useRef(useSettingsStore.getState().settings);
+
+  useEffect(
+    () =>
+      useSettingsStore.subscribe(
+        (state) => (settingsRef.current = state.settings)
+      ),
+    []
+  );
 
   const {
     datums,
@@ -37,7 +47,7 @@ export default function useData({}: {}) {
     hardMax,
     hardMin,
     channelProcess,
-  } = settings;
+  } = settingsRef.current;
 
   const [audioBuffer, setAudioBuffer] = useAudioBufferStore((state) => [
     state.audioBuffer,
@@ -70,7 +80,7 @@ export default function useData({}: {}) {
     modMoveLeftRight,
     keyframes,
     hardMax,
-    hardMin,
+    hardMin
   );
 
   return data;
@@ -102,7 +112,7 @@ const makeDataFrom = (
   modMoveUpDown?: number,
   keyframes?: number[],
   hardMax?: number,
-  hardMin?: number,
+  hardMin?: number
 ) => {
   return [...new Array(series)].map((d, i) =>
     makeSeries(
@@ -129,7 +139,7 @@ const makeDataFrom = (
       modMoveLeftRight,
       keyframes,
       hardMax,
-      hardMin,
+      hardMin
     )
   );
 };
@@ -158,7 +168,7 @@ const makeSeries = (
   modMoveUpDown?: number,
   keyframes?: number[],
   hardMax?: number,
-  hardMin?: number,
+  hardMin?: number
 ) => {
   //let length: number = Number(datums);
   let audioKeyframesLength: number = keyframes?.length as number;
@@ -168,7 +178,7 @@ const makeSeries = (
     : (length = datums);
 
   return {
-    label: `${waveType}`,
+    label: `wave 1`,
     data: [
       ...new Array(datums >= 1 ? Number(datums) : Number((datums = 1))),
     ].map((_, i) => {
@@ -253,6 +263,7 @@ const makeSeries = (
 
       const primaryWaveY = Number(y);
 
+      // Noise Generator
       if ((y as number) > 0) {
         y = (y as number) + Math.random() * Number(noiseAmount);
       } else if ((y as number) < 0) {
@@ -291,7 +302,6 @@ const makeSeries = (
                 Number(modMoveUpDown)));
       }
 
-
       // let scalingFactor;
       // if (y > hardMax) {
       //   scalingFactor = hardMax / y;
@@ -304,7 +314,7 @@ const makeSeries = (
       // y = y * scalingFactor;
 
       Number.isNaN(y) ? (y = upDownOffset) : (y = y);
-      
+
       // if ((y as number) > Number(hardMax)) {
       //   y = Number(hardMax);
       // } else if ((y as number) < Number(hardMin)) {

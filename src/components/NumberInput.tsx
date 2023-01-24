@@ -30,8 +30,8 @@ const NumberInput: React.FC<NumberInputProps> = ({
   const [prevDelta, setPrevDelta] = useState(0);
   const inputValue = settings[name as keyof typeof settings];
 
-  const handlePointerMove = useCallback(
-    (event: PointerEvent) => {
+  const handleMouseMove = useCallback(
+    (event: MouseEvent) => {
       if (!isDragging) {
         return;
       }
@@ -61,8 +61,8 @@ const NumberInput: React.FC<NumberInputProps> = ({
     [isDragging, startY, settings, step, min, max, updateSetting, name]
   );
 
-  const handlePointerUp = useCallback(
-    (event: PointerEvent) => {
+  const handleMouseUp = useCallback(
+    (event: MouseEvent) => {
       setIsDragging(false);
       setPrevDelta(startY);
       onChange(inputValue);
@@ -71,16 +71,16 @@ const NumberInput: React.FC<NumberInputProps> = ({
   );
 
   useEffect(() => {
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
 
     return () => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [handlePointerMove, handlePointerUp]);
+  }, [handleMouseMove, handleMouseUp]);
 
-  const handlePointerDown = (event: React.PointerEvent<HTMLInputElement>) => {
+  const handleMouseDown = (event: React.MouseEvent<HTMLInputElement>) => {
     setIsDragging(true);
     setStartY(event.clientY);
   };
@@ -96,7 +96,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
       type="number"
       value={inputValue as number}
       onChange={handleChange}
-      onPointerDown={handlePointerDown}
+      onMouseDown={handleMouseDown}
       min={min}
       max={max}
       step={step}
