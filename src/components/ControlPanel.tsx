@@ -193,14 +193,11 @@ export default function ControlPanel() {
     };
     
     fileReader.readAsArrayBuffer(file);
-    // Print keccak256 hash of file
-    // const hash = keccak256(file);
-    // console.log(hash);
     file.text().then((text) => {
       console.log(hash(text));
     });
     updateSetting("waveType", "audio");
-    updateSetting("channelProcess", "mono");
+    updateSetting("channelProcess", "stereo");
   };
 
   const primaryAxis = React.useMemo<

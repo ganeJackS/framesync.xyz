@@ -92,7 +92,7 @@ export const useSettingsStore = create(
       decimalPrecision: 2,
       hardMax: 100,
       hardMin: -100,
-      channelProcess: "mono",
+      channelProcess: "stereo",
     },
     locks: {
       lockDatumCount: false,
