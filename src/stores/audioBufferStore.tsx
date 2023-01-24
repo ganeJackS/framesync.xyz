@@ -10,7 +10,8 @@ type Actions = {
 
 const useAudioBufferStore = create<State & Actions>()(set => ({
   audioBuffer: null as AudioBuffer | null,
-  setAudioBuffer: (audioBuffer: AudioBuffer | null) => set(() => ({ audioBuffer: audioBuffer })),
+  setAudioBuffer: async (audioBuffer: AudioBuffer | null) => { set(() => ( { audioBuffer: audioBuffer }))},
+
 }));
 
 export default useAudioBufferStore;
