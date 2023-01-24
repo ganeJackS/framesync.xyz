@@ -39,6 +39,7 @@ import SettingsSelector from "./SaveLoadImportExport/SettingsSelector";
 import ExportSettingsButton from "./SaveLoadImportExport/ExportSettingsButton";
 import ImportSettingsButton from "./SaveLoadImportExport/ImportSettingsButton";
 import { curveLinear } from "d3-shape";
+import hash from "object-hash";
 
 export default function ControlPanel() {
   const [
@@ -148,10 +149,8 @@ export default function ControlPanel() {
     modMoveLeftRight,
     modMoveUpDown,
     keyframes,
+    channelProcess,
   });
-
-  //console.log("data", data);
-  //const data = structuredClone(rawData);
 
   const [chartType, setChartType] = React.useState("line");
   const [highlightedText, setHighlightedText] = React.useState("");
@@ -191,8 +190,13 @@ export default function ControlPanel() {
         }
       );
     };
+
     fileReader.readAsArrayBuffer(file);
+    // file.text().then((text) => {
+    //   console.log(hash(text));
+    // });
     updateSetting("waveType", "audio");
+    updateSetting("channelProcess", "stereo");
   };
 
   const primaryAxis = React.useMemo<
@@ -230,7 +234,6 @@ export default function ControlPanel() {
         dataType: "linear",
         elementType: chartType === "bar" ? "bar" : "line",
         curve: curveLinear,
-        
       },
     ],
     [showAxes, showPoints, chartType]
@@ -270,12 +273,9 @@ export default function ControlPanel() {
     }
   );
 
-
-
   const yArrayRaw = data[0].data.map((datum: { secondary: any }) => {
     return datum.secondary?.toFixed(decimalPrecision);
   });
-
 
   const primaryWaveArray = data[0].data.map(
     (datum: { primaryWave: number }) => {
@@ -372,22 +372,6 @@ export default function ControlPanel() {
                 memoizeSeries: true,
                 dark: true,
                 tooltip: false,
-                
-                //showDebugAxes: true,
-                //useIntersectionObserver: true,
-
-                // getDatumStyle: (datum, _status) => ({
-                //   color: "#F97316",
-                //   //stroke: "#F97316",
-
-                //   opacity:
-                //     activeSeriesIndex > -1
-                //       ? datum.seriesIndex === activeSeriesIndex
-                //         ? 1
-                //         : 0.1
-                //       : 1,
-                // }),
-
                 getSeriesStyle: (series) => ({
                   color: "#F97316",
                   stroke: "#F97316",
@@ -411,13 +395,6 @@ export default function ControlPanel() {
                     setSecondaryCursorValue(value);
                   },
                 },
-
-                // onFocusDatum: (datum) => {
-                //   setState((old) => ({
-                //     ...old,
-                //     activeSeriesIndex: datum ? datum.seriesIndex : -1,
-                //   }));
-                // },
               }}
             />
           </ResizableBox>
@@ -425,7 +402,7 @@ export default function ControlPanel() {
         {/* Zoom slider */}
         <label>
           <input
-            className="zoom-slider bg-darkest-blue"
+            className="zoom-slider h-10 bg-darkest-blue"
             type="range"
             min="0"
             max="100"
@@ -446,7 +423,7 @@ export default function ControlPanel() {
         </div>
 
         {/* Stats */}
-        <div className="mb-4 flex shrink flex-row justify-center space-x-2 bg-darkest-blue font-mono text-gray-400">
+        {/* <div className="mb-4 flex shrink flex-row justify-center space-x-2 bg-darkest-blue font-mono text-gray-400">
           Min: {yArrayMin?.toFixed(decimalPrecision)} | Max:{" "}
           {yArrayMax?.toFixed(decimalPrecision)} | Sum:{" "}
           {Number(datums) > 1
@@ -474,7 +451,7 @@ export default function ControlPanel() {
               <option value="bar">Bar</option>
             </select>
           </label>
-        </div>
+        </div> */}
 
         {/* Control Panel */}
         <div className="w-md ml-2 flex justify-start space-x-2 font-mono md:flex-col lg:flex-row ">
@@ -482,12 +459,9 @@ export default function ControlPanel() {
 
           <fieldset className="min-w-fit space-x-2 rounded-sm border border-dark-blue bg-darkest-blue font-mono shadow-sm">
             <legend className="border-1 flex flex-col ">
-              Presets (experimental)
+              Animation Presets
             </legend>
-            <div className="mb-2 mt-2 flex flex-row justify-between">
-              <ImportSettingsButton />
-              <ExportSettingsButton />
-            </div>
+
             <SettingsSelector />
             <SaveSettings />
 
@@ -516,32 +490,56 @@ export default function ControlPanel() {
                 }}
               />
             </div>
+            <div className="mb-2 mt-2 flex flex-row justify-start space-x-1">
+              <ImportSettingsButton />
+              <ExportSettingsButton />
+            </div>
           </fieldset>
 
           {/* Wave Settings */}
-          <fieldset className="w-max space-x-2 rounded-sm border border-dark-blue bg-darkest-blue p-4 font-mono shadow-sm">
-            <legend className="flex flex-row">
-              Select a primary wave or upload an mp3/wav for audio2keyframes{" "}
+          <fieldset className="w-fit space-x-2 rounded-sm border border-dark-blue bg-darkest-blue pl-1 pr-3 pt-2 pb-2 font-mono shadow-sm">
+            <legend className="flex flex-row">Wave Settings
+            <select
+                  className="border-2 border-dark-blue bg-darker-blue ml-2"
+                  value={chartType}
+                  onChange={setChartTypeHandler}>
+                  <option value="line">Line</option>
+                  <option value="bar">Bar</option>
+                </select>
             </legend>
-            <span className="pl-2">
-              <input
-                className="mb-2 text-orange-500"
-                type="file"
-                ref={fileInput}
-                onChange={handleFileUpload}
-              />
-            </span>{" "}
-            <audio
-              className={`mb-2 block w-full rounded-none bg-darkest-blue ${
-                waveType === "audio" ? "" : "opacity-30"
-              }`}
-              ref={audioElement}
-              controls
-              style={{ borderRadius: "0px" }}
-            />
+
+            <span className="mb-2 max-w-lg pl-2 pr-2 pb-2 text-xs shadow-inner">
+              Select a Primary Wave or upload an wav/mp3 file for
+              audio2keyframes
+            </span>
+
+            {/* Audio Controls */}
+            <div className="mb-2 border border-dark-blue">
+              <ShowHideToggle
+                label="Audio Controls"
+                showLabel="Show"
+                hideLabel="Hide">
+                <div className="flex flex-col">
+                  <input
+                    className=" border-y pt-2 border-dark-blue bg-darkest-blue pr-2 text-orange-500"
+                    type="file"
+                    ref={fileInput}
+                    onChange={handleFileUpload}
+                  />
+                  <audio
+                    className={`mt-3 block w-auto rounded-none bg-darkest-blue ${
+                      waveType === "audio" ? "" : "opacity-30"
+                    }`}
+                    ref={audioElement}
+                    controls
+                    use-credentials
+                  />
+                </div>
+              </ShowHideToggle>
+            </div>
             <div className="flex w-full flex-col">
               {/* Primary Wave Settings */}
-              <fieldset className="mb-2 w-full shrink border-2 border-dark-blue pl-2 pr-2 pb-2 shadow-inner">
+              <fieldset className="mb-2 max-w-lg  border-2 border-dark-blue pl-2 pr-2 pb-2 shadow-inner">
                 <legend className="mb-2">
                   Primary Wave
                   {/* Sin/Cos */}
@@ -558,18 +556,20 @@ export default function ControlPanel() {
                       <option value="sin">Sine</option>
                     </select>
                   </label>{" "}
-                  {/* <select
-                      className="border-2 border-dark-blue bg-darker-blue"
-                      value={channelProcess}
-                      onChange={(e) => {
-                        e.persist();
-                        updateSetting("channelProcess", e.target.value);
-                      }}>
-                      <option value="stereo">stereo</option>
-                      <option value="stereoNegative">stereo image</option>
-                    </select> */}
+                  <select
+                    className={`border-2 border-dark-blue bg-darker-blue ${
+                      waveType === "audio" ? "" : "opacity-30"
+                    }`}
+                    value={channelProcess}
+                    onChange={(e) => {
+                      e.persist();
+                      updateSetting("channelProcess", e.target.value);
+                    }}>
+                    <option value="stereo">Stereo</option>
+                    <option value="stereoNegative">StereoN</option>
+                  </select>
                 </legend>
-                <div className="mb-2 flex max-w-fit shrink flex-row justify-start text-center text-xs">
+                <div className="mb-2 flex max-w-fit shrink flex-row justify-start text-center text-xs text-gray-300">
                   {/* Sinusoid */}
                   <input
                     className="radio appearance-none"
@@ -726,7 +726,7 @@ export default function ControlPanel() {
                   {/* Amplitude */}
                   <label
                     title="[Y-Axis] Sets the range of keyframe values. Higher absolute value = more effect. Lower absolute value = less effect. Use negative values to invert the polarity of the wave. Max is highest value, min is lowest. Use negative values for dips or positive for bumps."
-                    className="z-index-100 mr-2 flex w-fit flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                    className="z-index-100 mr-2 flex w-1/4 flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                     AMPLITUDE{" "}
                     <NumberInput
                       name="amplitude"
@@ -739,7 +739,7 @@ export default function ControlPanel() {
                   {/* Up/Down Offset*/}
                   <label
                     title="[Y-Axis] Moves entire keyframe value range up or down. Useful for creating biased effects, for example, zoom in effects that change in speed but do not ever zoom out. Leave at 0 for balanced effect."
-                    className="z-index-100 mr-2 flex w-fit flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                    className="z-index-100 mr-2 flex w-1/4 flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                     SHIFT UP/DOWN{" "}
                     <NumberInput
                       name="upDownOffset"
@@ -752,7 +752,7 @@ export default function ControlPanel() {
                   {/* Bend*/}
                   <label
                     title="[Y-Axis] Bend adds curviness to the wave. Can be used to focus values around a specific point or add smoothness to movement, depending on the wave type."
-                    className="z-index-100 mr-2 flex w-fit flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                    className="z-index-100 mr-2 flex w-1/4 flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                     BEND{" "}
                     <NumberInput
                       name="bend"
@@ -766,7 +766,7 @@ export default function ControlPanel() {
                   {/* Noise*/}
                   <label
                     title="[Y-Axis] Adds randomness. Only applies to keyframe string. Higher values = more random."
-                    className="z-index-100 flex w-fit flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                    className="z-index-100 flex w-1/4 flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                     NOISE{" "}
                     <NumberInput
                       name="noiseAmount"
@@ -778,10 +778,8 @@ export default function ControlPanel() {
                   </label>
                 </div>
               </fieldset>
-              {/* Secondary Wave Settings */}
-
               {/* Modulator Settings */}
-              <fieldset className="border-2 border-dark-blue pl-2 pr-2 pb-2">
+              <fieldset className="mb-2 max-w-lg  border-2 border-dark-blue pl-2 pr-2 pb-2 shadow-inner">
                 <legend className="mb-2 flex flex-row space-x-2">
                   <label className="ml-2 flex flex-row items-center">
                     <SelectToggle
@@ -811,12 +809,11 @@ export default function ControlPanel() {
                   </label>
                 </legend>
                 <div className={`${modEnabled ? "" : "opacity-50"}`}>
-                  {/* Secondary Wave Settings */}
-                  <div className="flex flex-col flex-wrap ">
-                    <div className="mb-2 flex flex-row">
+                  <div className="flex flex-col">
+                    <div className="mb-2 flex flex-row text-xs">
                       {/* Mod Amplitude */}
-                      <label className="z-index-100 mr-2   flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
-                        MOD AMPLITUDE{" "}
+                      <label className="z-index-100 mr-2 flex w-1/4 flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1">
+                        M-AMPLITUDE{" "}
                         <NumberInput
                           name="modAmp"
                           min={-100}
@@ -826,8 +823,8 @@ export default function ControlPanel() {
                         />
                       </label>
                       {/* Mod Up/Down Offset*/}
-                      <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
-                        MOD SHIFT UP/DOWN{" "}
+                      <label className="z-index-100 mr-2 flex w-1/4 flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1">
+                        M-UP/DOWN{" "}
                         <NumberInput
                           name="modMoveUpDown"
                           min={-100}
@@ -837,13 +834,23 @@ export default function ControlPanel() {
                         />
                       </label>
                       {/* Mod Bend*/}
-                      <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
-                        MOD BEND{" "}
+                      <label className="z-index-100 mr-2 flex w-1/4 flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1">
+                        M-BEND{" "}
                         <NumberInput
                           name="modBend"
                           min={1}
                           max={1000}
                           step={2}
+                          onChange={handleChange}
+                        />
+                      </label>
+                      <label className="z-index-100  flex w-1/4 flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1">
+                        M-LEFT/RIGHT{" "}
+                        <NumberInput
+                          name="modMoveLeftRight"
+                          min={0}
+                          max={100000}
+                          step={1}
                           onChange={handleChange}
                         />
                       </label>
@@ -861,8 +868,8 @@ export default function ControlPanel() {
                         />
                       </label> */}
                       {/* Mod Rhythm Rate*/}
-                      <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
-                        MOD SYNC RATE {/* option selector for rhythmRates */}
+                      <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-xs">
+                        M-SYNC RATE {/* option selector for rhythmRates */}
                         <select
                           name="modRhythmRate"
                           className="border-2 border-dark-blue bg-darker-blue"
@@ -898,16 +905,6 @@ export default function ControlPanel() {
                         />
                       </label> */}
                       {/* Move Left/Right */}
-                      <label className="z-index-100 mr-2  flex flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
-                        MOD SHIFT LEFT/RIGHT{" "}
-                        <NumberInput
-                          name="modMoveLeftRight"
-                          min={0}
-                          max={100000}
-                          step={1}
-                          onChange={handleChange}
-                        />
-                      </label>
                     </div>
                   </div>
                 </div>
@@ -943,11 +940,11 @@ export default function ControlPanel() {
           {/* Framesync Settings */}
           <div className="flex w-fit flex-col font-mono">
             {/* Frame Settings */}
-            <fieldset className="flex flex-row justify-start rounded-sm border border-dark-blue bg-darkest-blue pl-3 pr-3 pb-3 font-mono shadow-sm">
+            <fieldset className="flex max-w-xs flex-row justify-start rounded-sm border border-dark-blue bg-darkest-blue pl-3 pr-3 pb-3 font-mono shadow-sm">
               <legend>Frame Settings</legend>
               <label
                 title="Set this to the FPS you'll use in the video output section of Deforum. The higher the frame rate, the smoother the motion. If in doubt, try 12, 24, 30, 60, or 120 FPS. Or if your BPM is not evenly divisible by these frame rates, you may want to match the frame rate and your BPM. Or do as suggested in the tempo tip."
-                className="z-index-100 mr-2 flex   flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                className="z-index-100 mr-2 flex  w-1/2 flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                 FRAME RATE (FPS)
                 <NumberInput
                   name="frameRate"
@@ -959,7 +956,7 @@ export default function ControlPanel() {
               </label>
               <label
                 title="The number of frames visible in the graph above and the number of keyframes generated in the keyframes output. Has no effect on formulas."
-                className="z-index-100 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                className="z-index-100 flex  w-1/2 flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                 FRAME COUNT
                 <NumberInput
                   name="datums"
@@ -972,14 +969,14 @@ export default function ControlPanel() {
             </fieldset>
 
             {/* Sync Settings */}
-            <fieldset className="flex-row-auto justify-start rounded-sm border border-dark-blue bg-darkest-blue pl-3 pr-3 pb-3 font-mono shadow-sm">
+            <fieldset className="flex-row-auto max-w-xs justify-start  rounded-sm border border-dark-blue bg-darkest-blue pl-3 pr-3 pb-3 font-mono shadow-sm">
               <legend>Sync Settings</legend>
               {/* Tempo and Shift Left/Right */}
               <div className="mb-2 flex flex-row space-x-2">
                 {/* Tempo */}
                 <label
                   title="You may get better results by setting this to 120bpm and then speeding up/slowing down the video to match the target bpm using video editing software."
-                  className={`z-index-100 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm ${
+                  className={`z-index-100 flex  w-1/2 flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm ${
                     waveType === "audio" ? "opacity-50" : ""
                   }`}>
                   TEMPO (BPM)
@@ -995,21 +992,8 @@ export default function ControlPanel() {
 
                 <label
                   title="Shifts the entire wave left or right over time in frames. Check 'START FRAME' to set this value as the starting frame in the 'Keyframes' output."
-                  className="z-index-100 flex  flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
+                  className="z-index-100 flex  w-1/2 flex-col border-2 border-dark-blue bg-darker-blue pl-1 pt-1 text-sm">
                   SHIFT LEFT/RIGHT
-                  {/* Link Horizonal Offset & Starting Frame */}
-                  <label className="text-xs">
-                    START FRAME{" "}
-                    <input
-                      name="linkFrameOffset"
-                      type="checkbox"
-                      checked={linkFrameOffset}
-                      onChange={(e) => {
-                        e.persist();
-                        updateSetting("linkFrameOffset", e.target.checked);
-                      }}
-                    />
-                  </label>
                   <NumberInput
                     name="leftRightOffset"
                     min={0}
@@ -1019,7 +1003,16 @@ export default function ControlPanel() {
                   />
                 </label>
               </div>
-
+              {/* Link Horizonal Offset & Starting Frame */}
+              <label className="flex flex-auto justify-end pr-1 text-xs">
+                <SelectToggle
+                  name={"Start here?"}
+                  isOrange={linkFrameOffset}
+                  onToggle={() =>
+                    updateSetting("linkFrameOffset", !linkFrameOffset)
+                  }
+                />
+              </label>
               <div className="flex w-fit flex-col">
                 <fieldset
                   disabled={waveType === "audio" ? true : false}
@@ -1346,9 +1339,73 @@ export default function ControlPanel() {
               </div>
             </fieldset>
           </div>
+
+          
+
+          <fieldset>
+            <legend className="text-white">Metrics</legend>
+            <table className="text-sm font-mono text-right bg-darkest-blue divide-y divide-dark-blue border border-darkest-blue text-gray-300">
+            <thead className="text-right">
+                <tr>
+                  <th>Metric</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+            <tr>
+              <td>Max</td>
+              <td>{yArrayMax?.toFixed(decimalPrecision)}</td>
+            </tr>
+            <tr>
+              <td>Min</td>
+              <td>{yArrayMin?.toFixed(decimalPrecision)}</td>
+            </tr>
+         
+            <tr>
+              <td>Sum</td>
+              <td>
+                {Number(datums) > 1
+                  ? yArraySum?.toFixed(decimalPrecision)
+                  : yArraySum}
+              </td>
+            </tr>
+            <tr>
+              <td>Avg</td>
+              <td>
+                {Number(datums) > 1
+                  ? yArrayAvg?.toFixed(decimalPrecision)
+                  : yArrayAvg}
+              </td>
+            </tr>
+            <tr>
+              <td>Abs Sum</td>
+              <td>
+                {Number(datums) > 1
+                  ? yArraySum.toFixed(decimalPrecision)
+                  : yArraySum}
+              </td>
+            </tr>
+            <tr>
+              <td>Abs Avg</td>
+              <td>
+                {Number(datums) > 1
+                  ? yArrayAbsAvg.toFixed(decimalPrecision)
+                  : yArrayAbsAvg}
+              </td>
+            </tr>
+            <tr>
+              <td>Duration</td>
+              <td>
+                {(yArrayRaw.length / frameRate).toFixed(decimalPrecision)}s
+              </td>
+            </tr>
+            
+          </table>
+          </fieldset>
+
+
           <fieldset>
             <legend className="text-white">Timing Table</legend>
-            <table className="bg-darkest-blue text-sm">
+            <table className="bg-darkest-blue text-sm text-gray-300">
               <thead className="text-left">
                 <tr>
                   <th>Rate</th>
@@ -1477,26 +1534,34 @@ export default function ControlPanel() {
 
         {/* Outputs */}
         <div className="ml-4 flex w-full flex-col">
-          <h2 className="text-lg">Outputs</h2>
-          <ul className="text-sm text-slate-300">
-            <li>
-              Copy a formula or keyframes string below and paste them into your
-              desired motion parameter in Deforum.
-            </li>
-            <li>
-              - The keyframes and the formula are equivalent, so you can use
-              either one.
-            </li>
-            <li>
-              - However, if you add NOISE, it will only be applied to the
-              keyframes string.
-            </li>
-            <li>
-              - For readability, each row of keyframes is equal to 1 second of
-              keyframe data i.e. a new row is added every interval of your frame
-              rate.
-            </li>
-          </ul>
+          <h2 className="text-lg text-green-500">
+            Copy an Output Below and Paste into Deforum
+          </h2>
+          <ShowHideToggle
+            label="Info"
+            showLabel="Show More"
+            hideLabel="Hide More"
+            hide={true}>
+            <ul className="text-sm text-slate-300">
+              <li>
+                Copy a formula or keyframes string below and paste them into
+                your desired parameter in Deforum.
+              </li>
+              <li>
+                - The keyframes and the formula are equivalent, so you can use
+                either one.
+              </li>
+              <li>
+                - However, if you add NOISE, it will only be applied to the
+                keyframes string.
+              </li>
+              <li>
+                - For readability, each row of keyframes is equal to 1 second of
+                keyframe data i.e. a new row is added every interval of your
+                frame rate.
+              </li>
+            </ul>
+          </ShowHideToggle>
         </div>
         <div className="mt-1 ml-4 flex flex-col justify-start">
           <div className="flex flex-row items-center">
