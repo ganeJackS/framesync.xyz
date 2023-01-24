@@ -51,12 +51,15 @@ export default function useData({}: {}) {
 
   const [audioBuffer] = useAudioBufferStore((state) => [
     state.audioBuffer
-
+    
   ]);
 
   const keyframes = useAudio2Keyframes(audioBuffer as AudioBuffer, frameRate);
 
   console.log("useData", keyframes)
+
+  console.log("buffer store", useAudioBufferStore.getState().audioBuffer)
+
 
   const data = makeDataFrom(
     datums,
