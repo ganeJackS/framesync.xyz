@@ -13,6 +13,10 @@ import {
   Datum,
   GridDimensions,
   AxisOptionsWithScaleType,
+  AxisBand,
+  AxisBandOptions,
+  AxisOptionsBase,
+  AxisTimeOptions,
 } from "react-charts";
 import NumberInput from "./NumberInput";
 import sinusoid from "../assets/sinusoid.svg";
@@ -34,25 +38,41 @@ import { SaveSettings } from "./SaveLoadImportExport/SaveSettings";
 import SettingsSelector from "./SaveLoadImportExport/SettingsSelector";
 import ExportSettingsButton from "./SaveLoadImportExport/ExportSettingsButton";
 import ImportSettingsButton from "./SaveLoadImportExport/ImportSettingsButton";
+import { ScaleLinear } from "d3-scale";
+import {curveLinear} from "d3-shape";
+
 
 export default function ControlPanel() {
   const [
     settings,
     locks,
-    factoryPresets,
-    userPresets,
+    //factoryPresets,
+    //userPresets,
     updateSetting,
-    updateSettingFromList,
+    //updateSettingFromList,
     updateLock,
-  ] = useSettingsStore((state) => [
-    state.settings,
-    state.locks,
-    state.factoryPresets,
-    state.userPresets,
-    state.updateSetting,
-    state.updateSettingFromList,
-    state.updateLock,
-  ]);
+  ] = useSettingsStore(
+    (state) => [
+      state.settings,
+      state.locks,
+      //state.factoryPresets,
+      //state.userPresets,
+      state.updateSetting,
+      //state.updateSettingFromList,
+      state.updateLock,
+    ],
+    shallow
+  );
+
+  const settingsRef = useRef(useSettingsStore.getState().settings);
+
+  useEffect(
+    () =>
+      useSettingsStore.subscribe(
+        (state) => (settingsRef.current = state.settings)
+      ),
+    []
+  );
 
   const {
     saveName,
@@ -107,7 +127,7 @@ export default function ControlPanel() {
     boxWidth: 0,
   });
 
-  const rawData = useData({
+  const data = useData({
     datums,
     tempo,
     frameRate,
@@ -132,7 +152,8 @@ export default function ControlPanel() {
     keyframes,
   });
 
-  const data = structuredClone(rawData);
+  //console.log("data", data);
+  //const data = structuredClone(rawData);
 
   const [chartType, setChartType] = React.useState("line");
   const [highlightedText, setHighlightedText] = React.useState("");
@@ -178,27 +199,26 @@ export default function ControlPanel() {
   };
 
   const primaryAxis = React.useMemo<
-    AxisOptionsWithScaleType<(typeof data)[number]["data"][number]>
+    AxisOptions<(typeof data)[number]["data"][number]>
   >(
     () => ({
       getValue: (datum) => Number(datum.primary),
       primaryAxisId: "primary",
-      showDatumElements: true,
+      position: "bottom",
       show: showAxes,
       primary: true,
-      dataType: "linear",
+      tickCount: datums > 150 ? 24 : 48,
+      shouldNice: true,
+      curve: curveLinear,
       scaleType: "linear",
-      minDomainLength: 1,
-      tickCount: 48,
-      // tickRotation: datums < 100 ? 0 : 45,
-      styles: {
-        tick: {
-          fill: "red",
-          stroke: "red",
-        },
-      },
+
+      // formatters: {
+      //   scale: (value) => {
+      //     return value % frameRate === 0 ? value : ".";
+      //   },
+      // },
     }),
-    [showAxes]
+    [showAxes, datums, frameRate, rhythmRate, tempo]
   );
 
   const secondaryAxes = React.useMemo<
@@ -211,6 +231,7 @@ export default function ControlPanel() {
         show: showAxes,
         dataType: "linear",
         elementType: chartType === "bar" ? "bar" : "line",
+        curve: curveLinear,
       },
     ],
     [showAxes, showPoints, chartType]
@@ -301,12 +322,20 @@ export default function ControlPanel() {
   const currentFormulaMod = `(${modAmp} * ${
     modToggleSinCos === "cos" ? "cos" : "sin"
   }((${tempo} / ${modRhythmRate} * 3.141 * (t + ${modMoveLeftRight}) / ${frameRate} ))**${
-    waveType != "bumpdup" ? modBend : modBend + 0
+    waveType != "bumpdip" ? modBend : modBend + 0
   } + ${modMoveUpDown})`;
 
-  const frameInSeconds = (Number(primaryCursorValue) / frameRate).toFixed(
-    decimalPrecision
+  const frameInSeconds = Number(
+    (Number(primaryCursorValue) / frameRate).toFixed(decimalPrecision)
   );
+
+  const cursorValues = `${
+    primaryCursorValue === undefined ? 0 : primaryCursorValue
+  }:(${
+    secondaryCursorValue?.toFixed(decimalPrecision) === undefined
+      ? Number(0).toFixed(decimalPrecision)
+      : secondaryCursorValue.toFixed(decimalPrecision)
+  }) @ ${Number.isNaN(frameInSeconds) ? Number(0).toFixed(decimalPrecision) : frameInSeconds} seconds`;
 
   // const calculateColor = (value: number, minValue: number, maxValue: number) => {
   //   const percentage = 1 * (value - minValue) / (maxValue - minValue);
@@ -331,38 +360,33 @@ export default function ControlPanel() {
                 data,
                 primaryAxis,
                 secondaryAxes,
-                memoizeSeries,
+                memoizeSeries: true,
                 dark: true,
                 tooltip: false,
                 //showDebugAxes: true,
                 //useIntersectionObserver: true,
 
-                getDatumStyle: (d, _status) => ({
+                // getDatumStyle: (datum, _status) => ({
+                //   color: "#F97316",
+                //   //stroke: "#F97316",
+
+                //   opacity:
+                //     activeSeriesIndex > -1
+                //       ? datum.seriesIndex === activeSeriesIndex
+                //         ? 1
+                //         : 0.1
+                //       : 1,
+                // }),
+
+                getSeriesStyle: (series) => ({
                   color: "#F97316",
-                  //stroke: "#F97316",
-
-                  // opacity:
-                  //   activeSeriesIndex > -1
-                  //     ? datum.seriesIndex === activeSeriesIndex
-                  //       ? 1
-                  //       : 0.1
-                  //     : 1,
-                }),
-
-                getSeriesStyle: (series, _status) => ({
                   stroke: "#F97316",
-                  // opacity: `rgba(249, 115, 22, })`,
-                  // stroke: `rgba(249, 115, 22, ${opacity[i]})`,
-                  color: `rgba(255, 255, 255, )`,
-                  //backgroundColor: "white",
-                  //color: "white",
-                  //stroke: "white",
-                  // opacity:
-                  //   activeSeriesIndex > -1
-                  //     ? series.index === activeSeriesIndex
-                  //       ? 1
-                  //       : 0.1
-                  //     : 1,
+                  opacity:
+                    activeSeriesIndex > -1
+                      ? series.index === activeSeriesIndex
+                        ? 1
+                        : 0.1
+                      : 1,
                 }),
 
                 primaryCursor: {
@@ -408,9 +432,7 @@ export default function ControlPanel() {
         </label>
         {/* frame and value */}
         <div className="flex flex-row justify-center space-x-2 bg-darkest-blue font-mono text-gray-400">
-          {primaryCursorValue}:(
-          {secondaryCursorValue?.toFixed(decimalPrecision)}) @{" "}
-          {Number.isNaN(frameInSeconds) ? 0 : frameInSeconds} seconds
+          {cursorValues}
         </div>
 
         {/* Stats */}
@@ -490,26 +512,23 @@ export default function ControlPanel() {
           <fieldset className="w-max space-x-2 rounded-sm border border-dark-blue bg-darkest-blue p-4 font-mono shadow-sm">
             <legend className="flex flex-row">
               Select a primary wave or upload an mp3/wav for audio2keyframes{" "}
-              
             </legend>
-            
             <span className="pl-2">
-              
-                <input
-                  className="text-orange-500 mb-2"
-                  type="file"
-                  ref={fileInput}
-                  onChange={handleFileUpload}
-                />
-              </span>{" "}
-              <audio
-                className={`mb-2 block w-full rounded-none bg-darkest-blue ${waveType === "audio" ? "" : "opacity-30"}`}
-                ref={audioElement}
-                controls
-                style={{ borderRadius: "0px" }}
+              <input
+                className="mb-2 text-orange-500"
+                type="file"
+                ref={fileInput}
+                onChange={handleFileUpload}
               />
-            
-
+            </span>{" "}
+            <audio
+              className={`mb-2 block w-full rounded-none bg-darkest-blue ${
+                waveType === "audio" ? "" : "opacity-30"
+              }`}
+              ref={audioElement}
+              controls
+              style={{ borderRadius: "0px" }}
+            />
             <div className="flex w-full flex-col">
               {/* Primary Wave Settings */}
               <fieldset className="mb-2 w-full shrink border-2 border-dark-blue pl-2 pr-2 pb-2 shadow-inner">
@@ -528,10 +547,8 @@ export default function ControlPanel() {
                       <option value="cos">Cosine</option>
                       <option value="sin">Sine</option>
                     </select>
-                  </label>
-                  <label>
-                    {" "}
-                    {/* <select
+                  </label>{" "}
+                  {/* <select
                       className="border-2 border-dark-blue bg-darker-blue"
                       value={channelProcess}
                       onChange={(e) => {
@@ -541,7 +558,6 @@ export default function ControlPanel() {
                       <option value="stereo">stereo</option>
                       <option value="stereoNegative">stereo image</option>
                     </select> */}
-                  </label>
                 </legend>
                 <div className="mb-2 flex max-w-fit shrink flex-row justify-start text-center text-xs">
                   {/* Sinusoid */}
@@ -551,6 +567,7 @@ export default function ControlPanel() {
                     id="sinusoid"
                     name="waveType"
                     value="sinusoid"
+                    checked={waveType === "sinusoid"}
                     onChange={handleChange}
                   />
                   <label
@@ -561,6 +578,7 @@ export default function ControlPanel() {
                     } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                     htmlFor="sinusoid"
                     title="Sinusoid">
+                    Sinusoid
                     <img
                       src={sinusoid}
                       alt="sinusoid"
@@ -574,6 +592,7 @@ export default function ControlPanel() {
                     id="saw"
                     name="waveType"
                     value="saw"
+                    checked={waveType === "saw"}
                     onChange={handleChange}
                   />
                   <label
@@ -584,6 +603,7 @@ export default function ControlPanel() {
                     } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                     htmlFor="saw"
                     title="Sawtooth">
+                    Sawtooth
                     <img src={saw} alt="saw" className={"aspect-square w-16"} />
                   </label>
                   {/* Triangle */}
@@ -594,6 +614,7 @@ export default function ControlPanel() {
                     id="triangle"
                     name="waveType"
                     value="triangle"
+                    checked={waveType === "triangle"}
                     onChange={handleChange}
                   />
                   <label
@@ -604,6 +625,7 @@ export default function ControlPanel() {
                     } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                     htmlFor="triangle"
                     title="Triangle">
+                    Triangle
                     <img
                       src={triangle}
                       alt="triangle"
@@ -617,6 +639,7 @@ export default function ControlPanel() {
                     id="square"
                     name="waveType"
                     value="square"
+                    checked={waveType === "square"}
                     onChange={handleChange}
                   />
                   <label
@@ -627,6 +650,7 @@ export default function ControlPanel() {
                     } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                     htmlFor="square"
                     title="Square">
+                    Square
                     <img
                       src={square}
                       alt="square"
@@ -640,6 +664,7 @@ export default function ControlPanel() {
                     id="bumpdip"
                     name="waveType"
                     value="bumpdip"
+                    checked={waveType === "bumpdip"}
                     onChange={handleChange}
                   />
                   <label
@@ -650,6 +675,7 @@ export default function ControlPanel() {
                     } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                     htmlFor="bumpdip"
                     title="Bumpdip">
+                    BumpDip
                     <img
                       src={bumpdip}
                       alt="bumpdip"
@@ -668,7 +694,6 @@ export default function ControlPanel() {
                       e.persist();
                       updateSetting("waveType", e.target.value);
                     }}
-                    
                   />
                   <label
                     className={`border-2 bg-darker-blue p-1 ${
@@ -678,6 +703,7 @@ export default function ControlPanel() {
                     } cursor-pointer duration-150 ease-out hover:border-orange-600`}
                     htmlFor="audio"
                     title="Audio">
+                    .wav/.mp3
                     <img
                       src={audiofile}
                       alt="audio"

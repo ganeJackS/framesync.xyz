@@ -14,7 +14,7 @@ export interface Settings {
     amplitude: number;
     upDownOffset: number;
     leftRightOffset: number;
-    waveType: string;
+    waveType: "sinusoid" | "square" | "saw" | "triangle" | "bumpdip" | "audio";
     bend: number;
     toggleSinCos: string;
     linkFrameOffset: boolean;
@@ -58,7 +58,6 @@ export type Actions = {
   deleteSetting: (id: number | string) => void;
   initializeSettings: () => void;
   updateLock: (name: keyof State["locks"], value: boolean) => void;
-  // edit saveName in settings by id
   updateSettingName: (id: number | string, saveName: string) => void;
 };
 
