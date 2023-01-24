@@ -69,6 +69,8 @@ function useAudio2Keyframes(
             .map((x) => Math.abs(x))
             .reduce((acc, val) => acc + val);
 
+          console.log("c1: ", channel1Val);
+          console.log("c2: ", channel2Val);
           console.log("sum: ", channel1Val + channel2Val);
 
           return channel1Val + channel2Val;
