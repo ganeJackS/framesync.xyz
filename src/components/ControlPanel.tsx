@@ -38,8 +38,7 @@ import { SaveSettings } from "./SaveLoadImportExport/SaveSettings";
 import SettingsSelector from "./SaveLoadImportExport/SettingsSelector";
 import ExportSettingsButton from "./SaveLoadImportExport/ExportSettingsButton";
 import ImportSettingsButton from "./SaveLoadImportExport/ImportSettingsButton";
-import {curveLinear} from "d3-shape";
-
+import { curveLinear } from "d3-shape";
 
 export default function ControlPanel() {
   const [
@@ -174,7 +173,7 @@ export default function ControlPanel() {
 
   const fileInput = useRef<HTMLInputElement>(null);
   const audioElement = useRef<HTMLAudioElement>(null);
-  const [ setAudioBuffer] = useAudioBufferStore((state) => [
+  const [setAudioBuffer] = useAudioBufferStore((state) => [
     state.setAudioBuffer,
   ]);
 
@@ -189,13 +188,11 @@ export default function ControlPanel() {
         (buffer: React.SetStateAction<AudioBuffer | null>) => {
           setAudioBuffer(buffer as AudioBuffer);
           audioElement.current!.src = URL.createObjectURL(file);
-          audioElement.current!.play();
         }
       );
     };
     fileReader.readAsArrayBuffer(file);
     updateSetting("waveType", "audio");
-    console.log("file", file);
   };
 
   const primaryAxis = React.useMemo<
@@ -335,7 +332,11 @@ export default function ControlPanel() {
     secondaryCursorValue?.toFixed(decimalPrecision) === undefined
       ? Number(0).toFixed(decimalPrecision)
       : secondaryCursorValue.toFixed(decimalPrecision)
-  }) @ ${Number.isNaN(frameInSeconds) ? Number(0).toFixed(decimalPrecision) : frameInSeconds} seconds`;
+  }) @ ${
+    Number.isNaN(frameInSeconds)
+      ? Number(0).toFixed(decimalPrecision)
+      : frameInSeconds
+  } seconds`;
 
   // const calculateColor = (value: number, minValue: number, maxValue: number) => {
   //   const percentage = 1 * (value - minValue) / (maxValue - minValue);

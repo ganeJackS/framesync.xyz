@@ -10,13 +10,12 @@ function useAudio2Keyframes(audioBuffer: AudioBuffer, frameRate: number) {
     const numFrames = duration * frameRate;
     const chunkSize = Math.floor(audioBuffer.length / numFrames);
     const chunkValues = Array.from({ length: numFrames }, (_, i) =>
-    audioBuffer
+      audioBuffer
         .getChannelData(0)
         .slice(i * chunkSize, (i + 1) * chunkSize)
         .map(Math.abs)
         .reduce((acc, value) => acc + value, 0)
-);
-
+    );
 
     const normalizedChunkValues = chunkValues.map(
       (value) => value / Math.max(...chunkValues)

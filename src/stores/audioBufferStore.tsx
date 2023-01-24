@@ -14,8 +14,5 @@ const useAudioBufferStore = create<State & Actions>()(set => ({
 
 }));
 
-const log = 
-
-console.log(useAudioBufferStore.getState().audioBuffer)
 
 export default useAudioBufferStore;
