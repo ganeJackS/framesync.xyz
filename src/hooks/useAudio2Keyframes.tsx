@@ -66,12 +66,21 @@ function useAudio2Keyframes(
           let channel2Val = audioBuffer
             .getChannelData(1)
             .slice(start, end)
-            .map((x) => Math.abs(x))
-            .reduce((acc, val) => acc + val);
+            .map((x) => {
+              console.log("x: ", x);
+              console.log("Math.abs(x): ", Math.abs(x));
+              return Math.abs(x);
+            })
+            .reduce((acc, val) => {
+              console.log("acc: ", acc);
+              console.log("val: ", val);
+              console.log("sum: ", acc + val);
+              return acc + val;
+            });
 
-          console.log("c1: ", channel1Val);
-          console.log("c2: ", channel2Val);
-          console.log("sum: ", channel1Val + channel2Val);
+          // console.log("c1: ", channel1Val);
+          // console.log("c2: ", channel2Val);
+          // console.log("sum: ", channel1Val + channel2Val);
 
           return channel1Val + channel2Val;
         });
