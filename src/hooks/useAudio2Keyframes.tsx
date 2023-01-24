@@ -21,10 +21,11 @@ function useAudio2Keyframes(audioBuffer: AudioBuffer, frameRate: number) {
       }
       chunkValues.push(chunkValue);
     }
-
+    console.log("chunkValues", chunkValues)
     const normalizedChunkValues = chunkValues.map(
       (value) => value / Math.max(...chunkValues)
     );
+    console.log("normalizedChunkValues", normalizedChunkValues)
 
     setKeyframes(normalizedChunkValues);
   }, [audioBuffer, frameRate]);
