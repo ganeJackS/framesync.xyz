@@ -521,13 +521,13 @@ export default function ControlPanel() {
                 hideLabel="Hide">
                 <div className="flex flex-col">
                   <input
-                    className=" border-y border-dark-blue bg-darkest-blue pr-2 text-orange-500"
+                    className=" border-y pt-2 border-dark-blue bg-darkest-blue pr-2 text-orange-500"
                     type="file"
                     ref={fileInput}
                     onChange={handleFileUpload}
                   />
                   <audio
-                    className={`m-0 block w-auto rounded-none bg-darkest-blue ${
+                    className={`mt-3 block w-auto rounded-none bg-darkest-blue ${
                       waveType === "audio" ? "" : "opacity-30"
                     }`}
                     ref={audioElement}
