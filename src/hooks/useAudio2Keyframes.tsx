@@ -37,7 +37,6 @@ function useAudio2Keyframes(audioBuffer: AudioBuffer, frameRate: number, channel
     const normalizedChunkValues = chunkValues.map((value) => value / Math.max(...chunkValues.map(Math.abs)));
     setKeyframes(normalizedChunkValues);
 
-    console.log('useAudio2Keyframes', normalizedChunkValues)
   }, [audioBuffer, frameRate, channelProcess]);
 
   return keyframes;
