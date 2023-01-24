@@ -150,8 +150,6 @@ export default function ControlPanel() {
     keyframes,
   });
 
-  //console.log("data", data);
-  //const data = structuredClone(rawData);
 
   const [chartType, setChartType] = React.useState("line");
   const [highlightedText, setHighlightedText] = React.useState("");
