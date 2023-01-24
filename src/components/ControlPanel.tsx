@@ -39,6 +39,7 @@ import SettingsSelector from "./SaveLoadImportExport/SettingsSelector";
 import ExportSettingsButton from "./SaveLoadImportExport/ExportSettingsButton";
 import ImportSettingsButton from "./SaveLoadImportExport/ImportSettingsButton";
 import { curveLinear } from "d3-shape";
+import hash from "object-hash";
 
 export default function ControlPanel() {
   const [
@@ -190,7 +191,14 @@ export default function ControlPanel() {
         }
       );
     };
+    
     fileReader.readAsArrayBuffer(file);
+    // Print keccak256 hash of file
+    // const hash = keccak256(file);
+    // console.log(hash);
+    file.text().then((text) => {
+      console.log(hash(text));
+    });
     updateSetting("waveType", "audio");
     updateSetting("channelProcess", "mono");
   };
