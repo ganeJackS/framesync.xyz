@@ -454,7 +454,7 @@ export default function ControlPanel() {
             </legend>
 
             <span className="mb-2 max-w-lg pl-2 pr-2 pb-2 text-xs shadow-inner">
-              Select a Primary Wave or upload an wav/mp3 file for
+              Select a Primary Wave or upload a wav/mp3 file for
               audio2keyframes
             </span>
 
