@@ -56,21 +56,22 @@ function useAudio2Keyframes(
         chunkValues = Array.from({ length: numFrames }, (_, i) => {
           const start = i * chunkSize;
           const end = start + chunkSize;
-          if (end > audioBuffer.length) {
-            console.log("oh god oh fuck");
-          }
-          return (
-            audioBuffer
-              .getChannelData(0)
-              .slice(start, end)
-              .map((x) => Math.abs(x))
-              .reduce((acc, val) => acc + val) +
-            audioBuffer
-              .getChannelData(1)
-              .slice(start, end)
-              .map((x) => Math.abs(x))
-              .reduce((acc, val) => acc + val)
-          );
+
+          let channel1Val = audioBuffer
+            .getChannelData(0)
+            .slice(start, end)
+            .map((x) => Math.abs(x))
+            .reduce((acc, val) => acc + val);
+
+          let channel2Val = audioBuffer
+            .getChannelData(1)
+            .slice(start, end)
+            .map((x) => Math.abs(x))
+            .reduce((acc, val) => acc + val);
+
+          console.log("sum: ", channel1Val + channel2Val);
+
+          return channel1Val + channel2Val;
         });
       } else if (channelProcess === "stereoNegative") {
         chunkValues = Array.from({ length: numFrames }, (_, i) => {
