@@ -453,10 +453,9 @@ export default function ControlPanel() {
                 </select>
             </legend>
 
-            <span className="mb-2 max-w-lg pl-2 pr-2 pb-2 text-xs shadow-inner">
-              Select a Primary Wave or upload a wav/mp3 file for
-              audio2keyframes
-            </span>
+            <div className="mb-2 max-w-lg pr-2 pb-2 text-xs shadow-inner">
+              Select a Primary Wave or upload wav/mp3 file for audio2keyframes
+            </div>
 
             {/* Audio Controls */}
             <div className="mb-2 border border-dark-blue">
@@ -701,7 +700,7 @@ export default function ControlPanel() {
                     BEND{" "}
                     <NumberInput
                       name="bend"
-                      min={1}
+                      min={waveType === "saw" ? .1 : 1}
                       max={waveType === "saw" ? 200 : 500}
                       step={waveType === "saw" ? 0.1 : 2}
                       onChange={handleChange}
