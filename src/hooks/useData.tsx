@@ -7,10 +7,10 @@ import useAudio2Keyframes from "./useAudio2Keyframes";
 import { Settings, State } from "../stores/settingsStore";
 
 export default function useData({}: {}) {
-  const [settings, updateSetting] = useSettingsStore((state) => [
-    state.settings,
-    state.updateSetting,
-  ], shallow);
+  const [settings, updateSetting] = useSettingsStore(
+    (state) => [state.settings, state.updateSetting],
+    shallow
+  );
 
   const settingsRef = useRef(useSettingsStore.getState().settings);
 
@@ -49,12 +49,13 @@ export default function useData({}: {}) {
     channelProcess,
   } = settingsRef.current;
 
-  const [audioBuffer] = useAudioBufferStore((state) => [
-    state.audioBuffer
-    
-  ]);
+  const [audioBuffer] = useAudioBufferStore((state) => [state.audioBuffer]);
 
-  const keyframes = useAudio2Keyframes(audioBuffer as AudioBuffer, frameRate, channelProcess);
+  const keyframes = useAudio2Keyframes(
+    audioBuffer as AudioBuffer,
+    frameRate,
+    channelProcess
+  );
 
   const data = makeDataFrom(
     datums,
@@ -78,7 +79,7 @@ export default function useData({}: {}) {
     modBend,
     modMoveUpDown,
     modMoveLeftRight,
-    keyframes,    
+    keyframes
   );
 
   return data;
@@ -142,8 +143,6 @@ const makeDataFrom = (
   );
 };
 
-
-
 const makeSeries = (
   datums: number,
   tempo: number,
@@ -172,8 +171,7 @@ const makeSeries = (
 ) => {
   //let length: number = Number(datums);
   let audioKeyframesLength: number = keyframes?.length as number;
-  
-  
+
   if (waveType === "audio") {
     datums = datums < audioKeyframesLength ? audioKeyframesLength : datums;
   }
@@ -187,15 +185,14 @@ const makeSeries = (
   return {
     label: `wave 1`,
     data: [
-      ...new Array(datums as number >= 1 ? Number(datums) : Number((datums = 1))),
+      ...new Array(
+        (datums as number) >= 1 ? Number(datums) : Number((datums = 1))
+      ),
     ].map((_, i) => {
       let t: number = i + Number(leftRightOffset);
       let modt: number = i + Number(modMoveLeftRight);
       let ak = keyframes as number[];
-      let y;
-
-     
-  
+      let y = 0;
 
       waveType === "audio" ? (y = ak[t]) : (y = 0);
 
@@ -271,6 +268,9 @@ const makeSeries = (
           Number(upDownOffset);
       }
 
+      y = easeInOutElastic(y);
+      //y = easeInOutBack(easeInOutElastic(y));
+
       const primaryWaveY = Number(y);
 
       // Noise Generator
@@ -285,7 +285,7 @@ const makeSeries = (
       } else {
         modToggleSinCos === "cos"
           ? (y =
-              (y as number) *
+              (y as number) +
               (Number(modAmp) *
                 Math.cos(
                   ((Number(tempo) / Number(modRhythmRate)) * Math.PI * modt) /
@@ -312,6 +312,12 @@ const makeSeries = (
                 Number(modMoveUpDown)));
       }
 
+
+      // normalize y
+   
+
+
+
       // let scalingFactor;
       // if (y > hardMax) {
       //   scalingFactor = hardMax / y;
@@ -323,7 +329,18 @@ const makeSeries = (
 
       // y = y * scalingFactor;
 
-      Number.isNaN(y) ? (y = upDownOffset) : (y = y);
+      // const c5 = (2 * Math.PI) / 4.5;
+
+      // y === 0
+      //   ? 0
+      //   : y === 1
+      //   ? 1
+      //   : y < 0.5
+      //   ? y = -(Math.pow(2, 20 * y - 10) * Math.sin((20 * y - 11.125) * c5)) / 2
+      //   : y = (Math.pow(2, -20 * y + 10) * Math.sin((20 * y - 11.125) * c5)) / 2 +
+      //     1;
+
+     Number.isNaN(y) ? (y = upDownOffset) : (y = y);
 
       // if ((y as number) > Number(hardMax)) {
       //   y = Number(hardMax);
@@ -333,6 +350,8 @@ const makeSeries = (
 
       //y = y - 0;
 
+      //y = y * amplitude
+
       return {
         primary: linkFrameOffset === true ? t : t - Number(leftRightOffset),
         secondary: Number(y),
@@ -341,3 +360,64 @@ const makeSeries = (
     }),
   };
 };
+
+
+
+function easeOutElastic(x: number): number {
+  const c4 = (2 * Math.PI) / 3;
+
+  return x === 0
+    ? 0
+    : x === 1
+    ? 1
+    : Math.pow(2, -10 * x) * Math.sin((x * 10 - 0.75) * c4) + 1;
+}
+
+function easeInOutElastic(x: number): number {
+  const c5 = (2 * Math.PI) / 4.5;
+  
+  return x === 0
+    ? 0
+    : x === 1
+    ? 1
+    : x < 0.5
+    ? -(Math.pow(2, 20 * x - 10) * Math.sin((20 * x - 11.125) * c5)) / 2
+    : (Math.pow(2, -20 * x + 10) * Math.sin((20 * x - 11.125) * c5)) / 2 + 1;
+  }
+
+function easeInOutBounce(x: number): number {
+  return x < 0.5
+    ? (1 - easeOutBounce(1 - 2 * x)) / 2
+    : (1 + easeOutBounce(2 * x - 1)) / 2;
+}
+
+function easeOutBounce(x: number): number {
+  const n1 = 7.5625;
+  const d1 = 2.75;
+
+  if (x < 1 / d1) {
+    return n1 * x * x;
+  } else if (x < 2 / d1) {
+    return n1 * (x -= 1.5 / d1) * x + 0.75;
+  } else if (x < 2.5 / d1) {
+    return n1 * (x -= 2.25 / d1) * x + 0.9375;
+  } else {
+    return n1 * (x -= 2.625 / d1) * x + 0.984375;
+  }
+}
+
+function easeInBack(x: number): number {
+  const c1 = 1.70158;
+  const c3 = c1 + 1;
+  
+  return c3 * x * x * x - c1 * x * x;
+  }
+
+  function easeInOutBack(x: number): number {
+    const c1 = 1.70158;
+    const c2 = c1 * 1.525;
+    
+    return x < 0.5
+      ? (Math.pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2
+      : (Math.pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
+    }
