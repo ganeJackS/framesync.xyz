@@ -39,7 +39,7 @@ import SettingsSelector from "./SaveLoadImportExport/SettingsSelector";
 import ExportSettingsButton from "./SaveLoadImportExport/ExportSettingsButton";
 import ImportSettingsButton from "./SaveLoadImportExport/ImportSettingsButton";
 import { curveLinear } from "d3-shape";
-import hash from "object-hash";
+
 
 export default function ControlPanel() {
   const [
